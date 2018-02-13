@@ -286,6 +286,7 @@ def process_example_structure():
         # I expect that the valid_examples dictionary already filters only
         # existing files, so I don't try/except here
         file_name = './file_examples/'+example_name+'.xyz'
+        file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
         #frame = read(file_name)
         with open(file_name,'r') as f:
             filecontent = f.read()

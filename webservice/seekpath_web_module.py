@@ -23,7 +23,7 @@ import spglib  # Mainly to get its version
 
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
-
+sys.path.insert(0,'/home/app/git/glosim2/')
 
 from libmatch.soap import get_Soaps
 import cPickle as pck
@@ -43,6 +43,7 @@ def load_model_data():
     :return: 
     '''
     dataPath = './data/'
+    dataPath = '/home/app/data/'
     ref_desc = np.load(dataPath + 'test_soap.npy')
     with open(dataPath + 'test_model.pck', 'rb') as f:
         model = pck.load(f)

@@ -103,6 +103,7 @@ COPY run_tests.py $HOME/code/run_tests.py
 
 # Set proper permissions
 RUN chown -R app:app $HOME/code/webservice
+RUN chown -R app:app $HOME/data
 RUN chown app:app $HOME/code/predictor.py $HOME/code/run_tests.py
 
 USER app

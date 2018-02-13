@@ -2,7 +2,6 @@ __init__ = ['xyz_io','magres_io']
 
 import ase.io
 from ase.data import atomic_numbers
-from seekpath.util import atoms_num_dict
 import pymatgen
 import qe_tools
 import numpy as np
