@@ -45,7 +45,8 @@ def load_model_data(sp):
     :return: 
     '''
     dataPath = '../data/'
-    # TODO dataPath = '/home/app/data/'
+    # TODO
+    dataPath = '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
         model = pck.load(f)
