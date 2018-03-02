@@ -21,7 +21,21 @@
     <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
     <link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
 
-    <title>NMR predictor</title>
+    <script type="text/javascript">// <![CDATA[
+        function loading(){
+            $("#loading").show();
+            $("#content").hide();
+        }
+    // ]]></script>
+
+    <script type="text/javascript">// <![CDATA[
+        function loading2(){
+            $("#loading2").show();
+            $("#content2").hide();
+        }
+    // ]]></script>
+
+    <title>Shift-ML</title>
     <script>
     $( function() {
       $( "#accordion" ).accordion({
@@ -43,15 +57,18 @@
     {% endblock %}
 
     <script src="../static/js/iframeResizer.contentWindow.min.js"></script>
-  </head>
 
 </head>
 
+
+
 <body>
+
+
 <div id='container'>
 <div id='maintitle'>
   {% block seekpathtitle %}
-    <h1 style="text-align: center;"><span style="font-weight: bold;">NMR predictor</span>: fast machine learning estimation of chemical shift</h1>
+    <h1 style="text-align: center;"><span style="font-weight: bold;">Shift-ML</span>: chemical shifts in molecular solids by machine learning</h1>
   {% endblock %}
 </div>
 
@@ -72,20 +89,20 @@
 
 {% block aboutblock %}
 <div id="accordion">
-<h2>What NMR predictor does</h2>
+<h2>What Shift-ML does</h2>
 <div>
-<p>This tool takes in <strong>input a crystal structure</strong> (in a number of different formats), and 
+<p>This tool takes an <strong>input a crystal structure</strong> (in a number of different formats), and
 <ul>
-<li><strong>predicts</strong> the NMR chemical shifts of H,C and N;</li>
-<li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li>
-<li>provides <strong>copy-paste content</strong> in magres and extended xyz format.</li>
+<li><strong>predicts</strong> the NMR chemical shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
+<!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
+<li>provides <strong>copy-paste content</strong> in the extended xyz format and in JSON.</li>
 </ul>
 <p>
-<p><em>Alternatively, you can calculate and visualize an example</em>.<br>
+<p><em>Alternatively, you can calculate an example</em>.<br>
 </p>
 </div>
 
-<h2>NMR predictor definitions and advantages</h2>
+<h2>Shift-ML definitions and advantages</h2>
 <div>
 <p>The main advantages of this work are:
 <ul>
@@ -117,21 +134,23 @@
 	</div> 
 	<div class='col-sm-6'>
 	  <select name="fileformat" id="fileformatSelect">
-        <option value="qeinp-qetools">Quantum ESPRESSO input [parser: qe-tools]</option>
-        <option value="vasp-ase">VASP POSCAR [parser: ase]</option>
-        <option value="xsf-ase">XCrySDen (.xsf) [parser: ase]</option>
-        <option value="castep-ase">CASTEP (.cell) [parser: ase]</option>
+          <option value="xyz-ase">EXTXYZ File (.xyz) [parser: ase]</option>
+          <option value="cif-ase">CIF File (.cif) [parser: ase]</option>
+          <option value="cif-pymatgen">CIF File (.cif) [parser: pymatgen]</option>
+          <option value="vasp-ase">VASP POSCAR [parser: ase]</option>
+          <option value="xsf-ase">XCrySDen (.xsf) [parser: ase]</option>
+          <option value="castep-ase">CASTEP (.cell) [parser: ase]</option>
 	      <option value="pdb-ase">Protein Data Bank format (.pdb) [parser: ase]</option>
-	      <option value="xyz-ase">EXTXYZ File (.xyz) [parser: ase]</option>
-        <option value="cif-ase">CIF File (.cif) [parser: ase]</option>
-        <option value="cif-pymatgen">CIF File (.cif) [parser: pymatgen]</option>
-	  </select>
+
+        </select>
 	</div> 
       </div>
-
+        <div id="loading"></div>
+      <div id="content">
       <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
-        <input type="submit" value="Calculate my structure" class="btn btn-default">
+          <input type="submit" value="Calculate my structure" class="btn btn-default" onclick="loading();">
+      </div>
       </div>
     </div>
   </form>
@@ -152,9 +171,12 @@
 	  </select>
 	</div>
       </div>
-      <div class='row' style="text-align: center">
-        <p class='small'> </p>
-	<input type="submit" value="Calculate this example" class="btn btn-default"> 
+      <div id="loading2"></div>
+      <div id="content2">
+          <div class='row' style="text-align: center">
+            <p class='small'> </p>
+            <input type="submit" value="Calculate this example" class="btn btn-default" onclick="loading2();">
+          </div>
       </div>
     </div>
   </div>
@@ -165,13 +187,12 @@
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-            <a href="https://doi.org/10.1103/PhysRevB.87.219902" target="_blank">
-                Bartók, A. P., Kondor, R., & Csányi, G. (2013). On representing chemical environments. Physical Review B, 87(18), 184115. https://doi.org/10.1103/PhysRevB.87.184115
+            <a href="" target="_blank">
+                Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
 
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
       	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>, 
-             <a href="https://github.com/aiidateam/qe-tools" target="_blank">qe-tools</a> or 
              <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
       	</li>
         </ul>

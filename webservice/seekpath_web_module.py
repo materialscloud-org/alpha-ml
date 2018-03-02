@@ -24,6 +24,8 @@ import spglib  # Mainly to get its version
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
+sys.path.insert(0,'/Users/iMac/git/glosim2/')
+
 
 from libmatch.soap import get_Soaps
 import cPickle as pck
@@ -31,23 +33,23 @@ from ase.io import write,read
 from ase import Atoms
 
 
-NMR_predictor_version = '0.0.1'
+Shift_ML_version = '0.0.1'
 
 
 MAX_NUMBER_OF_ATOMS = 1000
 
 ############################
-def load_model_data():
+def load_model_data(sp):
     '''
     Load the model data at the start of the app
     :return: 
     '''
-    dataPath = './data/'
-    dataPath = '/home/app/data/'
-    ref_desc = np.load(dataPath + 'test_soap.npy')
-    with open(dataPath + 'test_model.pck', 'rb') as f:
+    dataPath = '../data/'
+    # TODO dataPath = '/home/app/data/'
+    # ref_desc = np.load(dataPath + 'test_soap.npy')
+    with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
         model = pck.load(f)
-    return ref_desc,model
+    return model
 
 # ref_desc, model = load_model_data()
 
@@ -235,7 +237,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             })
         raise FlaskRedirectException("Unknown format '{}'".format(fileformat))
     except Exception:
-        # There was an exception...
         import traceback
         logme(
             logger,
@@ -243,14 +244,29 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             fileformat,
             flask_request,
             call_source,
-            reason='exception',
+            reason='codeexception',
             extra={
-                'traceback': traceback.format_exc(),
+                'traceback': traceback.extract_stack(),
                 'form_data': form_data,
             })
-        raise FlaskRedirectException(
-            "I tried my best, but I wasn't able to load your "
-            "file in format '{}'...".format(fileformat))
+        raise
+
+        # There was an exception...
+        # import traceback
+        # logme(
+        #     logger,
+        #     filecontent,
+        #     fileformat,
+        #     flask_request,
+        #     call_source,
+        #     reason='exception',
+        #     extra={
+        #         'traceback': traceback.format_exc(),
+        #         'form_data': form_data,
+        #     })
+        # raise FlaskRedirectException(
+        #     "I tried my best, but I wasn't able to load your "
+        #     "file in format '{}'...".format(fileformat))
 
     if frame.get_number_of_atoms() > MAX_NUMBER_OF_ATOMS:
         ## Structure too big
@@ -269,6 +285,28 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             "Sorry, this online visualizer is limited to {} atoms "
             "in the input cell, while your structure has {} atoms."
             "".format(MAX_NUMBER_OF_ATOMS, frame.get_number_of_atoms()))
+
+
+
+    for sp in np.unique(frame.get_atomic_numbers()) :
+        if sp not in [1, 6, 7, 8]:
+            ## Structure has wrong species
+            logme(
+                logger,
+                filecontent,
+                fileformat,
+                flask_request,
+                call_source,
+                reason='wrongspecies',
+                extra={
+                    'atomic_numbers': frame.get_atomic_numbers(),
+                    'form_data': form_data,
+                })
+            raise FlaskRedirectException(
+                "Sorry, Shift-ML is limited to the predictions of "
+                "isotropic chemical shift of 1H, 13C, 15N and 17O."
+                "The atomic species you provided are {}"
+                "".format(np.unique(frame.get_atomic_numbers())))
 
     # Log the content in case of valid structure
     logme(
@@ -314,22 +352,27 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         ]
 ##############################################################################
 
-        sp = 1
-        atoms = ase2qp(frame)
-        ref_desc, model = load_model_data()
-        soap_params = dict(
-            centerweight=1., gaussian_width=0.3, cutoff=4, cutoff_transition_width=0.5, spkitMax=spkitMax,
-            nmax=9, lmax=9, nocenters=[8, 6, 7], is_fast_average=False, chem_channels=False, dispbar=True
-        )
-        descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-        kernel_test = np.dot(ref_desc, descriptor.T)
-
-        y_pred = predict(kernel_test, **model)
-
-
         shielding = np.zeros((len(frame),))
-        shielding[frame.get_atomic_numbers()==1] = y_pred
+        sps = list(set(frame.get_atomic_numbers()).intersection([1,6,7,8]))
+        for sp in sps:
+            atoms = ase2qp(frame)
+            model = load_model_data(sp)
+            ll = list(sps)
+            ll.remove(sp)
+            soap_params = dict(
+                centerweight=1.,  cutoff_transition_width=0.5, spkitMax=spkitMax,
+                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
+            )
+            soap_params.update(model['soap_params'])
+
+            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+
+            kernel_test = np.dot(model['soap_ref'], descriptor.T)
+
+            y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
+
+            shielding[frame.get_atomic_numbers()==sp] = y_pred
+
         np.round(shielding,decimals=2,out=shielding)
         ##############################################################################
 
@@ -348,15 +391,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
                 'form_data': form_data,
             })
         raise
-
-    # qe_pw = str(jinja2.escape(get_qe_pw(raw_code_dict, out_json_data))).replace(
-    #     '\n', '<br>').replace(' ', '&nbsp;')
-    # qe_matdyn = str(jinja2.escape(get_qe_matdyn(raw_code_dict,
-    #                                             out_json_data))).replace(
-    #                                                 '\n', '<br>').replace(
-    #                                                     ' ', '&nbsp;')
-    # cp2k = str(jinja2.escape(get_cp2k(raw_code_dict))).replace(
-    #     '\n', '<br>').replace(' ', '&nbsp;')
 
     out_json_data = get_json_for_visualizer(frame)
 
@@ -386,7 +420,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
         inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
         compute_time=compute_time,
-        NMR_predictor_version=NMR_predictor_version,
+        Shift_ML_version=Shift_ML_version,
     )
 
 

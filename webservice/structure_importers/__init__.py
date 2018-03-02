@@ -42,19 +42,7 @@ def tuple_from_ase(asestructure):
     return structure_tuple
 
 
-def tuple_from_pymatgen(pmgstructure):
-    """
-    Given a pymatgen structure, return a structure tuple as expected from seekpath
 
-    :param pmgstructure: a pymatgen Structure object
-    
-    :return: a structure tuple (cell, positions, numbers) as accepted
-        by seekpath.
-    """
-    frac_coords = [site.frac_coords.tolist() for site in pmgstructure.sites]
-    structure_tuple = (pmgstructure.lattice.matrix.tolist(), frac_coords,
-                       pmgstructure.atomic_numbers)
-    return structure_tuple
 
 
 def get_structure(fileobject, fileformat, extra_data=None):
@@ -78,29 +66,27 @@ def get_structure(fileobject, fileformat, extra_data=None):
         'cif-ase':
         'cif',  # currently broken in ASE: https://gitlab.com/ase/ase/issues/15
     }
-    if fileformat in ase_fileformats.keys():
+    if fileformat in ['xyz-ase']:
         from xyz_io import read_xyz
+        # problem with the encoding for np.dtypes (it does not accept unicode but that's how it has to be)
         for cc in read_xyz(fileobject):
             asestructure = cc
             break # reads only the first if there are more
 
         return asestructure
+    elif fileformat in ase_fileformats.keys():
+        from ase.io import read
+        asestructure = read(fileobject,index='0',format=ase_fileformats[fileformat])
+
+        return asestructure
+
     elif fileformat == "cif-pymatgen":
         from pymatgen.io.cif import CifParser
+        from pymatgen.io.ase import AseAtomsAdaptor
         # Only get the first structure, if more than one
         pmgstructure = CifParser(fileobject).get_structures()[0]
-        return pmgstructure
-    elif fileformat == 'qeinp-qetools':
-        pwfile = qe_tools.PwInputFile(fileobject)
-        pwparsed = pwfile.get_structure_from_qeinput()
+        asestructure = AseAtomsAdaptor.get_atoms(pmgstructure)
+        return asestructure
 
-        cell = pwparsed['cell']
-        rel_position = np.dot(pwparsed['positions'],
-                              np.linalg.inv(cell)).tolist()
-        numbers = [atoms_num_dict[sym] for sym in pwparsed['atom_names']]
-
-        # structure_tuple = (cell, rel_position, numbers)
-        aseAtoms = Atoms(cell=cell,scaled_positions=rel_position,numbers=numbers,pbc=True)
-        return aseAtoms
 
     raise UnknownFormatError(fileformat)
