@@ -108,7 +108,7 @@ RUN chown app:app $HOME/code/predictor.py $HOME/code/run_tests.py
 
 USER app
 
-RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4
+RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4 scikit-learn==0.19.1
 
 RUN cd $HOME/git/  \
     && git clone https://github.com/cosmo-epfl/glosim2.git
