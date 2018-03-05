@@ -330,7 +330,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             call_source,
             reason='toolarge',
             extra={
-                'small_distances': dist[dist < 0.5],
                 'form_data': form_data,
             })
         raise FlaskRedirectException(
