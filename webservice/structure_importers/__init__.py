@@ -99,14 +99,21 @@ class WrongCellFormat(ValueError):
 class WrongAtomFormat(ValueError):
     pass
 
+class WrongDensity(ValueError):
+    pass
+
 def is_proper_crystal(frame):
     cell = frame.get_cell()
     sps = frame.get_atomic_numbers()
     Natoms = frame.get_number_of_atoms()
+    vol = frame.get_volume()
 
     if Natoms == 0 or len(sps) == 0:
         raise WrongAtomFormat
     elif np.isclose(cell,np.zeros((3,3))) is False:
         raise WrongCellFormat
+
+    elif float(Natoms) / vol > 0.234 or vol / float(Natoms) < 0.01:
+        raise WrongDensity
     else:
         return None

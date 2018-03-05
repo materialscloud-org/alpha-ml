@@ -233,7 +233,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         the user).
     """
     from structure_importers import get_structure, UnknownFormatError,WrongAtomFormat,WrongCellFormat
-
+    from scipy.spatial.distance import pdist
     start_time = time.time()
     fileobject = io.StringIO(unicode(filecontent))
     form_data = dict(flask_request.form)
@@ -317,6 +317,25 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             "".format(MAX_NUMBER_OF_ATOMS, frame.get_number_of_atoms()))
 
 
+    positions = frame.get_positions()
+    dist = pdist(positions)
+
+    if dist[dist < 0.5].size > 0:
+        ## overlapping atoms
+        logme(
+            logger,
+            filecontent,
+            fileformat,
+            flask_request,
+            call_source,
+            reason='toolarge',
+            extra={
+                'small_distances': dist[dist < 0.5],
+                'form_data': form_data,
+            })
+        raise FlaskRedirectException(
+            "There are some overlapping atoms. Please check your input file."
+        )
 
     for sp in np.unique(frame.get_atomic_numbers()) :
         if sp not in [1, 6, 7, 8]:
