@@ -20,8 +20,9 @@ import cPickle as pck
 
 
 from seekpath_web_module import (generate_log, FlaskRedirectException, logme,
-                                 process_structure_core)
+                                 process_structure_core,z2symb,load_all_models_data)
 
+# TODO models = load_all_models_data()
 
 # This (undocumented) flag changes the style of the webpage (CSS, etc.)
 # and decides whether some of the headers (e.g. the SeeK-path title) and the
@@ -264,6 +265,7 @@ def process_structure():
 
     else:  # GET Request
         return flask.redirect(flask.url_for('input_structure'))
+
 
 
 @app.route('/process_example_structure/', methods=['GET', 'POST'])

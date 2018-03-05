@@ -10,4 +10,4 @@ To access the image's CL with the test data:
 
 sudo docker run -it --rm -v /Users/iMac/PycharmProjects/nmr_test/data:/home/app/data nmr_app 
 
-sudo docker run -p 80:80 --rm -v /Users/iMac/PycharmProjects/nmr_test/data:/home/app/data nmr_app 
+sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/nmr_test/data:/home/app/data  test 

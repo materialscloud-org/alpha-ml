@@ -52,7 +52,23 @@ def load_model_data(sp):
         model = pck.load(f)
     return model
 
+def load_all_models_data():
+    '''
+    Load the model data at the start of the app
+    :return:
+    '''
+    dataPath = '../data/'
+    # TODO
+    dataPath = '/home/app/data/'
+    # ref_desc = np.load(dataPath + 'test_soap.npy')
+    models = {}
+    for sp in [1,6,7,8]:
+        with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
+            models[sp] = pck.load(f)
+    return models
+
 # ref_desc, model = load_model_data()
+
 
 class FlaskRedirectException(Exception):
     """
@@ -238,21 +254,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             })
         raise FlaskRedirectException("Unknown format '{}'".format(fileformat))
     except Exception:
-        import traceback
-        logme(
-            logger,
-            filecontent,
-            fileformat,
-            flask_request,
-            call_source,
-            reason='codeexception',
-            extra={
-                'traceback': traceback.extract_stack(),
-                'form_data': form_data,
-            })
-        raise
-
-        # There was an exception...
         # import traceback
         # logme(
         #     logger,
@@ -260,14 +261,29 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         #     fileformat,
         #     flask_request,
         #     call_source,
-        #     reason='exception',
+        #     reason='codeexception',
         #     extra={
-        #         'traceback': traceback.format_exc(),
+        #         'traceback': traceback.extract_stack(),
         #         'form_data': form_data,
         #     })
-        # raise FlaskRedirectException(
-        #     "I tried my best, but I wasn't able to load your "
-        #     "file in format '{}'...".format(fileformat))
+        # raise
+
+        # There was an exception...
+        import traceback
+        logme(
+            logger,
+            filecontent,
+            fileformat,
+            flask_request,
+            call_source,
+            reason='exception',
+            extra={
+                'traceback': traceback.format_exc(),
+                'form_data': form_data,
+            })
+        raise FlaskRedirectException(
+            "I tried my best, but I wasn't able to load your "
+            "file in format '{}'...".format(fileformat))
 
     if frame.get_number_of_atoms() > MAX_NUMBER_OF_ATOMS:
         ## Structure too big
@@ -413,7 +429,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         '\n', '<br>').replace(' ', '&nbsp;')
 
     return dict(
-        magres=magres,
         xyz=xyz,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
