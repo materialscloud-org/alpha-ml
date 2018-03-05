@@ -232,7 +232,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         is the message to be flashed via Flask (or in general shown to
         the user).
     """
-    from structure_importers import get_structure, UnknownFormatError,OverlappingAtom,WrongAtomFormat,WrongCellFormat
+    from structure_importers import get_structure, UnknownFormatError,WrongAtomFormat,WrongCellFormat
 
     start_time = time.time()
     fileobject = io.StringIO(unicode(filecontent))
@@ -282,21 +282,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
 
 
     except Exception:
-        # import traceback
-        # logme(
-        #     logger,
-        #     filecontent,
-        #     fileformat,
-        #     flask_request,
-        #     call_source,
-        #     reason='codeexception',
-        #     extra={
-        #         'traceback': traceback.extract_stack(),
-        #         'form_data': form_data,
-        #     })
-        # raise
-
-        # There was an exception...
         import traceback
         logme(
             logger,

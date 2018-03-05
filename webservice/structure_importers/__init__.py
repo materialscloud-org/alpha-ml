@@ -100,12 +100,11 @@ class WrongAtomFormat(ValueError):
     pass
 
 def is_proper_crystal(frame):
-    from scipy.spatial.distance import pdist
     cell = frame.get_cell()
     sps = frame.get_atomic_numbers()
     Natoms = frame.get_number_of_atoms()
 
-    if Natoms == 0 or len(sps):
+    if Natoms == 0 or len(sps) == 0:
         raise WrongAtomFormat
     elif np.isclose(cell,np.zeros((3,3))) is False:
         raise WrongCellFormat
