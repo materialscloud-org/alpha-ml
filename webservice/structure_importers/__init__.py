@@ -72,12 +72,12 @@ def get_structure(fileobject, fileformat, extra_data=None):
         for cc in read_xyz(fileobject):
             asestructure = cc
             break # reads only the first if there are more
-
+        is_proper_crystal(asestructure)
         return asestructure
     elif fileformat in ase_fileformats.keys():
         from ase.io import read
         asestructure = read(fileobject,index='0',format=ase_fileformats[fileformat])
-
+        is_proper_crystal(asestructure)
         return asestructure
 
     elif fileformat == "cif-pymatgen":
@@ -86,7 +86,28 @@ def get_structure(fileobject, fileformat, extra_data=None):
         # Only get the first structure, if more than one
         pmgstructure = CifParser(fileobject).get_structures()[0]
         asestructure = AseAtomsAdaptor.get_atoms(pmgstructure)
+        is_proper_crystal(asestructure)
         return asestructure
 
 
     raise UnknownFormatError(fileformat)
+
+
+class WrongCellFormat(ValueError):
+    pass
+
+class WrongAtomFormat(ValueError):
+    pass
+
+def is_proper_crystal(frame):
+    from scipy.spatial.distance import pdist
+    cell = frame.get_cell()
+    sps = frame.get_atomic_numbers()
+    Natoms = frame.get_number_of_atoms()
+
+    if Natoms == 0 or len(sps):
+        raise WrongAtomFormat
+    elif np.isclose(cell,np.zeros((3,3))) is False:
+        raise WrongCellFormat
+    else:
+        return None

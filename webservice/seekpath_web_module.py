@@ -36,7 +36,7 @@ from ase import Atoms
 Shift_ML_version = '0.0.1'
 
 
-MAX_NUMBER_OF_ATOMS = 1000
+MAX_NUMBER_OF_ATOMS = 2000
 
 ############################
 def load_model_data(sp):
@@ -232,7 +232,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         is the message to be flashed via Flask (or in general shown to
         the user).
     """
-    from structure_importers import get_structure, UnknownFormatError
+    from structure_importers import get_structure, UnknownFormatError,OverlappingAtom,WrongAtomFormat,WrongCellFormat
 
     start_time = time.time()
     fileobject = io.StringIO(unicode(filecontent))
@@ -253,6 +253,34 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
                 'form_data': form_data,
             })
         raise FlaskRedirectException("Unknown format '{}'".format(fileformat))
+
+    except WrongAtomFormat:
+        logme(
+            logger,
+            filecontent,
+            fileformat,
+            flask_request,
+            call_source,
+            reason='unknownformat',
+            extra={
+                'form_data': form_data,
+            })
+        raise FlaskRedirectException("Problem with the parsing of the atoms")
+
+    except WrongCellFormat:
+        logme(
+            logger,
+            filecontent,
+            fileformat,
+            flask_request,
+            call_source,
+            reason='unknownformat',
+            extra={
+                'form_data': form_data,
+            })
+        raise FlaskRedirectException("Problem with the parsing of the cell")
+
+
     except Exception:
         # import traceback
         # logme(
@@ -299,7 +327,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
                 'form_data': form_data,
             })
         raise FlaskRedirectException(
-            "Sorry, this online visualizer is limited to {} atoms "
+            "Sorry, this online app is limited to {} atoms "
             "in the input cell, while your structure has {} atoms."
             "".format(MAX_NUMBER_OF_ATOMS, frame.get_number_of_atoms()))
 
