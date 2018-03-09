@@ -19,7 +19,6 @@ import json
 import io
 
 import jinja2
-# import spglib  # Mainly to get its version
 
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
@@ -38,7 +37,7 @@ Shift_ML_version = '0.0.1'
 
 MAX_NUMBER_OF_ATOMS = 2000
 
-dataPath = '../data/'
+dataPath = '../../data/'
 # TODO
 dataPath = '/home/app/data/'
 
@@ -115,7 +114,7 @@ def get_shielding_multi_kernel(frame):
             descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
 
             np.dot(model['soap_ref'], descriptor.T,out=kk)
-            kernel_test += np.multiply(msk_coefs[cutoff],kk,out=kk)
+            np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
 
         y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
 
@@ -506,8 +505,6 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
 
-    magres = str(jinja2.escape(get_magres(frame, shielding))).replace(
-        '\n', '<br>').replace(' ', '&nbsp;')
 
     return dict(
         xyz=xyz,

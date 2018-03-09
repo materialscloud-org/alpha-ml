@@ -95,6 +95,7 @@ USER root
 COPY predictor.py $HOME/code/predictor.py
 COPY webservice $HOME/code/webservice
 RUN mkdir $HOME/data
+# COPY ../data $HOME/data
 # COPY data $HOME/data
 #COPY ./README.rst README.rst
 #COPY ./MANIFEST.in MANIFEST.in
