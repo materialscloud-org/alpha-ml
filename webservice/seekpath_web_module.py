@@ -19,7 +19,7 @@ import json
 import io
 
 import jinja2
-import spglib  # Mainly to get its version
+# import spglib  # Mainly to get its version
 
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
@@ -38,29 +38,97 @@ Shift_ML_version = '0.0.1'
 
 MAX_NUMBER_OF_ATOMS = 2000
 
+dataPath = '../data/'
+# TODO dataPath = '/home/app/data/'
+
 ############################
+
+
 def load_model_data(sp):
     '''
     Load the model data at the start of the app
     :return: 
     '''
-    dataPath = '../data/'
-    # TODO
-    dataPath = '/home/app/data/'
-    # ref_desc = np.load(dataPath + 'test_soap.npy')
+
     with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
         model = pck.load(f)
     return model
+
+def get_shielding_single_kernel(frame):
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+    for sp in sps:
+        atoms = ase2qp(frame)
+        model = load_model_data(sp)
+        ll = list(sps)
+        ll.remove(sp)
+        soap_params = dict(
+            centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
+            nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
+        )
+        soap_params.update(model['soap_params'])
+
+        descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+
+        kernel_test = np.dot(model['soap_ref'], descriptor.T)
+
+        y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
+
+        shielding[frame.get_atomic_numbers() == sp] = y_pred
+
+    np.round(shielding, decimals=2, out=shielding)
+    return shielding
+
+def load_model_data_msk(sp,cutoff):
+    '''
+    Load the model data at the start of the app
+    :return:
+    '''
+
+    with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
+        model = pck.load(f)
+    return model
+
+def get_shielding_multi_kernel(frame):
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+    train_sizes = {1:30000,6:19532,7:12760,8:14770}
+
+    numbers = frame.get_atomic_numbers()
+    for sp in sps:
+        kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
+        kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
+        model_msk = load_model_data_msk(sp, 'msk')
+        msk_coefs = model_msk['msk_params']
+        for cutoff in [2,3,4,5,6,7]:
+            atoms = ase2qp(frame)
+            model = load_model_data_msk(sp,cutoff)
+            ll = list(sps)
+            ll.remove(sp)
+            soap_params = dict(
+                centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
+                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
+            )
+            soap_params.update(model['soap_params'])
+
+            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+
+            np.dot(model['soap_ref'], descriptor.T,out=kk)
+            kernel_test += np.multiply(msk_coefs[cutoff],kk,out=kk)
+
+        y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
+
+        shielding[numbers == sp] = y_pred
+
+    np.round(shielding, decimals=2, out=shielding)
+    return shielding
 
 def load_all_models_data():
     '''
     Load the model data at the start of the app
     :return:
     '''
-    dataPath = '../data/'
-    # TODO
-    dataPath = '/home/app/data/'
-    # ref_desc = np.load(dataPath + 'test_soap.npy')
+
     models = {}
     for sp in [1,6,7,8]:
         with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
@@ -400,29 +468,10 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         ]
 ##############################################################################
 
-        shielding = np.zeros((len(frame),))
-        sps = list(set(frame.get_atomic_numbers()).intersection([1,6,7,8]))
-        for sp in sps:
-            atoms = ase2qp(frame)
-            model = load_model_data(sp)
-            ll = list(sps)
-            ll.remove(sp)
-            soap_params = dict(
-                centerweight=1.,  cutoff_transition_width=0.5, spkitMax=spkitMax,
-                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
-            )
-            soap_params.update(model['soap_params'])
+        # shielding = get_shielding_single_kernel(frame)
+        shielding = get_shielding_multi_kernel(frame)
 
-            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-            kernel_test = np.dot(model['soap_ref'], descriptor.T)
-
-            y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
-
-            shielding[frame.get_atomic_numbers()==sp] = y_pred
-
-        np.round(shielding,decimals=2,out=shielding)
-        ##############################################################################
+##############################################################################
 
         compute_time = time.time() - start_time
     except Exception:

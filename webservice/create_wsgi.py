@@ -29,7 +29,7 @@ content_lines.append("sys.path.insert(0, '{}')".format(wsgi_folder))
 wsgi_file = os.path.join(wsgi_folder, WSGI_FILENAME)
 
 import_content_lines = defaultdict(list)
-for package in ['flask', 'numpy', 'scipy', 'ase', 'spglib', 'seekpath']:
+for package in ['flask', 'numpy', 'scipy', 'ase']:
     # Get the path
     try:
         m = importlib.import_module(package)

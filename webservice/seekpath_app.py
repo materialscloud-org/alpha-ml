@@ -22,7 +22,6 @@ import cPickle as pck
 from seekpath_web_module import (generate_log, FlaskRedirectException, logme,
                                  process_structure_core,z2symb,load_all_models_data)
 
-# TODO models = load_all_models_data()
 
 # This (undocumented) flag changes the style of the webpage (CSS, etc.)
 # and decides whether some of the headers (e.g. the SeeK-path title) and the
@@ -288,8 +287,7 @@ def process_example_structure():
         # I expect that the valid_examples dictionary already filters only
         # existing files, so I don't try/except here
         file_name = './file_examples/'+example_name+'.xyz'
-        #TODO
-        file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+        #TODO file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
         #frame = read(file_name)
         with open(file_name,'r') as f:
             filecontent = f.read()
