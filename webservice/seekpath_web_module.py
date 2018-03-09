@@ -39,7 +39,8 @@ Shift_ML_version = '0.0.1'
 MAX_NUMBER_OF_ATOMS = 2000
 
 dataPath = '../data/'
-# TODO dataPath = '/home/app/data/'
+# TODO
+dataPath = '/home/app/data/'
 
 ############################
 
