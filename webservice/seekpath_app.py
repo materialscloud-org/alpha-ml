@@ -85,9 +85,9 @@ except Exception:
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the 
-    front-end server to add these headers, to let you quietly bind 
-    this to a URL other than / and to an HTTP scheme that is 
+    '''Wrap the application in this middleware and configure the
+    front-end server to add these headers, to let you quietly bind
+    this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
 
     Inspired by  http://flask.pocoo.org/snippets/35/
@@ -288,8 +288,7 @@ def process_example_structure():
         # I expect that the valid_examples dictionary already filters only
         # existing files, so I don't try/except here
         file_name = './file_examples/'+example_name+'.xyz'
-        #TODO
-        file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+        #TODO file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
         #frame = read(file_name)
         with open(file_name,'r') as f:
             filecontent = f.read()

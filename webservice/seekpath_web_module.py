@@ -1,5 +1,5 @@
 """
-Most of the functions needed by the web service are here. 
+Most of the functions needed by the web service are here.
 In seekpath_app.py we just keep the main web logic.
 """
 from __future__ import unicode_literals
@@ -19,12 +19,14 @@ import json
 import io
 
 import jinja2
-import spglib  # Mainly to get its version
+#import spglib  # Mainly to get its version
 
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
 sys.path.insert(0,'/Users/iMac/git/glosim2/')
+sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
+
 
 
 from libmatch.soap import get_Soaps
@@ -42,11 +44,10 @@ MAX_NUMBER_OF_ATOMS = 2000
 def load_model_data(sp):
     '''
     Load the model data at the start of the app
-    :return: 
+    :return:
     '''
     dataPath = '../data/'
-    # TODO
-    dataPath = '/home/app/data/'
+    # TODO dataPath = '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
         model = pck.load(f)
@@ -58,8 +59,7 @@ def load_all_models_data():
     :return:
     '''
     dataPath = '../data/'
-    # TODO
-    dataPath = '/home/app/data/'
+    # TODO dataPath = '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     models = {}
     for sp in [1,6,7,8]:
@@ -78,7 +78,7 @@ class FlaskRedirectException(Exception):
 
 def logme(logger, *args, **kwargs):
     """
-    Log information on the passed logger. 
+    Log information on the passed logger.
 
     See docstring of generate_log for more info on the
     accepted kwargs.
@@ -96,8 +96,8 @@ def generate_log(filecontent,
                  reason,
                  extra={}):
     """
-    Given a string with the file content, a file format, a Flask request and 
-    a string identifying the reason for logging, stores the 
+    Given a string with the file content, a file format, a Flask request and
+    a string identifying the reason for logging, stores the
     correct logs.
 
     :param filecontent: a string with the file content
@@ -105,7 +105,7 @@ def generate_log(filecontent,
     :param request: a Flask request
     :param call_source: a string identifying who called the function
     :param reason: a string identifying the reason for this log
-    :param extra: additional data to add to the logged dictionary. 
+    :param extra: additional data to add to the logged dictionary.
         NOTE! it must be JSON-serializable
     """
     # I don't know the fileformat
@@ -215,7 +215,7 @@ def predict(kernel, alpha, csi):
 def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None):
     """
     The main function that generates the data to be sent back to the view.
-    
+
     :param fileformat: The file format (string), among the accepted formats
     :param call_source: a string identifying the source (i.e., who called
        this function). This is a string, mainly for logging reasons.
@@ -224,7 +224,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
     :param flask_request: if logger is not None, pass also the flask.request
        object to help in logging.
 
-    :return: this function calls directly flask methods and returns flask 
+    :return: this function calls directly flask methods and returns flask
         objects
 
     :raise: FlaskRedirectException if there is an error that requires
@@ -642,4 +642,3 @@ def get_cp2k(raw_data):
         raw=raw_data,  # export the complete raw data to the template
         zip=zip,
         set=set)  # add zip and set to the template environment for some loops
-    
