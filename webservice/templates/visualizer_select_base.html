@@ -20,20 +20,21 @@
     <script src="../static/js/jquery-3.1.0.min.js"></script>        
     <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
     <link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
+    <script src="../static/js/loadingoverlay.js"></script>
+    <script type="text/javascript">
+    function loading_overlay(){
+        $.LoadingOverlaySetup({
+    color           : "rgba(0, 0, 0, 0.4)",
+    image           : "../static/large_spinner.gif",
+    maxSize         : "150px",
+    minSize         : "50px",
+    resizeInterval  : 0,
+    size            : "100%"
+});
 
-    <script type="text/javascript">// <![CDATA[
-        function loading(){
-            $("#loading").show();
-            $("#content").hide();
+        $.LoadingOverlay("show");
         }
-    // ]]></script>
-
-    <script type="text/javascript">// <![CDATA[
-        function loading2(){
-            $("#loading2").show();
-            $("#content2").hide();
-        }
-    // ]]></script>
+    </script>
 
     <title>Shift-ML</title>
     <script>
@@ -145,17 +146,17 @@
         </select>
 	</div> 
       </div>
-        <div id="loading"></div>
+        <!--div id="loading"></div>
       <div id="content">
       <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
           <input type="submit" value="Calculate my structure" class="btn btn-default" onclick="loading();">
       </div>
-      </div>
-        <!--div class='row' style="text-align:center">
+      </div-->
+        <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
-          <input type="submit" value="Calculate my structure" class="btn btn-default">
-        </div-->
+          <input type="submit" value="Calculate my structure" class="btn btn-default" onclick="loading_overlay();">
+        </div>
     </div>
   </form>
 </div>
@@ -175,17 +176,17 @@
 	  </select>
 	</div>
       </div>
-      <div id="loading2"></div>
+      <!--div id="loading2"></div>
       <div id="content2">
           <div class='row' style="text-align: center">
             <p class='small'> </p>
             <input type="submit" value="Calculate this example" class="btn btn-default" onclick="loading2();">
           </div>
-      </div>
-        <!--div class='row' style="text-align: center">
+      </div-->
+        <div class='row' style="text-align: center">
             <p class='small'> </p>
-            <input type="submit" value="Calculate this example" class="btn btn-default">
-        </div-->
+            <input type="submit" value="Calculate this example" class="btn btn-default" onclick="loading_overlay();">
+        </div>
     </div>
   </div>
 </form>

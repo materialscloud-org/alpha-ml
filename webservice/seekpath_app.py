@@ -22,7 +22,6 @@ import cPickle as pck
 from seekpath_web_module import (generate_log, FlaskRedirectException, logme,
                                  process_structure_core,z2symb,load_all_models_data)
 
-# TODO models = load_all_models_data()
 
 # This (undocumented) flag changes the style of the webpage (CSS, etc.)
 # and decides whether some of the headers (e.g. the SeeK-path title) and the
