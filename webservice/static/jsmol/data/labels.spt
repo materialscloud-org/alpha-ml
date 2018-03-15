@@ -1,0 +1,1 @@
+select OFF property_shifts!=0; label %[property_shifts]; font label 20 monospaced italic; 
