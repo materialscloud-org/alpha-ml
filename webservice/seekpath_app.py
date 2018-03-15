@@ -57,6 +57,7 @@ class ConfigurationError(Exception):
 
 valid_examples = {
     "GUMMUW04": ("GUMMUW04"),
+	"EDEBUK": ("EDEBUK")
 }
 
 if __name__ == "__main__":
@@ -247,11 +248,15 @@ def process_structure():
         structurefile = flask.request.files['structurefile']
         fileformat = flask.request.form.get('fileformat', 'unknown')
         filecontent = structurefile.read()
+		if fileformat.startswith('xyz'):
+        	structure_name = structurefile.filename.split('.xyz')
+		elif fileformat.startswith('cif'):
+			structure_name = structurefile.filename.split('.cif')
 
         try:
             data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
                                                        call_source="process_structure", logger=logger,
-                                                       flask_request=flask.request)
+                                                       flask_request=flask.request, jsmol_name=structure_name)
             return flask.render_template(
                 get_visualizer_template(flask.request), **data_for_template)
         except FlaskRedirectException as e:
@@ -287,7 +292,7 @@ def process_example_structure():
         # I expect that the valid_examples dictionary already filters only
         # existing files, so I don't try/except here
         file_name = './file_examples/'+example_name+'.xyz'
-        #TODO file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+        #TODO 	file_name='/home/app/code/webservice/file_examples/'+example_name+'.xyz'
         #frame = read(file_name)
         with open(file_name,'r') as f:
             filecontent = f.read()
@@ -296,7 +301,7 @@ def process_example_structure():
             data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
                                                        call_source="process_example_structure[{}]".format(
                                                            examplestructure), logger=logger,
-                                                       flask_request=flask.request)
+                                                       flask_request=flask.request, jsmol_name=example_name)
             return flask.render_template(
                 get_visualizer_template(flask.request), **data_for_template)
         except FlaskRedirectException as e:

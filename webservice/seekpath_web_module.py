@@ -41,7 +41,7 @@ Shift_ML_version = '0.0.1'
 MAX_NUMBER_OF_ATOMS = 2000
 
 dataPath = '../data/'
-# TODO dataPath = '/home/app/data/'
+# TODOdataPath = '/home/app/data/'
 
 ############################
 
@@ -52,7 +52,7 @@ def load_model_data(sp):
     :return:
     '''
     dataPath = '../data/'
-    # TODO dataPath = '/home/app/data/'
+    # TODO dataPath =  '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
         model = pck.load(f)
@@ -286,7 +286,7 @@ def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
 
-def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None):
+def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None, jsmol_name=None):
     """
     The main function that generates the data to be sent back to the view.
 
@@ -521,6 +521,7 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
         inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
         compute_time=compute_time,
         Shift_ML_version=Shift_ML_version,
+		jsmol_name=str(jsmol_name)
     )
 
 
