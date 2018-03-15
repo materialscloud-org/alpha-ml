@@ -248,15 +248,15 @@ def process_structure():
         structurefile = flask.request.files['structurefile']
         fileformat = flask.request.form.get('fileformat', 'unknown')
         filecontent = structurefile.read()
-		if fileformat.startswith('xyz'):
-        	structure_name = structurefile.filename.split('.xyz')
-		elif fileformat.startswith('cif'):
-			structure_name = structurefile.filename.split('.cif')
+        if fileformat.startswith('xyz'):
+            structure_name = 'uploaded/'+structurefile.filename.split('.xyz')[0]
+        elif fileformat.startswith('cif'):
+		    structure_name = 'uploaded/'+structurefile.filename.split('.cif')[0]
 
         try:
             data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
                                                        call_source="process_structure", logger=logger,
-                                                       flask_request=flask.request, jsmol_name=structure_name)
+                                                       flask_request=flask.request, jsmol_name=structure_name, example="no")
             return flask.render_template(
                 get_visualizer_template(flask.request), **data_for_template)
         except FlaskRedirectException as e:

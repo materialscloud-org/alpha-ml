@@ -286,7 +286,7 @@ def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
 
-def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None, jsmol_name=None):
+def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None, jsmol_name=None, example=None):
     """
     The main function that generates the data to be sent back to the view.
 
@@ -511,6 +511,8 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
 
+    if example=="no":
+	    create_files_for_jsmol(frame,jsmol_name,fileformat,shielding)
 
     return dict(
         xyz=xyz,
@@ -696,3 +698,18 @@ def get_cp2k(raw_data):
         raw=raw_data,  # export the complete raw data to the template
         zip=zip,
         set=set)  # add zip and set to the template environment for some loops
+
+def create_files_for_jsmol(frame,jsmol_name,fileformat,shielding):
+    """
+    Save and .cif file and a file with the list of shifts, both needed for the jmol window
+    """
+    cifname='static/jsmol/data/'+str(jsmol_name)+'.cif'
+    datname='static/jsmol/data/'+str(jsmol_name)+'.dat'
+
+    write(cifname, frame)
+    with open(datname, 'w') as f:
+        f.write('data \"property_shifts\"\n')
+        for it in range(len(shielding)):
+            f.write('%.6f\n' % shielding[it])
+        f.write('end \"property_shifts\"\n')
+    return 1
