@@ -116,6 +116,7 @@ def get_shielding_multi_kernel(frame):
             np.dot(model['soap_ref'], descriptor.T,out=kk)
             np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
 
+
         y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
 
         shielding[numbers == sp] = y_pred
