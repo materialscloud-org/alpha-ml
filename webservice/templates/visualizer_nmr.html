@@ -35,73 +35,7 @@
 		 readyFunction: readyfunc,
 		 };
 		</script>
-		<!-- <script type="text/javascript">
 
-				//<![CDATA[
-				// always predefine the variables as their own name,
-				// allowing buttons to be created before or after applet placement
-
-				jsvApplet = "jsvApplet0";
-				jmolApplet = "jmolApplet0";
-
-				// applet ids and commands to give only when all applets are ready;
-				// also sets up a script sync pathway for Jmol/JSpecView.
-
-				var jsvInfo;        // for Spectrum
-				var jmolInfo;       // for Molfile
-
-				Jmol.setAppletSync([jsvApplet, jmolApplet], ["load ../data/acetophenone.jdx", null], true);
-
-				;(function() {
-
-				Jmol.debugCode = true;//(s.indexOf("debugcode") >= 0);
-				use="HTML5";
-
-				jmol_isReady = function(applet) {
-						document.title = (applet._id + " is ready")
-						Jmol._getElement(applet, "appletdiv").style.border="1px solid blue"
-				}
-
-				jmolInfo = {
-					width: 350,
-					height: 350,
-					debug: false,
-					color: "0xF0F0F0",
-				//  addSelectionOptions: true,
-				//  serverURL: "http://chemapps.stolaf.edu/jmol/jmolcd2.php",
-				//  defaultModel: null,
-					use: "HTML5",
-					j2sPath: "../j2s",
-					disableJ2SLoadMonitor: true,
-					disableInitialConsole: true,
-					readyFunction: null,
-					allowjavascript: true,
-					script: "background white; vibration off; vectors off; sync on;"
-
-				}
-
-				jsvInfo = {
-					width: 600,
-					height: 400,
-					debug: false,
-					color: "0xC0C0C0",
-					use: "HTML5",
-					j2sPath: "../j2s",
-					script: null,
-					initParams: null,
-					disableJ2SLoadMonitor: true,
-					disableInitialConsole: true,
-				//  serverURL: "http://chemapps.stolaf.edu/jmol/jmolcd2.php",
-					readyFunction: null,
-					allowjavascript: true
-				}
-
-				})();
-
-				//]]>
-
-
-		</script> -->
 
 		<script src="../static/js/jquery-3.1.0.min.js"></script>
 		<script src="../static/js/jquery-ui.1.12.1.min.js"></script>
@@ -131,35 +65,7 @@
 		}
 		</style>
 		<meta http-equiv="X-UA-Compatible" content="chrome=1">
-		<!--
-		<link rel="stylesheet" href="../static/css/ChemDoodleWeb.min.css" type="text/css">
-		<script type="text/javascript" src="../static/js/ChemDoodleWeb.min.js"></script>
-		-->
-		<!--
-		<script>
-		var jsondata = {{ jsondata|safe }};
-		var json_content = {{ json_content|safe }};
-		var mainBZVisualizer = new BZVisualizer();
-		$( document ).ready(function() {
-				mainBZVisualizer.loadBZ(canvasID='canvas3d',infoID='info',jsondata=jsondata);
-			});
 
-		// global variable
-		var structureviewer = null;
-
-
-		var resize_canvases = function () {
-				mainBZVisualizer.resizeRenderer(); // BZ visualizer
-				// resize structure viewer
-				if (structureviewer) {
-						parentcanvas = document.getElementById('structure');
-						the_width = parentcanvas.offsetWidth;
-						the_height = parentcanvas.offsetHeight;
-						structureviewer.resize(the_width, the_height);
-				}
-		}
-		</script>
-		-->
 		<script type="text/javascript">
 			startWebGLCheck();
 		</script>
@@ -168,6 +74,7 @@
 		{% endblock %}
 
 		<script src="../static/js/iframeResizer.contentWindow.min.js"></script>
+
 </head>
 
 <body>
@@ -176,6 +83,7 @@
 			<div id="maintitle">
 	{% block seekpathtitle %}
 	<h1 style="text-align: center;"><span style="font-weight: bold;">Shift-ML</span>: chemical shifts in molecular solids by machine learning</h1>
+
 		{% endblock seekpathtitle %}
 			</div>
 
@@ -404,6 +312,7 @@
 	</div>
 
 </div>
+
 
 <div style ="position: relative" data-iframe-height></div>
 </body>

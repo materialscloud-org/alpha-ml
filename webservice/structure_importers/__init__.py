@@ -72,13 +72,10 @@ def get_structure(fileobject, fileformat, extra_data=None):
         for cc in read_xyz(fileobject):
             asestructure = cc
             break # reads only the first if there are more
-        is_proper_crystal(asestructure)
-        return asestructure
+
     elif fileformat in ase_fileformats.keys():
         from ase.io import read
         asestructure = read(fileobject,index='0',format=ase_fileformats[fileformat])
-        is_proper_crystal(asestructure)
-        return asestructure
 
     elif fileformat == "cif-pymatgen":
         from pymatgen.io.cif import CifParser
@@ -86,11 +83,10 @@ def get_structure(fileobject, fileformat, extra_data=None):
         # Only get the first structure, if more than one
         pmgstructure = CifParser(fileobject).get_structures()[0]
         asestructure = AseAtomsAdaptor.get_atoms(pmgstructure)
-        is_proper_crystal(asestructure)
-        return asestructure
 
+    is_proper_crystal(asestructure)
 
-    raise UnknownFormatError(fileformat)
+    return asestructure
 
 
 class WrongCellFormat(ValueError):
@@ -103,17 +99,31 @@ class WrongDensity(ValueError):
     pass
 
 def is_proper_crystal(frame):
-    cell = frame.get_cell()
-    sps = frame.get_atomic_numbers()
-    Natoms = frame.get_number_of_atoms()
-    vol = frame.get_volume()
 
-    if Natoms == 0 or len(sps) == 0:
+
+    try:
+
+        sps = frame.get_atomic_numbers()
+        Natoms = frame.get_number_of_atoms()
+        if Natoms == 0 or len(sps) == 0:
+            raise WrongAtomFormat
+    except:
+
         raise WrongAtomFormat
-    elif np.isclose(cell,np.zeros((3,3))) is False:
+
+    try:
+
+        cell = frame.get_cell()
+        if np.allclose(cell, np.zeros((3, 3))) is True:
+            raise WrongCellFormat
+    except:
+
         raise WrongCellFormat
 
-    elif float(Natoms) / vol > 0.234 or vol / float(Natoms) < 0.01:
+    try:
+        vol = frame.get_volume()
+        if float(Natoms) / vol > 0.234 or vol / float(Natoms) < 0.01:
+            raise WrongDensity
+    except:
         raise WrongDensity
-    else:
-        return None
+

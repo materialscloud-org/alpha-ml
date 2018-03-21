@@ -6,21 +6,39 @@ If you just want to try it out, just run this file and connect to
 http://localhost:5000 from a browser. Otherwise, read the instructions
 in README_DEPLOY.md to deploy on a Apache server.
 """
+
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 
-import datetime
-import flask
-import os
+import os,sys,flask,datetime,logging, logging.handlers
 import numpy as np
 import cPickle as pck
+from celery import Celery
+from structure_importers import get_structure
+from ase import Atoms
+
+sys.path.insert(0,'/local/git/glosim2/')
+sys.path.insert(0,'/home/app/git/glosim2/')
+sys.path.insert(0,'/Users/iMac/git/glosim2/')
+from libmatch.soap import get_Soaps
 
 
 
+Shift_ML_version = '0.0.3'
 
-from seekpath_web_module import (generate_log, FlaskRedirectException, logme,
-                                 process_structure_core,z2symb,load_all_models_data)
+
+MAX_NUMBER_OF_ATOMS = 2000
+
+PROGRESS_BAR_TIMEOUT = 300 # every 1 sec the progress bar is updated
+
+is_fast_dev = False
+is_debug =  False
+
+dataPath = '/home/app/data/'
+if is_debug:
+    dataPath = '../../data/'
+
 
 
 # This (undocumented) flag changes the style of the webpage (CSS, etc.)
@@ -37,9 +55,7 @@ def get_style_version(request):
     return request.environ.get("HTTP_X_SEEKPATH_STYLE", "")
 
 
-import logging, logging.handlers
 logger = logging.getLogger("seekpath_server")
-
 logHandler = logging.handlers.TimedRotatingFileHandler(
     os.path.join(
         os.path.split(os.path.realpath(__file__))[0], 'logs', 'requests.log'),
@@ -69,10 +85,28 @@ if __name__ == "__main__":
 
 static_folder = os.path.join(
     os.path.split(os.path.realpath(__file__))[0], 'static')
+
 view_folder = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'view')
 app = flask.Flask(__name__, static_folder=static_folder)
 app.use_x_sendfile = True
 directory = os.path.split(os.path.realpath(__file__))[0]
+
+#### CELERY
+# Expects the default redis configuration
+if is_debug:
+    app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+    app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+else:
+    app.config['CELERY_BROKER_URL'] = 'redis://:devpassword@redis:6379/0'
+    app.config['CELERY_RESULT_BACKEND'] = 'redis://:devpassword@redis:6379/0'
+
+app.config['CELERYD_CONCURRENCY'] = 1 # number of worker in the task pool
+app.config['CELERYD_HIJACK_ROOT_LOGGER'] = True
+
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
 try:
     with open(os.path.join(directory, 'SECRET_KEY')) as f:
         app.secret_key = f.readlines()[0].strip()
@@ -126,18 +160,26 @@ class ReverseProxied(object):
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 
+
 def get_visualizer_select_template(request):
     if get_style_version(request) == 'lite':
         return 'visualizer_select_lite.html'
     else:
         return 'visualizer_select.html'
 
-
 def get_visualizer_template(request):
     if get_style_version(request) == 'lite':
         return 'visualizer_lite.html'
     else:
         return 'visualizer.html'
+
+def get_info_from_request(request):
+    request_info = {'request': str(request.headers),
+            'source': request.headers.get('X-Forwarded-For', request.remote_addr),
+            'form':dict(request.form),
+
+    }
+    return request_info
 
 
 logger.debug("Start")
@@ -178,15 +220,6 @@ def termsofuse():
     return flask.send_from_directory(view_folder, 'termsofuse.html')
 
 
-@app.route('/bravaissymbol_explanation/')
-def bravaissymbol_explanation():
-    """
-    View for the explanation of the Bravais symbol
-    """
-    return flask.send_from_directory(view_folder,
-                                     'bravaissymbol_explanation.html')
-
-
 @app.route('/input_structure/')
 def input_structure():
     """
@@ -194,127 +227,442 @@ def input_structure():
     """
     return flask.render_template(get_visualizer_select_template(flask.request))
 
-
-@app.route('/static/js/<path:path>')
-def send_js(path):
-    """
-    Serve static JS files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'js'), path)
-
-
-@app.route('/static/img/<path:path>')
-def send_img(path):
-    """
-    Serve static image files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'img'), path)
+# use template js for the submit buttons
+@app.route("/submit_js/<name_path>")
+def submit_js(name_path):
+    # print name_path
+    name, path = name_path.split('-')
+    url = flask.url_for(path)
+    inp = dict(form_name=name,url=url,timeout=PROGRESS_BAR_TIMEOUT)
+    return flask.render_template("/js/ajax_submit.js",**inp)
 
 
-@app.route('/static/css/<path:path>')
-def send_css(path):
-    """
-    Serve static CSS files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'css'), path)
+@celery.task(bind=True)
+def predict_chemical_shifts(self,filecontent, fileformat, call_source="", request_info=None):
+    # from structure_importers import get_structure
+    import io,time,copy, json, jinja2
+    from ase.data import chemical_symbols
+    from celery.utils.log import get_task_logger
+
+    start_time = time.time()
+    fileobject = io.StringIO(unicode(filecontent))
+    # form_data = dict(request_info.form)
+    form_data = request_info['form']
+    LOG = get_task_logger(__name__)
+
+    frame = get_structure(
+        fileobject, fileformat, extra_data=form_data)
 
 
-@app.route('/static/css/images/<path:path>')
-def send_cssimages(path):
-    """
-    Serve static CSS images files
-    """
-    return flask.send_from_directory(
-        os.path.join(static_folder, 'css', 'images'), path)
+    in_json_data = {
+        'cell': [v.tolist() for v in frame.get_cell()],
+        'scaled_coords': [v.tolist() for v in frame.get_scaled_positions()],
+        'atomic_numbers': frame.get_atomic_numbers().tolist()
+    }
+
+    inputstructure_cell_vectors = [[
+        idx, coords[0], coords[1], coords[2]
+    ] for idx, coords in enumerate(in_json_data['cell'], start=1)]
+    inputstructure_symbols = [
+        chemical_symbols[num] for num in in_json_data['atomic_numbers']
+    ]
+    inputstructure_positions_cartesian = np.dot(
+        np.array(in_json_data['scaled_coords']),
+        np.array(in_json_data['cell']),
+    ).tolist()
+
+    inputstructure_atoms_scaled = [
+        [label, coords[0], coords[1], coords[2]]
+        for label, coords in zip(inputstructure_symbols, in_json_data[
+            'scaled_coords'])
+    ]
+    inputstructure_atoms_cartesian = [
+        [label, coords[0], coords[1], coords[2]]
+        for label, coords in zip(inputstructure_symbols,
+                                 inputstructure_positions_cartesian)
+    ]
+    ##############################################################################
+
+    if is_fast_dev is False:
+        shielding = get_shielding_single_kernel(self,frame)
+        # shielding = get_shielding_multi_kernel(self,frame)
+    else:
+        shielding = get_dummy_work(self, frame)
+    ##############################################################################
+
+    compute_time = time.time() - start_time
+
+    out_json_data = get_json_for_visualizer(frame)
+
+    raw_code_dict = copy.copy(out_json_data)
+
+    raw_code_dict.update({'IsotropicChemicalShielding': shielding.tolist()})
+
+    raw_code = json.dumps(raw_code_dict, indent=2)
+    ## I manually escape it to then add <br> and pass it to a filter with
+    ## |safe. I have to 'unicode' it otherwise it keeps escaping also the
+    ## next replaces
+    raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
+        ' ', '&nbsp;')
+
+    xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
+        '\n', '<br>').replace(' ', '&nbsp;')
+
+    data = dict(
+        xyz=xyz,
+        jsondata=json.dumps(out_json_data),
+        raw_code=raw_code,
+        shielding=shielding.tolist(),
+        inputstructure_cell_vectors=inputstructure_cell_vectors,
+        inputstructure_atoms_scaled=inputstructure_atoms_scaled,
+        inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
+        compute_time=compute_time,
+        Shift_ML_version=Shift_ML_version,
+    )
 
 
-@app.route('/static/fonts/<path:path>')
-def send_fonts(path):
-    """
-    Serve static font files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'fonts'), path)
+    return {'current': 100, 'total': 100, 'status': 'Task completed!',
+            'result': 42, 'data': data }
 
 
-@app.route('/process_structure/', methods=['GET', 'POST'])
+@app.route('/process_structure', methods=['GET', 'POST'])
 def process_structure():
-    """
-    Process a structure (uploaded from POST request)
-    """
-    if flask.request.method == 'POST':
-        # check if the post request has the file part
-        if 'structurefile' not in flask.request.files:
-            return flask.redirect(flask.url_for('input_structure'))
-        structurefile = flask.request.files['structurefile']
-        fileformat = flask.request.form.get('fileformat', 'unknown')
-        filecontent = structurefile.read()
-        if fileformat.startswith('xyz'):
-            structure_name = 'uploaded/'+structurefile.filename.split('.xyz')[0]
-        elif fileformat.startswith('cif'):
-		    structure_name = 'uploaded/'+structurefile.filename.split('.cif')[0]
+
+    from flask import request,jsonify,url_for,redirect
+    from seekpath_web_module import read_test_frame,FlaskRedirectException
+
+    if request.method == 'POST':
+        # Submit user defined structure
+        if 'structurefile' in request.files:
+            structurefile = flask.request.files['structurefile']
+            fileformat = flask.request.form.get('fileformat', 'unknown')
+            filecontent = structurefile.read()
+            call_source = "process_structure"
+
+        # Use example structures
+        elif 'examplestructure' in request.form:
+
+            example_name = request.form.get('examplestructure')
+            try:
+                example_name = valid_examples[example_name]
+            except:
+                flask.flash("This is not a valid example: {}".format(example_name))
+                return flask.redirect(flask.url_for('input_structure'))
+
+            fileformat = 'xyz-ase'
+            call_source = "process_example_structure"
+            # I expect that the valid_examples dictionary already filters only
+            # existing files, so I don't try/except here
+            file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+            if is_debug:
+                file_name = './file_examples/' + example_name + '.xyz'
+
+
+
+            with open(file_name, 'r') as f:
+                filecontent = f.read()
+        else:
+            return redirect(url_for('input_structure'))
+
+        request_info = get_info_from_request(request)
 
         try:
-            data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
-                                                       call_source="process_structure", logger=logger,
-                                                       flask_request=flask.request, jsmol_name=structure_name, example="no")
-            return flask.render_template(
-                get_visualizer_template(flask.request), **data_for_template)
+            read_test_frame(filecontent,fileformat,call_source,request_info)
+
         except FlaskRedirectException as e:
-            flask.flash(e.message)
-            return flask.redirect(flask.url_for('input_structure'))
+            print e.message
+            # flask.flash(e.message)
+            # return flask.redirect(flask.url_for('input_structure'))
+            return jsonify(message=e.message),500
 
-        # except Exception:
-        #     flask.flash("Unable to process the structure, sorry...")
-        #     return flask.redirect(flask.url_for('input_structure'))
 
+        task = predict_chemical_shifts.apply_async(
+                kwargs=dict(filecontent=filecontent, fileformat=fileformat,
+                call_source=call_source, request_info=request_info))
+
+        urls = {'Location': url_for('taskstatus',task_id=task.id),
+                'Redirect': url_for('longtask_completed',task_id=task.id)}
+
+        return jsonify({}), 202, urls
     else:  # GET Request
         return flask.redirect(flask.url_for('input_structure'))
 
 
-
-@app.route('/process_example_structure/', methods=['GET', 'POST'])
-def process_example_structure():
-    """
-    Process an example structure (example name from POST request)
-    """
-    if flask.request.method == 'POST':
-        examplestructure = flask.request.form.get('examplestructure', '<none>')
-        fileformat = "xyz-ase"
-
-        try:
-            example_name = valid_examples[examplestructure]
-        except KeyError:
-            flask.flash(
-                "Invalid example structure '{}'".format(examplestructure))
-            return flask.redirect(flask.url_for('input_structure'))
+@app.route('/Chemical_Shielding_Predictions/')
+@app.route('/Chemical_Shielding_Predictions/<task_id>')
+def longtask_completed(task_id):
+    from flask import render_template
+    task = predict_chemical_shifts.AsyncResult(task_id)
+    print task.info['data']
+    return render_template('visualizer.html', **task.info['data'])
 
 
-        # I expect that the valid_examples dictionary already filters only
-        # existing files, so I don't try/except here
-        file_name = './file_examples/'+example_name+'.xyz'
-        #TODO 	file_name='/home/app/code/webservice/file_examples/'+example_name+'.xyz'
-        #frame = read(file_name)
-        with open(file_name,'r') as f:
-            filecontent = f.read()
+@app.route('/status/<task_id>')
+def taskstatus(task_id):
+    task = predict_chemical_shifts.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state in ['STARTED','PROGRESS']:
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+    elif task.state == 'SUCCESS':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
 
-        try:
-            data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
-                                                       call_source="process_example_structure[{}]".format(
-                                                           examplestructure), logger=logger,
-                                                       flask_request=flask.request, jsmol_name=example_name)
-            return flask.render_template(
-                get_visualizer_template(flask.request), **data_for_template)
-        except FlaskRedirectException as e:
-            flask.flash(e.message)
-            return flask.redirect(flask.url_for('input_structure'))
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return flask.jsonify(response)
 
-    else:  # GET Request
-        return flask.redirect(flask.url_for('input_structure'))
+
+def get_dummy_work(celery_self,frame):
+    from time import sleep
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+    train_sizes = {1: 30000, 6: 19532, 7: 12760, 8: 14770}
+
+    numbers = frame.get_atomic_numbers()
+    for ii,sp in enumerate(sps):
+        celery_self.update_state(state='PROGRESS',
+                                 meta={'current': ii, 'total': len(sps),
+                                       'status': str(sp)})
+        sleep(1)
+    return shielding
+
+def load_model_data(sp):
+    '''
+    Load the model data at the start of the app
+    :return:
+    '''
+    from seekpath_app import dataPath
+
+    with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
+        model = pck.load(f)
+    return model
+
+def get_shielding_single_kernel(celery_self,frame):
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+
+    celery_self.update_state(state='PROGRESS',
+                             meta={'current': 0, 'total': len(sps),
+                                   'status': ''})
+
+    for ii,sp in enumerate(sps):
+
+        atoms = ase2qp(frame)
+        model = load_model_data(sp)
+        ll = list(sps)
+        ll.remove(sp)
+        soap_params = dict(
+            centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
+            nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
+        )
+        soap_params.update(model['soap_params'])
+
+        descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+
+        kernel_test = np.dot(model['soap_ref'], descriptor.T)
+
+        y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
+
+        shielding[frame.get_atomic_numbers() == sp] = y_pred
+
+        celery_self.update_state(state='PROGRESS',
+                                 meta={'current': ii, 'total': len(sps),
+                                       'status': str(sp)})
+
+    np.round(shielding, decimals=2, out=shielding)
+    return shielding
+
+def load_model_data_msk(sp,cutoff):
+    '''
+    Load the model data at the start of the app
+    :return:
+    '''
+    from seekpath_app import dataPath
+    with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
+        model = pck.load(f)
+    return model
+
+def get_shielding_multi_kernel(celery_self,frame):
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+    train_sizes = {1:30000,6:19532,7:12760,8:14770}
+    celery_self.update_state(state='PROGRESS',
+                             meta={'current': 0, 'total': len(sps),
+                                   'status': ''})
+    numbers = frame.get_atomic_numbers()
+    for ii,sp in enumerate(sps):
+        kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
+        kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
+        model_msk = load_model_data_msk(sp, 'msk')
+        msk_coefs = model_msk['msk_params']
+        for cutoff in [2,3,4,5,6,7]:
+            atoms = ase2qp(frame)
+            model = load_model_data_msk(sp,cutoff)
+            ll = list(sps)
+            ll.remove(sp)
+            soap_params = dict(
+                centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
+                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
+            )
+            soap_params.update(model['soap_params'])
+
+            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+
+            np.dot(model['soap_ref'], descriptor.T,out=kk)
+            np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
+
+
+        y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
+
+        shielding[numbers == sp] = y_pred
+
+        celery_self.update_state(state='PROGRESS',
+                                 meta={'current': ii, 'total': len(sps),
+                                       'status': str(sp)})
+
+    np.round(shielding, decimals=2, out=shielding)
+    return shielding
+
+def get_json_for_visualizer(frame):
+    # TODO get a working jmol
+    response = {}
+    response['numbers'] = frame.get_atomic_numbers().tolist()
+    response['positions'] = frame.get_positions().tolist()
+    response['cell'] = frame.get_cell().tolist()
+    response['pbc'] = frame.get_pbc().tolist()
+
+    return response
+
+class DummyFileObject(object):
+    def __init__(self):
+        self.data = ''
+    def write(self,text):
+        self.data += text
+    def read(self):
+        return self.data
+
+def get_xyz(frame,shielding):
+    from ase.io.extxyz import write_xyz
+    numbers = frame.get_atomic_numbers()
+    positions = frame.get_positions()
+    cell = frame.get_cell()
+    pbc = frame.get_pbc()
+    new_frame = Atoms(numbers=numbers, positions=positions, cell=cell, pbc=pbc)
+    new_frame.set_array('ChemicalShielding'.encode('ascii', 'ignore'), shielding)
+    # prop_ref = frame[0].get_array('CS')[np.where(numbers == 1)[0]]
+
+    # print new_frame.get_array('ChemicalShielding')
+    # write(fn,new_frame,format='extxyz')
+    f_obj = DummyFileObject()
+
+    write_xyz(f_obj, new_frame)
+    return f_obj.read()
+
+def ase2qp(aseatoms):
+    from quippy import Atoms as qpAtoms
+    positions = aseatoms.get_positions()
+    cell = aseatoms.get_cell()
+    numbers = aseatoms.get_atomic_numbers()
+    pbc = aseatoms.get_pbc()
+    return qpAtoms(numbers=numbers,cell=cell,positions=positions,pbc=pbc)
+
+spkitMax = {8: 88, 1: 132, 6: 148, 7: 112}
+
+z2symb = {
+    1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N',
+          8: 'O', 9: 'F', 10: 'Ne', 11: 'Na', 12: 'Mg', 13: 'Al',
+          14: 'Si', 15: 'P',
+          16: 'S', 17: 'Cl', 18: 'Ar', 19: 'K', 20: 'Ca', 21: 'Sc',
+          22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co',
+          28: 'Ni', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As',
+          34: 'Se', 35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y',
+          40: 'Zr', 41: 'Nb', 42: 'Mo', 43: 'Tc', 44: 'Ru', 45: 'Rh',
+          46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn', 51: 'Sb',
+          52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La',
+          58: 'Ce', 59: 'Pr', 60: 'Nd', 62: 'Sm', 63: 'Eu', 64: 'Gd',
+          65: 'Tb', 66: 'Dy', 67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb',
+          71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os',
+          77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
+          83: 'Bi'
+}
+
+def get_Nsoap(spkitMax, nmax, lmax):
+    Nsoap = 0
+    for sp1 in spkitMax:
+        for sp2 in spkitMax:
+            if sp1 == sp2:
+                Nsoap += nmax * (nmax + 1) * (lmax + 1) / 2
+            elif sp1 > sp2:
+                Nsoap += nmax ** 2 * (lmax + 1)
+    return Nsoap + 1
+
+def get_fingerprints(frames, soap_params, nprocess, sp=None):
+    fings = get_Soaps(frames, nprocess=nprocess, **soap_params)
+    if sp is not None:
+        N = 0
+        for cc in frames:
+            numbers = cc.get_atomic_numbers()
+            N += len(numbers[numbers == sp])
+    else:
+        N = 0
+        for cc in frames:
+            numbers = cc.get_atomic_numbers()
+            N += len(numbers)
+
+    Nsoap = get_Nsoap(spkitMax, soap_params['nmax'], soap_params['lmax'])
+    soaps = np.zeros((N, Nsoap))
+    if sp is not None:
+        ii = 0
+        for iframe, fing in enumerate(fings):
+            numbers = fing.get_atomic_numbers()
+            n = len(numbers[numbers == sp])
+            centers = [fing[z2symb[sp] + str(it)] for it in range(n)]
+            for icenter, center in enumerate(centers):
+                soaps[ii] = center
+                ii += 1
+    else:
+        ii = 0
+        for iframe, fing in enumerate(fings):
+            numbers = fing.get_atomic_numbers()
+            n = len(numbers[numbers == sp])
+            centers = fing.values()
+            for icenter, center in enumerate(centers):
+                soaps[ii] = center
+                ii += 1
+    return soaps
+
+def predict(kernel, alpha, csi):
+    return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
+
 
 
 if __name__ == "__main__":
     # Don't use x-sendfile when testing it, because this is only good
     # if deployed with Apache
     # Use the local version of seekpath, not the installed one
+
     app.use_x_sendfile = False
     app.run(debug=True)
