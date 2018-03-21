@@ -34,116 +34,11 @@ from ase import Atoms
 import celery
 
 
-Shift_ML_version = '0.0.3'
+from seekpath_app import PROGRESS_BAR_TIMEOUT,is_fast_dev,is_debug,dataPath,MAX_NUMBER_OF_ATOMS
 
-
-MAX_NUMBER_OF_ATOMS = 2000
-
-PROGRESS_BAR_TIMEOUT = 1000 # every 1 sec the progress bar is updated
-
-dataPath = '/home/app/data/'
-
-is_fast_dev = True
-is_debug =  os.environ.get("WERKZEUG_RUN_MAIN")
-if is_debug:
-    dataPath = '../../data/'
-# from log_task import LogErrorsTask
 
 ############################
 
-def get_dummy_work(celery_self,frame):
-    from time import sleep
-    shielding = np.zeros((len(frame),))
-    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-    train_sizes = {1: 30000, 6: 19532, 7: 12760, 8: 14770}
-
-    numbers = frame.get_atomic_numbers()
-    for ii,sp in enumerate(sps):
-        celery_self.update_state(state='PROGRESS',
-                                 meta={'current': ii, 'total': len(sps),
-                                       'status': str(sp)})
-        sleep(1)
-    return shielding
-
-def load_model_data(sp):
-    '''
-    Load the model data at the start of the app
-    :return: 
-    '''
-
-    with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
-        model = pck.load(f)
-    return model
-
-def get_shielding_single_kernel(frame):
-    shielding = np.zeros((len(frame),))
-    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-    for sp in sps:
-        atoms = ase2qp(frame)
-        model = load_model_data(sp)
-        ll = list(sps)
-        ll.remove(sp)
-        soap_params = dict(
-            centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
-            nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
-        )
-        soap_params.update(model['soap_params'])
-
-        descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-        kernel_test = np.dot(model['soap_ref'], descriptor.T)
-
-        y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
-
-        shielding[frame.get_atomic_numbers() == sp] = y_pred
-
-    np.round(shielding, decimals=2, out=shielding)
-    return shielding
-
-def load_model_data_msk(sp,cutoff):
-    '''
-    Load the model data at the start of the app
-    :return:
-    '''
-
-    with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
-        model = pck.load(f)
-    return model
-
-def get_shielding_multi_kernel(frame):
-    shielding = np.zeros((len(frame),))
-    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-    train_sizes = {1:30000,6:19532,7:12760,8:14770}
-
-    numbers = frame.get_atomic_numbers()
-    for sp in sps:
-        kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        model_msk = load_model_data_msk(sp, 'msk')
-        msk_coefs = model_msk['msk_params']
-        for cutoff in [2,3,4,5,6,7]:
-            atoms = ase2qp(frame)
-            model = load_model_data_msk(sp,cutoff)
-            ll = list(sps)
-            ll.remove(sp)
-            soap_params = dict(
-                centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
-                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
-            )
-            soap_params.update(model['soap_params'])
-
-            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-            np.dot(model['soap_ref'], descriptor.T,out=kk)
-            np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
-
-
-        y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
-
-        shielding[numbers == sp] = y_pred
-
-    np.round(shielding, decimals=2, out=shielding)
-    return shielding
 
 def load_all_models_data():
     '''
@@ -213,25 +108,6 @@ def generate_log(filecontent,
     return json.dumps(logdict)
 
 
-def get_json_for_visualizer(frame):
-    # TODO get a working jmol
-    response = {}
-    response['numbers'] = frame.get_atomic_numbers().tolist()
-    response['positions'] = frame.get_positions().tolist()
-    response['cell'] = frame.get_cell().tolist()
-    response['pbc'] = frame.get_pbc().tolist()
-
-    return response
-
-
-def ase2qp(aseatoms):
-    from quippy import Atoms as qpAtoms
-    positions = aseatoms.get_positions()
-    cell = aseatoms.get_cell()
-    numbers = aseatoms.get_atomic_numbers()
-    pbc = aseatoms.get_pbc()
-    return qpAtoms(numbers=numbers,cell=cell,positions=positions,pbc=pbc)
-
 spkitMax = {8: 88, 1: 132, 6: 148, 7: 112}
 
 z2symb = {
@@ -252,54 +128,6 @@ z2symb = {
           83: 'Bi'
 }
 
-def get_Nsoap(spkitMax, nmax, lmax):
-    Nsoap = 0
-    for sp1 in spkitMax:
-        for sp2 in spkitMax:
-            if sp1 == sp2:
-                Nsoap += nmax * (nmax + 1) * (lmax + 1) / 2
-            elif sp1 > sp2:
-                Nsoap += nmax ** 2 * (lmax + 1)
-    return Nsoap + 1
-
-
-def get_fingerprints(frames, soap_params, nprocess, sp=None):
-    fings = get_Soaps(frames, nprocess=nprocess, **soap_params)
-    if sp is not None:
-        N = 0
-        for cc in frames:
-            numbers = cc.get_atomic_numbers()
-            N += len(numbers[numbers == sp])
-    else:
-        N = 0
-        for cc in frames:
-            numbers = cc.get_atomic_numbers()
-            N += len(numbers)
-
-    Nsoap = get_Nsoap(spkitMax, soap_params['nmax'], soap_params['lmax'])
-    soaps = np.zeros((N, Nsoap))
-    if sp is not None:
-        ii = 0
-        for iframe, fing in enumerate(fings):
-            numbers = fing.get_atomic_numbers()
-            n = len(numbers[numbers == sp])
-            centers = [fing[z2symb[sp] + str(it)] for it in range(n)]
-            for icenter, center in enumerate(centers):
-                soaps[ii] = center
-                ii += 1
-    else:
-        ii = 0
-        for iframe, fing in enumerate(fings):
-            numbers = fing.get_atomic_numbers()
-            n = len(numbers[numbers == sp])
-            centers = fing.values()
-            for icenter, center in enumerate(centers):
-                soaps[ii] = center
-                ii += 1
-    return soaps
-
-def predict(kernel, alpha, csi):
-    return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
 
 def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=""):

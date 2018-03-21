@@ -10,6 +10,18 @@ sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/data:/home/app/da
  
  The data model_sp_*.pck needs to be in mounted local directory so it can be loaded by the app from /home/app/data
  
+# Docker compose`
+ 
+ To build and run the docker images
+ ``` 
+ docker-compose -f docker-compose_felix.yml up --build 
+ ```
+ and to clean up the images
+ ```
+ docker-compose rm -f
+ ```
+ 
+ 
 ```
 pip install celery
 ```

@@ -78,7 +78,7 @@ function update_progress(status_url,redirect_url) {
         // update UI
         percent = parseInt(data['current'] * 100 / data['total']);
 
-        if (percent > 0) {
+        if (data['state'] == 'PROGRESS') {
           loading_overlay(percent)
         }
         if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {

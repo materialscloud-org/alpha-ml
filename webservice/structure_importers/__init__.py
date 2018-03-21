@@ -127,4 +127,3 @@ def is_proper_crystal(frame):
     except:
         raise WrongDensity
 
-    print '####################end'
