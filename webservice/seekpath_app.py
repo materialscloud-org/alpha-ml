@@ -351,8 +351,9 @@ def process_structure():
 
         except FlaskRedirectException as e:
             print e.message
-            flask.flash(e.message)
-            return flask.redirect(flask.url_for('input_structure'))
+            # flask.flash(e.message)
+            # return flask.redirect(flask.url_for('input_structure'))
+            return jsonify(message=e.message),500
 
 
         task = process_frame.apply_async(

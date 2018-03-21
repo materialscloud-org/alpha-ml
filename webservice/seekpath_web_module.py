@@ -9,7 +9,7 @@ standard_library.install_aliases()
 # from builtins import zip
 import os
 
-from structure_importers import get_structure, UnknownFormatError, WrongAtomFormat, WrongCellFormat
+from structure_importers import get_structure, UnknownFormatError, WrongAtomFormat, WrongCellFormat,WrongDensity
 import copy
 import numpy as np
 import time, datetime
@@ -330,7 +330,7 @@ def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=
             extra={
                 'form_data': form_data,
             })
-        raise FlaskRedirectException("Problem20.xyz with the parsing of the atoms")
+        raise FlaskRedirectException("Problem with the parsing of the atoms")
 
     except WrongCellFormat:
         logme(
@@ -344,8 +344,23 @@ def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=
             })
         raise FlaskRedirectException("Problem with the parsing of the cell")
 
+    except WrongDensity:
+        logme(
+            filecontent,
+            fileformat,
+            request_info,
+            call_source,
+            reason='wrongdensity',
+            extra={
+                'form_data': form_data,
+            })
+        raise FlaskRedirectException("The density of the structure seems wrong")
+
     except Exception:
+
+
         import traceback
+        print traceback.format_exc()
         logme(
             filecontent,
             fileformat,
