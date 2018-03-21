@@ -14,13 +14,18 @@ sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/data:/home/app/da
  
  To build and run the docker images
  ``` 
- docker-compose -f docker-compose_felix.yml up --build 
+ docker-compose -f docker-compose_felix.yml up --build
+  ```
+ OR
+ ```
+  docker-compose -f docker-compose_felix.yml build
+ docker-compose -f docker-compose_felix.yml start
  ```
  and to clean up the images
  ```
  docker-compose rm -f
  ```
- 
+ # Additional packages
  
 ```
 pip install celery
