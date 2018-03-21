@@ -9,7 +9,7 @@ standard_library.install_aliases()
 # from builtins import zip
 import os
 
-
+from structure_importers import get_structure, UnknownFormatError, WrongAtomFormat, WrongCellFormat
 import copy
 import numpy as np
 import time, datetime
@@ -28,21 +28,42 @@ sys.path.insert(0,'/Users/iMac/git/glosim2/')
 
 from libmatch.soap import get_Soaps
 import cPickle as pck
-from ase.io import write,read
+from scipy.spatial.distance import pdist
+
 from ase import Atoms
+import celery
 
 
-Shift_ML_version = '0.0.1'
+Shift_ML_version = '0.0.3'
 
 
 MAX_NUMBER_OF_ATOMS = 2000
 
-dataPath = '../../data/'
-# TODO
+PROGRESS_BAR_TIMEOUT = 1000 # every 1 sec the progress bar is updated
+
 dataPath = '/home/app/data/'
+
+is_fast_dev = True
+is_debug =  os.environ.get("WERKZEUG_RUN_MAIN")
+if is_debug:
+    dataPath = '../../data/'
+# from log_task import LogErrorsTask
 
 ############################
 
+def get_dummy_work(celery_self,frame):
+    from time import sleep
+    shielding = np.zeros((len(frame),))
+    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
+    train_sizes = {1: 30000, 6: 19532, 7: 12760, 8: 14770}
+
+    numbers = frame.get_atomic_numbers()
+    for ii,sp in enumerate(sps):
+        celery_self.update_state(state='PROGRESS',
+                                 meta={'current': ii, 'total': len(sps),
+                                       'status': str(sp)})
+        sleep(1)
+    return shielding
 
 def load_model_data(sp):
     '''
@@ -136,7 +157,6 @@ def load_all_models_data():
             models[sp] = pck.load(f)
     return models
 
-# ref_desc, model = load_model_data()
 
 
 class FlaskRedirectException(Exception):
@@ -145,7 +165,7 @@ class FlaskRedirectException(Exception):
     """
     pass
 
-def logme(logger, *args, **kwargs):
+def logme( *args, **kwargs):
     """
     Log information on the passed logger. 
 
@@ -154,13 +174,14 @@ def logme(logger, *args, **kwargs):
 
     :param logger: a valid logger. If you pass `None`, no log is output.
     """
+    from seekpath_app import logger
     if logger is not None:
         logger.debug(generate_log(*args, **kwargs))
 
 
 def generate_log(filecontent,
                  fileformat,
-                 request,
+                 request_info,
                  call_source,
                  reason,
                  extra={}):
@@ -171,7 +192,7 @@ def generate_log(filecontent,
 
     :param filecontent: a string with the file content
     :param fileformat: string with the file format
-    :param request: a Flask request
+    :param request_info: a Flask request info
     :param call_source: a string identifying who called the function
     :param reason: a string identifying the reason for this log
     :param extra: additional data to add to the logged dictionary. 
@@ -183,9 +204,9 @@ def generate_log(filecontent,
     logdict = {
         'data': data,
         'reason': reason,
-        'request': str(request.headers),
+        'request': request_info['request'],
         'call_source': call_source,
-        'source': request.headers.get('X-Forwarded-For', request.remote_addr),
+        'source': request_info['source'],
         'time': datetime.datetime.now().isoformat()
     }
     logdict.update(extra)
@@ -281,41 +302,17 @@ def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
 
-def process_structure_core(filecontent, fileformat, call_source="", logger=None, flask_request=None):
-    """
-    The main function that generates the data to be sent back to the view.
-    
-    :param fileformat: The file format (string), among the accepted formats
-    :param call_source: a string identifying the source (i.e., who called
-       this function). This is a string, mainly for logging reasons.
-    :param logger: if not None, should be a valid logger, that is used
-       to output useful log messages.
-    :param flask_request: if logger is not None, pass also the flask.request
-       object to help in logging.
-
-    :return: this function calls directly flask methods and returns flask 
-        objects
-
-    :raise: FlaskRedirectException if there is an error that requires
-        to redirect the the main selection page. The Exception message
-        is the message to be flashed via Flask (or in general shown to
-        the user).
-    """
-    from structure_importers import get_structure, UnknownFormatError,WrongAtomFormat,WrongCellFormat
-    from scipy.spatial.distance import pdist
-    start_time = time.time()
+def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=""):
     fileobject = io.StringIO(unicode(filecontent))
-    form_data = dict(flask_request.form)
-
+    form_data = request_info['form']
     try:
         frame = get_structure(
-            fileobject, fileformat, extra_data=form_data)
+            fileobject, fileformat, extra_data=extra_data)
     except UnknownFormatError:
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='unknownformat',
             extra={
@@ -325,23 +322,21 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
 
     except WrongAtomFormat:
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='unknownformat',
             extra={
                 'form_data': form_data,
             })
-        raise FlaskRedirectException("Problem with the parsing of the atoms")
+        raise FlaskRedirectException("Problem20.xyz with the parsing of the atoms")
 
     except WrongCellFormat:
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='unknownformat',
             extra={
@@ -349,14 +344,12 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             })
         raise FlaskRedirectException("Problem with the parsing of the cell")
 
-
     except Exception:
         import traceback
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='exception',
             extra={
@@ -367,13 +360,18 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             "I tried my best, but I wasn't able to load your "
             "file in format '{}'...".format(fileformat))
 
+    test_frame(frame, filecontent, fileformat, call_source, request_info, extra_data)
+
+
+def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_data=""):
+
+    form_data = request_info['form']
     if frame.get_number_of_atoms() > MAX_NUMBER_OF_ATOMS:
         ## Structure too big
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='toolarge',
             extra={
@@ -385,6 +383,24 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             "in the input cell, while your structure has {} atoms."
             "".format(MAX_NUMBER_OF_ATOMS, frame.get_number_of_atoms()))
 
+    for sp in np.unique(frame.get_atomic_numbers()) :
+        if sp not in [1, 6, 7, 8]:
+            ## Structure has wrong species
+            logme(
+                filecontent,
+                fileformat,
+                request_info,
+                call_source,
+                reason='wrongspecies',
+                extra={
+                    'atomic_numbers': frame.get_atomic_numbers().tolist(),
+                    'form_data': form_data,
+                })
+            raise FlaskRedirectException(
+                "Sorry, Shift-ML is limited to the predictions of "
+                "isotropic chemical shift of 1H, 13C, 15N and 17O."
+                "The atomic species you provided are {}"
+                "".format(np.unique( [ str(z2symb[sp]) for sp in np.unique(frame.get_atomic_numbers().tolist())])))
 
     positions = frame.get_positions()
     dist = pdist(positions)
@@ -392,10 +408,9 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
     if dist[dist < 0.5].size > 0:
         ## overlapping atoms
         logme(
-            logger,
             filecontent,
             fileformat,
-            flask_request,
+            request_info,
             call_source,
             reason='toolarge',
             extra={
@@ -405,119 +420,18 @@ def process_structure_core(filecontent, fileformat, call_source="", logger=None,
             "There are some overlapping atoms. Please check your input file."
         )
 
-    for sp in np.unique(frame.get_atomic_numbers()) :
-        if sp not in [1, 6, 7, 8]:
-            ## Structure has wrong species
-            logme(
-                logger,
-                filecontent,
-                fileformat,
-                flask_request,
-                call_source,
-                reason='wrongspecies',
-                extra={
-                    'atomic_numbers': frame.get_atomic_numbers(),
-                    'form_data': form_data,
-                })
-            raise FlaskRedirectException(
-                "Sorry, Shift-ML is limited to the predictions of "
-                "isotropic chemical shift of 1H, 13C, 15N and 17O."
-                "The atomic species you provided are {}"
-                "".format(np.unique(frame.get_atomic_numbers())))
 
     # Log the content in case of valid structure
     logme(
-        logger,
         filecontent,
         fileformat,
-        flask_request,
+        request_info,
         call_source,
         reason='OK',
         extra={
             'number_of_atoms': frame.get_number_of_atoms(),
             'form_data': form_data,
         })
-
-    try:
-        in_json_data = {
-            'cell': [ v.tolist() for v in frame.get_cell()],
-            'scaled_coords': [ v.tolist() for v in frame.get_scaled_positions()],
-            'atomic_numbers': frame.get_atomic_numbers().tolist()
-        }
-
-
-        inputstructure_cell_vectors = [[
-            idx, coords[0], coords[1], coords[2]
-        ] for idx, coords in enumerate(in_json_data['cell'], start=1)]
-        inputstructure_symbols = [
-            chemical_symbols[num] for num in in_json_data['atomic_numbers']
-        ]
-        inputstructure_positions_cartesian = np.dot(
-            np.array(in_json_data['scaled_coords']),
-            np.array(in_json_data['cell']),
-        ).tolist()
-
-        inputstructure_atoms_scaled = [
-            [label, coords[0], coords[1], coords[2]]
-            for label, coords in zip(inputstructure_symbols, in_json_data[
-                'scaled_coords'])
-        ]
-        inputstructure_atoms_cartesian = [
-            [label, coords[0], coords[1], coords[2]]
-            for label, coords in zip(inputstructure_symbols,
-                                     inputstructure_positions_cartesian)
-        ]
-##############################################################################
-
-        # shielding = get_shielding_single_kernel(frame)
-        shielding = get_shielding_multi_kernel(frame)
-
-##############################################################################
-
-        compute_time = time.time() - start_time
-    except Exception:
-        import traceback
-        logme(
-            logger,
-            filecontent,
-            fileformat,
-            flask_request,
-            call_source,
-            reason='codeexception',
-            extra={
-                'traceback': traceback.extract_stack(),
-                'form_data': form_data,
-            })
-        raise
-
-    out_json_data = get_json_for_visualizer(frame)
-
-    raw_code_dict = copy.copy(out_json_data)
-
-    raw_code_dict.update({'IsotropicChemicalShielding':shielding.tolist()})
-
-    raw_code = json.dumps(raw_code_dict, indent=2)
-    ## I manually escape it to then add <br> and pass it to a filter with
-    ## |safe. I have to 'unicode' it otherwise it keeps escaping also the
-    ## next replaces
-    raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
-        ' ', '&nbsp;')
-
-    xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
-        '\n', '<br>').replace(' ', '&nbsp;')
-
-
-    return dict(
-        xyz=xyz,
-        jsondata=json.dumps(out_json_data),
-        raw_code=raw_code,
-        inputstructure_cell_vectors=inputstructure_cell_vectors,
-        inputstructure_atoms_scaled=inputstructure_atoms_scaled,
-        inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
-        compute_time=compute_time,
-        Shift_ML_version=Shift_ML_version,
-    )
-
 
 
 class DummyFileObject(object):
@@ -690,4 +604,4 @@ def get_cp2k(raw_data):
         raw=raw_data,  # export the complete raw data to the template
         zip=zip,
         set=set)  # add zip and set to the template environment for some loops
-    
+

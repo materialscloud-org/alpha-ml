@@ -17,24 +17,20 @@
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="../static/css/visualizer_base.min.css"/>
     <link rel="stylesheet" type="text/css" href="../static/css/visualizer_input.min.css"/>
-    <script src="../static/js/jquery-3.1.0.min.js"></script>        
+    <!--
+    <script src="../static/js/jquery-3.1.0.min.js"></script>
     <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
     <link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
     <script src="../static/js/loadingoverlay.js"></script>
-    <script type="text/javascript">
-    function loading_overlay(){
-        $.LoadingOverlaySetup({
-    color           : "rgba(0, 0, 0, 0.4)",
-    image           : "../static/large_spinner.gif",
-    maxSize         : "150px",
-    minSize         : "50px",
-    resizeInterval  : 0,
-    size            : "100%"
-});
+    -->
 
-        $.LoadingOverlay("show");
-        }
-    </script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery-ui.1.12.1.min.css') }}"/>
+    <script src="{{ url_for('static', filename='js/jquery-3.1.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.1.12.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/loadingoverlay.js') }}"></script>
+
+
+
 
     <title>Shift-ML</title>
     <script>
@@ -53,6 +49,7 @@
       });
     });
     </script>
+
 
     {% block customheads %}
     {% endblock %}
@@ -73,6 +70,7 @@
   {% endblock %}
 </div>
 
+    <!--
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <div class="alert alert-danger">
@@ -85,7 +83,17 @@
     </div>
   {% endif %}
 {% endwith %}
-
+-->
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      var messages = {{ messages | safe }};
+      for (var i=0; i<messages.length; i++) {
+        alert(messages[i]);
+      }
+    </script>
+    {% endif %}
+    {% endwith %}
 <!--<h2><a href="#tool">Skip the introduction and jump directly to the tool</a></h2>-->
 
 {% block aboutblock %}
@@ -119,7 +127,7 @@
 
 <h2><a name="tool"></a>Upload your structure</h2>
 <div style="margin-left: 20px; margin-right: 20px">
-  <form action="../process_structure/" enctype="multipart/form-data" method="post">
+  <form id="process_structure">
     <div class='alert alert-info'>
       <div class='row'>
 	<div class='col-xs-12 col-sm-6'>
@@ -132,7 +140,7 @@
       <div class='row'>
 	<div class='col-sm-6'>
 	  <label for="fileformat">Select here the file format:</label>
-	</div> 
+	</div>
 	<div class='col-sm-6'>
 	  <select name="fileformat" id="fileformatSelect">
           <option value="xyz-ase">EXTXYZ File (.xyz) [parser: ase]</option>
@@ -144,25 +152,19 @@
 	      <option value="pdb-ase">Protein Data Bank format (.pdb) [parser: ase]</option>
 
         </select>
-	</div> 
+	</div>
       </div>
-        <!--div id="loading"></div>
-      <div id="content">
-      <div class='row' style="text-align:center">
-        <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
-          <input type="submit" value="Calculate my structure" class="btn btn-default" onclick="loading();">
-      </div>
-      </div-->
+
         <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
-          <input type="submit" value="Calculate my structure" class="btn btn-default" onclick="loading_overlay();">
+          <input type="submit" value="Calculate my structure" class="btn btn-default">
         </div>
     </div>
   </form>
 </div>
 
 <h2>Otherwise, pick an example</h2>
-<form action="../process_example_structure/" method="post">
+<form id="process_example_structure" >
   <div style="margin-left: 20px; margin-right: 20px;">
     <div class='alert alert-info'>
       <div class="row">
@@ -176,20 +178,34 @@
 	  </select>
 	</div>
       </div>
-      <!--div id="loading2"></div>
-      <div id="content2">
-          <div class='row' style="text-align: center">
-            <p class='small'> </p>
-            <input type="submit" value="Calculate this example" class="btn btn-default" onclick="loading2();">
-          </div>
-      </div-->
         <div class='row' style="text-align: center">
             <p class='small'> </p>
-            <input type="submit" value="Calculate this example" class="btn btn-default" onclick="loading_overlay();">
+            <input type="submit" value="Calculate my structure" class="btn btn-default">
         </div>
     </div>
   </div>
 </form>
+
+
+    <script src="/submit_js/process_structure-process_structure"></script>
+
+    <script src="/submit_js/process_example_structure-process_structure"></script>
+
+
+<!--
+<form id="data">
+      User Name: <input type="text" name="username" value=""><br />
+    <label for="examplestructure">Select here a structure from the CSD:</label>
+
+      <select name="examplestructure">
+	    <option value='GUMMUW04'>GUMMUW04</option>
+
+	  </select>
+      <input type="submit" value="Submit">
+    </form>
+
+    <script src="/submit_js/data-longtask"></script>
+-->
 
     <div id='citations'>
         <h2>How to cite</h2>

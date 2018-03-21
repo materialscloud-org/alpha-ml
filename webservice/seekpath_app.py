@@ -15,12 +15,12 @@ import flask
 import os
 import numpy as np
 import cPickle as pck
+from celery import Celery
+import redis
 
 
 
-
-from seekpath_web_module import (generate_log, FlaskRedirectException, logme,
-                                 process_structure_core,z2symb,load_all_models_data)
+from seekpath_web_module import (FlaskRedirectException, PROGRESS_BAR_TIMEOUT,)
 
 
 # This (undocumented) flag changes the style of the webpage (CSS, etc.)
@@ -38,8 +38,8 @@ def get_style_version(request):
 
 
 import logging, logging.handlers
-logger = logging.getLogger("seekpath_server")
 
+logger = logging.getLogger("seekpath_server")
 logHandler = logging.handlers.TimedRotatingFileHandler(
     os.path.join(
         os.path.split(os.path.realpath(__file__))[0], 'logs', 'requests.log'),
@@ -68,10 +68,23 @@ if __name__ == "__main__":
 
 static_folder = os.path.join(
     os.path.split(os.path.realpath(__file__))[0], 'static')
+
 view_folder = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'view')
 app = flask.Flask(__name__, static_folder=static_folder)
 app.use_x_sendfile = True
 directory = os.path.split(os.path.realpath(__file__))[0]
+
+#### CELERY
+# Expects the default redis configuration
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+app.config['CELERYD_CONCURRENCY'] = 1 # number of worker in the task pool
+app.config['CELERYD_HIJACK_ROOT_LOGGER'] = True
+
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
 try:
     with open(os.path.join(directory, 'SECRET_KEY')) as f:
         app.secret_key = f.readlines()[0].strip()
@@ -125,12 +138,12 @@ class ReverseProxied(object):
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 
+
 def get_visualizer_select_template(request):
     if get_style_version(request) == 'lite':
         return 'visualizer_select_lite.html'
     else:
         return 'visualizer_select.html'
-
 
 def get_visualizer_template(request):
     if get_style_version(request) == 'lite':
@@ -138,6 +151,13 @@ def get_visualizer_template(request):
     else:
         return 'visualizer.html'
 
+def get_info_from_request(request):
+    request_info = {'request': str(request.headers),
+            'source': request.headers.get('X-Forwarded-For', request.remote_addr),
+            'form':dict(request.form),
+
+    }
+    return request_info
 
 logger.debug("Start")
 
@@ -177,15 +197,6 @@ def termsofuse():
     return flask.send_from_directory(view_folder, 'termsofuse.html')
 
 
-@app.route('/bravaissymbol_explanation/')
-def bravaissymbol_explanation():
-    """
-    View for the explanation of the Bravais symbol
-    """
-    return flask.send_from_directory(view_folder,
-                                     'bravaissymbol_explanation.html')
-
-
 @app.route('/input_structure/')
 def input_structure():
     """
@@ -193,124 +204,222 @@ def input_structure():
     """
     return flask.render_template(get_visualizer_select_template(flask.request))
 
-
-@app.route('/static/js/<path:path>')
-def send_js(path):
-    """
-    Serve static JS files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'js'), path)
-
-
-@app.route('/static/img/<path:path>')
-def send_img(path):
-    """
-    Serve static image files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'img'), path)
+# use template js for the submit buttons
+@app.route("/submit_js/<name_path>")
+def submit_js(name_path):
+    # print name_path
+    name, path = name_path.split('-')
+    url = flask.url_for(path)
+    inp = dict(form_name=name,url=url,timeout=PROGRESS_BAR_TIMEOUT)
+    return flask.render_template("/js/ajax_submit.js",**inp)
 
 
-@app.route('/static/css/<path:path>')
-def send_css(path):
-    """
-    Serve static CSS files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'css'), path)
+
+@celery.task(bind=True)
+def process_frame(self,filecontent, fileformat, call_source="", request_info=None):
+    from structure_importers import get_structure
+    import io,time,copy, json, jinja2
+    from ase.data import chemical_symbols
+    from seekpath_web_module import (get_dummy_work,get_shielding_multi_kernel,
+                is_debug,is_fast_dev,get_shielding_single_kernel,get_json_for_visualizer,
+                                     get_xyz, Shift_ML_version)
+
+    start_time = time.time()
+    fileobject = io.StringIO(unicode(filecontent))
+    # form_data = dict(request_info.form)
+    form_data = request_info['form']
 
 
-@app.route('/static/css/images/<path:path>')
-def send_cssimages(path):
-    """
-    Serve static CSS images files
-    """
-    return flask.send_from_directory(
-        os.path.join(static_folder, 'css', 'images'), path)
+    frame = get_structure(
+        fileobject, fileformat, extra_data=form_data)
 
 
-@app.route('/static/fonts/<path:path>')
-def send_fonts(path):
-    """
-    Serve static font files
-    """
-    return flask.send_from_directory(os.path.join(static_folder, 'fonts'), path)
+    in_json_data = {
+        'cell': [v.tolist() for v in frame.get_cell()],
+        'scaled_coords': [v.tolist() for v in frame.get_scaled_positions()],
+        'atomic_numbers': frame.get_atomic_numbers().tolist()
+    }
+
+    inputstructure_cell_vectors = [[
+        idx, coords[0], coords[1], coords[2]
+    ] for idx, coords in enumerate(in_json_data['cell'], start=1)]
+    inputstructure_symbols = [
+        chemical_symbols[num] for num in in_json_data['atomic_numbers']
+    ]
+    inputstructure_positions_cartesian = np.dot(
+        np.array(in_json_data['scaled_coords']),
+        np.array(in_json_data['cell']),
+    ).tolist()
+
+    inputstructure_atoms_scaled = [
+        [label, coords[0], coords[1], coords[2]]
+        for label, coords in zip(inputstructure_symbols, in_json_data[
+            'scaled_coords'])
+    ]
+    inputstructure_atoms_cartesian = [
+        [label, coords[0], coords[1], coords[2]]
+        for label, coords in zip(inputstructure_symbols,
+                                 inputstructure_positions_cartesian)
+    ]
+    ##############################################################################
+
+    if is_debug is False and is_fast_dev is False:
+        shielding = get_shielding_single_kernel(frame)
+        # shielding = get_shielding_multi_kernel(frame)
+    else:
+        shielding = get_dummy_work(self, frame)
+    ##############################################################################
+
+    compute_time = time.time() - start_time
+
+    out_json_data = get_json_for_visualizer(frame)
+
+    raw_code_dict = copy.copy(out_json_data)
+
+    raw_code_dict.update({'IsotropicChemicalShielding': shielding.tolist()})
+
+    raw_code = json.dumps(raw_code_dict, indent=2)
+    ## I manually escape it to then add <br> and pass it to a filter with
+    ## |safe. I have to 'unicode' it otherwise it keeps escaping also the
+    ## next replaces
+    raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
+        ' ', '&nbsp;')
+
+    xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
+        '\n', '<br>').replace(' ', '&nbsp;')
+
+    data = dict(
+        xyz=xyz,
+        jsondata=json.dumps(out_json_data),
+        raw_code=raw_code,
+        shielding=shielding.tolist(),
+        inputstructure_cell_vectors=inputstructure_cell_vectors,
+        inputstructure_atoms_scaled=inputstructure_atoms_scaled,
+        inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
+        compute_time=compute_time,
+        Shift_ML_version=Shift_ML_version,
+    )
 
 
-@app.route('/process_structure/', methods=['GET', 'POST'])
+    return {'current': 100, 'total': 100, 'status': 'Task completed!',
+            'result': 42, 'data': data }
+
+
+
+@app.route('/process_structure', methods=['GET', 'POST'])
 def process_structure():
-    """
-    Process a structure (uploaded from POST request)
-    """
-    if flask.request.method == 'POST':
-        # check if the post request has the file part
-        if 'structurefile' not in flask.request.files:
-            return flask.redirect(flask.url_for('input_structure'))
-        structurefile = flask.request.files['structurefile']
-        fileformat = flask.request.form.get('fileformat', 'unknown')
-        filecontent = structurefile.read()
+    from flask import request,jsonify,url_for,redirect
+    from seekpath_web_module import is_debug,read_test_frame
+
+    if request.method == 'POST':
+
+        # Submit user defined structure
+        if 'structurefile' in request.files:
+            structurefile = flask.request.files['structurefile']
+            fileformat = flask.request.form.get('fileformat', 'unknown')
+            filecontent = structurefile.read()
+            call_source = "process_structure"
+
+        # Use example structures
+        elif 'examplestructure' in request.form:
+
+            example_name = request.form.get('examplestructure')
+            try:
+                example_name = valid_examples[example_name]
+            except:
+                flask.flash("This is not a valid example: {}".format(example_name))
+                return flask.redirect(flask.url_for('input_structure'))
+
+            fileformat = 'xyz-ase'
+            call_source = "process_example_structure"
+            # I expect that the valid_examples dictionary already filters only
+            # existing files, so I don't try/except here
+            file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+            if is_debug:
+                file_name = './file_examples/' + example_name + '.xyz'
+
+
+            with open(file_name, 'r') as f:
+                filecontent = f.read()
+        else:
+            return redirect(url_for('input_structure'))
+
+        request_info = get_info_from_request(request)
 
         try:
-            data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
-                                                       call_source="process_structure", logger=logger,
-                                                       flask_request=flask.request)
-            return flask.render_template(
-                get_visualizer_template(flask.request), **data_for_template)
+            read_test_frame(filecontent,fileformat,call_source,request_info)
+
         except FlaskRedirectException as e:
+            print e.message
             flask.flash(e.message)
             return flask.redirect(flask.url_for('input_structure'))
 
-        # except Exception:
-        #     flask.flash("Unable to process the structure, sorry...")
-        #     return flask.redirect(flask.url_for('input_structure'))
 
+        task = process_frame.apply_async(
+                kwargs=dict(filecontent=filecontent, fileformat=fileformat,
+                call_source=call_source, request_info=request_info))
+
+        urls = {'Location': url_for('taskstatus',task_id=task.id),
+                'Redirect': url_for('longtask_completed',task_id=task.id)}
+
+        return jsonify({}), 202, urls
     else:  # GET Request
         return flask.redirect(flask.url_for('input_structure'))
 
 
-
-@app.route('/process_example_structure/', methods=['GET', 'POST'])
-def process_example_structure():
-    """
-    Process an example structure (example name from POST request)
-    """
-    if flask.request.method == 'POST':
-        examplestructure = flask.request.form.get('examplestructure', '<none>')
-        fileformat = "xyz-ase"
-
-        try:
-            example_name = valid_examples[examplestructure]
-        except KeyError:
-            flask.flash(
-                "Invalid example structure '{}'".format(examplestructure))
-            return flask.redirect(flask.url_for('input_structure'))
+@app.route('/Chemical_Shielding_Result/')
+@app.route('/Chemical_Shielding_Result/<task_id>')
+def longtask_completed(task_id):
+    from flask import render_template
+    task = process_frame.AsyncResult(task_id)
+    print task.info['data']
+    return render_template('visualizer.html', **task.info['data'])
 
 
-        # I expect that the valid_examples dictionary already filters only
-        # existing files, so I don't try/except here
-        file_name = './file_examples/'+example_name+'.xyz'
-        #TODO
-        file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
-        #frame = read(file_name)
-        with open(file_name,'r') as f:
-            filecontent = f.read()
+@app.route('/status/<task_id>')
+def taskstatus(task_id):
+    task = process_frame.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state in ['STARTED','PROGRESS']:
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+    elif task.state == 'SUCCESS':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
 
-        try:
-            data_for_template = process_structure_core(filecontent=filecontent, fileformat=fileformat,
-                                                       call_source="process_example_structure[{}]".format(
-                                                           examplestructure), logger=logger,
-                                                       flask_request=flask.request)
-            return flask.render_template(
-                get_visualizer_template(flask.request), **data_for_template)
-        except FlaskRedirectException as e:
-            flask.flash(e.message)
-            return flask.redirect(flask.url_for('input_structure'))
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return flask.jsonify(response)
 
-    else:  # GET Request
-        return flask.redirect(flask.url_for('input_structure'))
+
 
 
 if __name__ == "__main__":
     # Don't use x-sendfile when testing it, because this is only good
     # if deployed with Apache
     # Use the local version of seekpath, not the installed one
+
     app.use_x_sendfile = False
     app.run(debug=True)

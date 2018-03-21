@@ -112,35 +112,7 @@
     }
     </style>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <!--
-    <link rel="stylesheet" href="../static/css/ChemDoodleWeb.min.css" type="text/css">
-    <script type="text/javascript" src="../static/js/ChemDoodleWeb.min.js"></script>
-    -->
-    <!--
-    <script>
-    var jsondata = {{ jsondata|safe }};
-    var json_content = {{ json_content|safe }};
-    var mainBZVisualizer = new BZVisualizer();
-    $( document ).ready(function() {
-        mainBZVisualizer.loadBZ(canvasID='canvas3d',infoID='info',jsondata=jsondata);
-      });
 
-    // global variable
-    var structureviewer = null;
-
-
-    var resize_canvases = function () {
-        mainBZVisualizer.resizeRenderer(); // BZ visualizer
-        // resize structure viewer
-        if (structureviewer) {
-            parentcanvas = document.getElementById('structure');
-            the_width = parentcanvas.offsetWidth;
-            the_height = parentcanvas.offsetHeight;
-            structureviewer.resize(the_width, the_height);
-        }
-    }
-    </script>
-    -->
     <script type="text/javascript">
       startWebGLCheck();
     </script>
@@ -283,6 +255,7 @@
         </div>
       </div>
     </div>
+
 
     <div id="result">
         <div id='rawcode'>
