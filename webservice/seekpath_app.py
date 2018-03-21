@@ -73,6 +73,7 @@ class ConfigurationError(Exception):
 
 valid_examples = {
     "GUMMUW04": ("GUMMUW04"),
+	"EDEBUK": ("EDEBUK")
 }
 
 if __name__ == "__main__":
@@ -118,9 +119,9 @@ except Exception:
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the 
-    front-end server to add these headers, to let you quietly bind 
-    this to a URL other than / and to an HTTP scheme that is 
+    '''Wrap the application in this middleware and configure the
+    front-end server to add these headers, to let you quietly bind
+    this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
 
     Inspired by  http://flask.pocoo.org/snippets/35/
@@ -326,11 +327,11 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
 
 @app.route('/process_structure', methods=['GET', 'POST'])
 def process_structure():
+
     from flask import request,jsonify,url_for,redirect
     from seekpath_web_module import read_test_frame,FlaskRedirectException
 
     if request.method == 'POST':
-
         # Submit user defined structure
         if 'structurefile' in request.files:
             structurefile = flask.request.files['structurefile']
@@ -355,6 +356,7 @@ def process_structure():
             file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
             if is_debug:
                 file_name = './file_examples/' + example_name + '.xyz'
+
 
 
             with open(file_name, 'r') as f:

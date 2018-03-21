@@ -1,5 +1,5 @@
 """
-Most of the functions needed by the web service are here. 
+Most of the functions needed by the web service are here.
 In seekpath_app.py we just keep the main web logic.
 """
 from __future__ import unicode_literals
@@ -19,11 +19,14 @@ import json
 import io
 
 import jinja2
+#import spglib  # Mainly to get its version
 
 import sys
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
 sys.path.insert(0,'/Users/iMac/git/glosim2/')
+sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
+
 
 
 from libmatch.soap import get_Soaps
@@ -37,7 +40,9 @@ import celery
 from seekpath_app import PROGRESS_BAR_TIMEOUT,is_fast_dev,is_debug,dataPath,MAX_NUMBER_OF_ATOMS
 
 
+
 ############################
+
 
 
 def load_all_models_data():
@@ -45,7 +50,9 @@ def load_all_models_data():
     Load the model data at the start of the app
     :return:
     '''
-
+    dataPath = '../data/'
+    # TODO dataPath = '/home/app/data/'
+    # ref_desc = np.load(dataPath + 'test_soap.npy')
     models = {}
     for sp in [1,6,7,8]:
         with open(dataPath + 'model_sp_{}.pck'.format(z2symb[sp]), 'rb') as f:
@@ -62,7 +69,7 @@ class FlaskRedirectException(Exception):
 
 def logme( *args, **kwargs):
     """
-    Log information on the passed logger. 
+    Log information on the passed logger.
 
     See docstring of generate_log for more info on the
     accepted kwargs.
@@ -81,8 +88,8 @@ def generate_log(filecontent,
                  reason,
                  extra={}):
     """
-    Given a string with the file content, a file format, a Flask request and 
-    a string identifying the reason for logging, stores the 
+    Given a string with the file content, a file format, a Flask request and
+    a string identifying the reason for logging, stores the
     correct logs.
 
     :param filecontent: a string with the file content
@@ -90,7 +97,7 @@ def generate_log(filecontent,
     :param request_info: a Flask request info
     :param call_source: a string identifying who called the function
     :param reason: a string identifying the reason for this log
-    :param extra: additional data to add to the logged dictionary. 
+    :param extra: additional data to add to the logged dictionary.
         NOTE! it must be JSON-serializable
     """
     # I don't know the fileformat
@@ -127,7 +134,6 @@ z2symb = {
           77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
           83: 'Bi'
 }
-
 
 
 def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=""):
@@ -275,6 +281,7 @@ def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_dat
             'number_of_atoms': frame.get_number_of_atoms(),
             'form_data': form_data,
         })
+
 
 
 class DummyFileObject(object):
@@ -447,4 +454,20 @@ def get_cp2k(raw_data):
         raw=raw_data,  # export the complete raw data to the template
         zip=zip,
         set=set)  # add zip and set to the template environment for some loops
+
+
+def create_files_for_jsmol(frame,jsmol_name,fileformat,shielding):
+    """
+    Save and .cif file and a file with the list of shifts, both needed for the jmol window
+    """
+    cifname='static/jsmol/data/'+str(jsmol_name)+'.cif'
+    datname='static/jsmol/data/'+str(jsmol_name)+'.dat'
+
+    write(cifname, frame)
+    with open(datname, 'w') as f:
+        f.write('data \"property_shifts\"\n')
+        for it in range(len(shielding)):
+            f.write('%.6f\n' % shielding[it])
+        f.write('end \"property_shifts\"\n')
+    return 1
 

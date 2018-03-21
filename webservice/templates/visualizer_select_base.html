@@ -17,6 +17,7 @@
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="../static/css/visualizer_base.min.css"/>
     <link rel="stylesheet" type="text/css" href="../static/css/visualizer_input.min.css"/>
+
     <!--
     <script src="../static/js/jquery-3.1.0.min.js"></script>
     <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
@@ -28,9 +29,6 @@
     <script src="{{ url_for('static', filename='js/jquery-3.1.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery-ui.1.12.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loadingoverlay.js') }}"></script>
-
-
-
 
     <title>Shift-ML</title>
     <script>
@@ -179,6 +177,7 @@
 	<div class="col-xs-12 col-sm-6">
 	  <select name="examplestructure">
 	    <option value='GUMMUW04'>GUMMUW04</option>
+			<option value='EDEBUK'>EDEBUK</option>
 
 	  </select>
 	</div>
@@ -222,7 +221,7 @@
 
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
-      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>, 
+      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
              <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
       	</li>
         </ul>
