@@ -20,15 +20,16 @@
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
+			 Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
 		 var Info = {
-// By using %s, the applet will be resized if the window is resized
+		// By using %s, the applet will be resized if the window is resized
 		 height: "75%",
 		 width: "75%",
-// php sets the Jmol variable Info.use
+		// php sets the Jmol variable Info.use
 		 use: "HTML5",
-// The next line assumes that the .jar files in the Jmol distribution have been moved
-//  to the top level of the Jmol library directory
+		// The next line assumes that the .jar files in the Jmol distribution have been moved
+		//  to the top level of the Jmol library directory
 		 jarPath: "../static/jsmol",
 		 j2sPath: "../static/jsmol/j2s",
 		 jarFile: "../static/jsmol/java/JmolApplet0.jar",
@@ -87,31 +88,7 @@
 		{% endblock seekpathtitle %}
 			</div>
 
-			<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:center; position:relative;">
-			<script type="text/javascript">
-							var filesytem="../static/jsmol/data/{{ jsmol_name }}";
 
-							JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
-
-							Jmol.loadFile(JmolApplet0, filesytem+ ".cif", "load '' {1 1 1}");
-							Jmol.script(JmolApplet0, "script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt");
-
-							Jmol.jmolMenu(JmolApplet0,[
-									["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
-									["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
-									["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
-									["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
-									["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
-									["select all; label HIDE; select OFF;","no shifts"]
-							],1,"shifts_menu","display chemical shifts");
-
-							Jmol.jmolMenu(JmolApplet0, [
-									["load '' {1 1 1}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{1 1 1}"],
-									["load '' {2 2 2}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt; selectionHalos ON;", "{2 2 2}"],
-									["load '' {3 3 3}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{3 3 3}"]
-							],1,"periodic_menu", "display multiple unit cells");
-			</script>
-		</div>
 		<div id="topinfo">
 
 			<div id="accordion-initialcoords">
@@ -235,6 +212,33 @@
 			</div>
 		</div>
 	</div>
+
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:center; position:relative;transform: translate(15%, 0%);">
+			<script type="text/javascript">
+							var filesytem="{{ jsmol_name }}";
+
+							JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
+
+							Jmol.loadFile(JmolApplet0, filesytem+ ".cif", "load '' {1 1 1}");
+							Jmol.script(JmolApplet0, "script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt");
+
+							Jmol.jmolMenu(JmolApplet0,[
+									["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
+									["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
+									["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
+									["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
+									["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
+									["select all; label HIDE; select OFF;","no shifts"]
+							],1,"shifts_menu","display chemical shifts");
+
+							Jmol.jmolMenu(JmolApplet0, [
+									["load '' {1 1 1}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{1 1 1}"],
+									["load '' {2 2 2}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt; selectionHalos ON;", "{2 2 2}"],
+									["load '' {3 3 3}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{3 3 3}"]
+							],1,"periodic_menu", "display multiple unit cells");
+			</script>
+		</div>
+
 
 	<div id="result">
 			<div id='rawcode'>

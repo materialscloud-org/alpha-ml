@@ -84,6 +84,7 @@ function update_progress(status_url,redirect_url) {
         if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
             if ('result' in data) {
                 // show result
+
                 $("html").load(redirect_url);
                 $(location).attr('href',redirect_url);
             }

@@ -72,33 +72,6 @@
 
     </div>
 
-    <!--
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <div class="alert alert-danger">
-    Warning:
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-    </div>
-  {% endif %}
-{% endwith %}
-
-    {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <script>
-      var messages = {{ messages | safe }};
-      for (var i=0; i<messages.length; i++) {
-        alert(messages[i]);
-      }
-    </script>
-    {% endif %}
-    {% endwith %}
-   -->
-<!--<h2><a href="#tool">Skip the introduction and jump directly to the tool</a></h2>-->
-
 {% block aboutblock %}
 <div id="accordion">
 <h2>What Shift-ML does</h2>

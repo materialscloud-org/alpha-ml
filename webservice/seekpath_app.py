@@ -17,6 +17,7 @@ import cPickle as pck
 from celery import Celery
 from structure_importers import get_structure
 from ase import Atoms
+from ase.io import write
 
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
@@ -32,12 +33,12 @@ MAX_NUMBER_OF_ATOMS = 2000
 
 PROGRESS_BAR_TIMEOUT = 300 # every 1 sec the progress bar is updated
 
-is_fast_dev = False
-is_debug =  False
+is_fast_dev = True
+is_debug =  True
 
 dataPath = '/home/app/data/'
 if is_debug:
-    dataPath = '../../data/'
+    dataPath = '../data/'
 
 
 
@@ -238,7 +239,7 @@ def submit_js(name_path):
 
 
 @celery.task(bind=True)
-def predict_chemical_shifts(self,filecontent, fileformat, call_source="", request_info=None):
+def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source="", request_info=None):
     # from structure_importers import get_structure
     import io,time,copy, json, jinja2
     from ase.data import chemical_symbols
@@ -292,6 +293,8 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
 
     compute_time = time.time() - start_time
 
+    create_files_for_jsmol(frame, jsmol_name['absolute'], fileformat, shielding)
+
     out_json_data = get_json_for_visualizer(frame)
 
     raw_code_dict = copy.copy(out_json_data)
@@ -312,6 +315,7 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
         xyz=xyz,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
+        jsmol_name=jsmol_name['relative'],
         shielding=shielding.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
@@ -327,10 +331,12 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
 
 @app.route('/process_structure', methods=['GET', 'POST'])
 def process_structure():
-
+    import uuid,io
     from flask import request,jsonify,url_for,redirect
     from seekpath_web_module import read_test_frame,FlaskRedirectException
 
+    id = '+'+str(uuid.uuid1()).replace('-','_')
+    id = ''
     if request.method == 'POST':
         # Submit user defined structure
         if 'structurefile' in request.files:
@@ -338,7 +344,7 @@ def process_structure():
             fileformat = flask.request.form.get('fileformat', 'unknown')
             filecontent = structurefile.read()
             call_source = "process_structure"
-
+            jsmol_name = 'static/jsmol/data/uploaded/'+'UPLOADED'+id
         # Use example structures
         elif 'examplestructure' in request.form:
 
@@ -349,6 +355,7 @@ def process_structure():
                 flask.flash("This is not a valid example: {}".format(example_name))
                 return flask.redirect(flask.url_for('input_structure'))
 
+            jsmol_name = 'static/jsmol/data/' + example_name
             fileformat = 'xyz-ase'
             call_source = "process_example_structure"
             # I expect that the valid_examples dictionary already filters only
@@ -375,10 +382,23 @@ def process_structure():
             # return flask.redirect(flask.url_for('input_structure'))
             return jsonify(message=e.message),500
 
-
+        # print '############################'
+        # ppppp = os.path.abspath(jsmol_name+'.cif')
+        # print ppppp
+        # print os.getcwd()
+        # fileobject = io.StringIO(unicode(filecontent))
+        # # form_data = dict(request_info.form)
+        # form_data = request_info['form']
+        # frame = get_structure(
+        #     fileobject, fileformat, extra_data=form_data)
+        # write(ppppp,frame,format='cif')
+        jsmol_name = dict(absolute=os.path.abspath(jsmol_name),relative='../'+jsmol_name)
+        print '#########'
+        print jsmol_name
         task = predict_chemical_shifts.apply_async(
                 kwargs=dict(filecontent=filecontent, fileformat=fileformat,
-                call_source=call_source, request_info=request_info))
+                            jsmol_name=jsmol_name,
+                            call_source=call_source, request_info=request_info))
 
         urls = {'Location': url_for('taskstatus',task_id=task.id),
                 'Redirect': url_for('longtask_completed',task_id=task.id)}
@@ -393,7 +413,9 @@ def process_structure():
 def longtask_completed(task_id):
     from flask import render_template
     task = predict_chemical_shifts.AsyncResult(task_id)
-    print task.info['data']
+    #print task.info['data']
+    # task.info['data']['jsmol_name'] = os.path.basename(task.info['data']['jsmol_name'])
+
     return render_template('visualizer.html', **task.info['data'])
 
 
@@ -434,10 +456,9 @@ def taskstatus(task_id):
         }
     return flask.jsonify(response)
 
-
 def get_dummy_work(celery_self,frame):
     from time import sleep
-    shielding = np.zeros((len(frame),))
+    shielding = np.ones((len(frame),))
     sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
     train_sizes = {1: 30000, 6: 19532, 7: 12760, 8: 14770}
 
@@ -657,6 +678,23 @@ def get_fingerprints(frames, soap_params, nprocess, sp=None):
 def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
+
+def create_files_for_jsmol(frame, jsmol_name, fileformat, shielding):
+    """
+    Save and .cif file and a file with the list of shifts, both needed for the jmol window
+    """
+
+    cifname = str(jsmol_name + u'.cif')
+    datname = str(jsmol_name + u'.dat')
+
+
+    with open(datname, 'w') as f:
+        f.write('data \"property_shifts\"\n')
+        for it in range(len(shielding)):
+            f.write('%.6f\n' % shielding[it])
+        f.write('end \"property_shifts\"\n')
+    write(cifname, frame, format='cif')
+    return 1
 
 
 if __name__ == "__main__":
