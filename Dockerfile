@@ -89,10 +89,16 @@ RUN cd $HOME/git/QUIP/ \
 
 RUN mkdir $HOME/code
 
+RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4 scikit-learn==0.19.1 celery==4.1.0 redis==2.10.6
+
+RUN cd $HOME/git/  \
+    && git clone https://github.com/cosmo-epfl/glosim2.git
+
+
 USER root
 
 # Actually, don't download, but get the code directly from this repo
-COPY predictor.py $HOME/code/predictor.py
+#COPY predictor.py $HOME/code/predictor.py
 COPY webservice $HOME/code/webservice
 RUN mkdir $HOME/data
 # COPY ../data $HOME/data
@@ -100,19 +106,14 @@ RUN mkdir $HOME/data
 #COPY ./README.rst README.rst
 #COPY ./MANIFEST.in MANIFEST.in
 #COPY ./LICENSE.txt LICENSE.txt
-COPY run_tests.py $HOME/code/run_tests.py
+#COPY run_tests.py $HOME/code/run_tests.py
 
 # Set proper permissions
 RUN chown -R app:app $HOME/code/webservice
 RUN chown -R app:app $HOME/data
-RUN chown app:app $HOME/code/predictor.py $HOME/code/run_tests.py
+#RUN chown app:app $HOME/code/predictor.py $HOME/code/run_tests.py
 
 USER app
-
-RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4 scikit-learn==0.19.1 celery==4.1.0 redis==2.10.6
-
-RUN cd $HOME/git/  \
-    && git clone https://github.com/cosmo-epfl/glosim2.git
 
 # Create a proper wsgi file
 #

@@ -20,7 +20,7 @@
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
-			 Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
+			 //Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
@@ -34,6 +34,7 @@
 		 j2sPath: "../static/jsmol/j2s",
 		 jarFile: "../static/jsmol/java/JmolApplet0.jar",
 		 readyFunction: readyfunc,
+
 		 };
 		</script>
 
@@ -213,34 +214,47 @@
 		</div>
 	</div>
 
-		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:center; position:relative;transform: translate(15%, 0%);">
-			<script type="text/javascript">
-							var filesytem="{{ jsmol_name }}";
 
-							JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
-
-							Jmol.loadFile(JmolApplet0, filesytem+ ".cif", "load '' {1 1 1}");
-							Jmol.script(JmolApplet0, "script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt");
-
-							Jmol.jmolMenu(JmolApplet0,[
-									["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
-									["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
-									["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
-									["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
-									["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
-									["select all; label HIDE; select OFF;","no shifts"]
-							],1,"shifts_menu","display chemical shifts");
-
-							Jmol.jmolMenu(JmolApplet0, [
-									["load '' {1 1 1}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{1 1 1}"],
-									["load '' {2 2 2}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt; selectionHalos ON;", "{2 2 2}"],
-									["load '' {3 3 3}; script "+filesytem+".dat ; script ../static/jsmol/data/labels.spt;", "{3 3 3}"]
-							],1,"periodic_menu", "display multiple unit cells");
-			</script>
-		</div>
 
 
 	<div id="result">
+
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(15%, 0%);">
+			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
+			<script type="text/javascript">
+
+				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
+				var structure = '{{ jsmol_pos | safe }}';
+				var prefix = 'set forceAutoBond ON;load data "model current_model"'
+				var suffix = ' end "model current_model"  spacegroup "" unitcell "[{{ jsmol_cell | safe }}]";set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set showUnitcellDetails TRUE;';
+				//; display none or cell=555;center displayed; zoom {displayed} 0;';
+
+				var shifts_ms = '{all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
+				var style = "set fontSize 15;select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select all;select property_shifts!=0; mapProperty {selected}.property_shifts {all}.property_shifts atomName;select OFF property_shifts!=0; label %[property_shifts];font label monospaced italic;";
+
+				Jmol.script(JmolApplet0, prefix+structure+suffix+shifts_ms+style);
+
+
+				/*
+				Jmol.jmolMenu(JmolApplet0,[
+						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
+						["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
+						["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
+						["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
+						["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
+						["select all; label HIDE; select OFF;","no shifts"]
+				],1,"shifts_menu","display chemical shifts");
+
+				Jmol.jmolMenu(JmolApplet0, [
+						["load '' {1 1 1}; "+ shifts_ms + " ; "+style +"  ;", "{1 1 1}"],
+						["load '' {2 2 2}; "+ shifts_ms + " ; "+style +" ; selectionHalos ON;", "{2 2 2}"],
+						["load '' {3 3 3}; "+ shifts_ms + " ; "+style +" ;", "{3 3 3}"]
+				],1,"periodic_menu", "display multiple unit cells");
+				*/
+
+			</script>
+		</div>
+
 			<div id='rawcode'>
 		<h2><a name="downloadablecoords"></a>Isotropic Chemical Shifts Results</h2>
 			<p>Clic on the header to open a section</p>

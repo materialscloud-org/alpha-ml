@@ -24,6 +24,17 @@ sys.path.insert(0,'/home/app/git/glosim2/')
 sys.path.insert(0,'/Users/iMac/git/glosim2/')
 from libmatch.soap import get_Soaps
 
+logger = logging.getLogger("seekpath_server")
+logHandler = logging.handlers.TimedRotatingFileHandler(
+    os.path.join(
+        os.path.split(os.path.realpath(__file__))[0], 'logs', 'requests.log'),
+    when='midnight')
+formatter = logging.Formatter(
+    '[%(asctime)s]%(levelname)s-%(funcName)s ^ %(message)s')
+logHandler.setFormatter(formatter)
+logger.addHandler(logHandler)
+logger.setLevel(logging.DEBUG)
+
 
 
 Shift_ML_version = '0.0.3'
@@ -33,8 +44,27 @@ MAX_NUMBER_OF_ATOMS = 2000
 
 PROGRESS_BAR_TIMEOUT = 300 # every 1 sec the progress bar is updated
 
-is_fast_dev = True
-is_debug =  True
+if os.environ.get('DEBUG') == 'false':
+    is_debug = False
+else:
+    is_debug = True
+
+if os.environ.get('FAST_DEV') == 'false':
+    is_fast_dev = False
+else:
+    is_fast_dev = True
+
+if os.environ.get('MSK') == 'false':
+    is_msk = False
+else:
+    is_msk = True
+# is_fast_dev = False
+# is_debug =  False
+
+# logger.info('######################################')
+# logger.info(os.environ.get('DEBUG'))
+# logger.info('{} {}'.format(is_debug,is_fast_dev))
+
 
 dataPath = '/home/app/data/'
 if is_debug:
@@ -55,17 +85,6 @@ if is_debug:
 def get_style_version(request):
     return request.environ.get("HTTP_X_SEEKPATH_STYLE", "")
 
-
-logger = logging.getLogger("seekpath_server")
-logHandler = logging.handlers.TimedRotatingFileHandler(
-    os.path.join(
-        os.path.split(os.path.realpath(__file__))[0], 'logs', 'requests.log'),
-    when='midnight')
-formatter = logging.Formatter(
-    '[%(asctime)s]%(levelname)s-%(funcName)s ^ %(message)s')
-logHandler.setFormatter(formatter)
-logger.addHandler(logHandler)
-logger.setLevel(logging.DEBUG)
 
 
 class ConfigurationError(Exception):
@@ -160,8 +179,6 @@ class ReverseProxied(object):
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-
-
 def get_visualizer_select_template(request):
     if get_style_version(request) == 'lite':
         return 'visualizer_select_lite.html'
@@ -238,6 +255,147 @@ def submit_js(name_path):
     return flask.render_template("/js/ajax_submit.js",**inp)
 
 
+@app.route('/process_structure', methods=['GET', 'POST'])
+def process_structure():
+    import uuid
+    from flask import request,jsonify,url_for,redirect
+    from seekpath_web_module import read_test_frame,FlaskRedirectException
+
+    id = '_'+str(uuid.uuid1()).replace('-','_')
+    id = ''
+    if request.method == 'POST':
+        # Submit user defined structure
+        if 'structurefile' in request.files:
+            structurefile = flask.request.files['structurefile']
+            fileformat = flask.request.form.get('fileformat', 'unknown')
+            filecontent = structurefile.read()
+            call_source = "process_structure"
+            if is_debug:
+                jsmol_name = 'static/jsmol/data/uploaded/UPLOADED'+id
+                jsmol_name = dict(absolute=os.path.abspath(jsmol_name),
+                                  relative='../' + jsmol_name)
+            else:
+                jsmol_name = dict(absolute='/home/app/code/webservice/static/jsmol/data/UPLOADED'+id,
+                                  relative='../static/jsmol/data/UPLOADED'+id,)
+
+        # Use example structures
+        elif 'examplestructure' in request.form:
+
+            example_name = request.form.get('examplestructure')
+            try:
+                example_name = valid_examples[example_name]
+            except:
+                flask.flash("This is not a valid example: {}".format(example_name))
+                return flask.redirect(flask.url_for('input_structure'))
+
+            # jsmol_name = 'static/jsmol/data/' + example_name
+            if is_debug:
+                jsmol_name = 'static/jsmol/data/'+example_name
+                jsmol_name = dict(absolute=os.path.abspath(jsmol_name),
+                                  relative='../' + jsmol_name)
+            else:
+                jsmol_name = dict(absolute='/home/app/code/webservice/static/jsmol/data/'+example_name,
+                                  relative='../static/jsmol/data/'+example_name,)
+            fileformat = 'xyz-ase'
+            call_source = "process_example_structure"
+            # I expect that the valid_examples dictionary already filters only
+            # existing files, so I don't try/except here
+            file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
+            if is_debug:
+                file_name = './file_examples/' + example_name + '.xyz'
+
+
+
+            with open(file_name, 'r') as f:
+                filecontent = f.read()
+        else:
+            return redirect(url_for('input_structure'))
+
+        request_info = get_info_from_request(request)
+
+        try:
+            read_test_frame(filecontent,fileformat,call_source,request_info)
+
+        except FlaskRedirectException as e:
+            print e.message
+            # flask.flash(e.message)
+            # return flask.redirect(flask.url_for('input_structure'))
+            return jsonify(message=e.message),500
+
+
+        task = predict_chemical_shifts.apply_async(
+                kwargs=dict(filecontent=filecontent, fileformat=fileformat,
+                            jsmol_name=jsmol_name,
+                            call_source=call_source, request_info=request_info))
+
+        urls = {'Location': url_for('taskstatus',task_id=task.id),
+                'Redirect': url_for('longtask_completed',task_id=task.id)}
+
+        return jsonify({}), 202, urls
+    else:  # GET Request
+        return flask.redirect(flask.url_for('input_structure'))
+
+
+@app.route('/Chemical_Shielding_Predictions/')
+@app.route('/Chemical_Shielding_Predictions/<task_id>')
+def longtask_completed(task_id):
+    from flask import render_template
+    task = predict_chemical_shifts.AsyncResult(task_id)
+    #print task.info['data']
+    return render_template('visualizer.html', **task.info['data'])
+
+
+@app.route('/status/<task_id>')
+def taskstatus(task_id):
+    task = predict_chemical_shifts.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state in ['STARTED','PROGRESS']:
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+    elif task.state == 'SUCCESS':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return flask.jsonify(response)
+
+@app.context_processor
+def utility_processor():
+    def format_shifts(shifts):
+        ss = []
+        for ms in shifts:
+            ss.append('{0:.3f}'.format(ms))
+        return ' '.join(ss)
+    return dict(format_shifts=format_shifts)
+
+
+
+########################################
+# THE MAIN FUNCTIONALITY
+
 @celery.task(bind=True)
 def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source="", request_info=None):
     # from structure_importers import get_structure
@@ -284,12 +442,15 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
     ]
     ##############################################################################
 
-    if is_fast_dev is False:
+    if is_fast_dev is False and is_msk is False:
         shielding = get_shielding_single_kernel(self,frame)
-        # shielding = get_shielding_multi_kernel(self,frame)
+    elif is_fast_dev is False and is_msk is True:
+        shielding = get_shielding_multi_kernel(self,frame)
     else:
         shielding = get_dummy_work(self, frame)
     ##############################################################################
+
+    # LOG.info('{}'.format(jsmol_name))
 
     compute_time = time.time() - start_time
 
@@ -311,11 +472,16 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
 
+    jsmol_pos,jsmol_cell = get_json(frame)
+
     data = dict(
         xyz=xyz,
+        jsmol_pos=jsmol_pos,
+        jsmol_cell=jsmol_cell,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
         jsmol_name=jsmol_name['relative'],
+        # jsmol_name=jsmol_name['absolute'],
         shielding=shielding.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
@@ -327,134 +493,6 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
 
     return {'current': 100, 'total': 100, 'status': 'Task completed!',
             'result': 42, 'data': data }
-
-
-@app.route('/process_structure', methods=['GET', 'POST'])
-def process_structure():
-    import uuid,io
-    from flask import request,jsonify,url_for,redirect
-    from seekpath_web_module import read_test_frame,FlaskRedirectException
-
-    id = '+'+str(uuid.uuid1()).replace('-','_')
-    id = ''
-    if request.method == 'POST':
-        # Submit user defined structure
-        if 'structurefile' in request.files:
-            structurefile = flask.request.files['structurefile']
-            fileformat = flask.request.form.get('fileformat', 'unknown')
-            filecontent = structurefile.read()
-            call_source = "process_structure"
-            jsmol_name = 'static/jsmol/data/uploaded/'+'UPLOADED'+id
-        # Use example structures
-        elif 'examplestructure' in request.form:
-
-            example_name = request.form.get('examplestructure')
-            try:
-                example_name = valid_examples[example_name]
-            except:
-                flask.flash("This is not a valid example: {}".format(example_name))
-                return flask.redirect(flask.url_for('input_structure'))
-
-            jsmol_name = 'static/jsmol/data/' + example_name
-            fileformat = 'xyz-ase'
-            call_source = "process_example_structure"
-            # I expect that the valid_examples dictionary already filters only
-            # existing files, so I don't try/except here
-            file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
-            if is_debug:
-                file_name = './file_examples/' + example_name + '.xyz'
-
-
-
-            with open(file_name, 'r') as f:
-                filecontent = f.read()
-        else:
-            return redirect(url_for('input_structure'))
-
-        request_info = get_info_from_request(request)
-
-        try:
-            read_test_frame(filecontent,fileformat,call_source,request_info)
-
-        except FlaskRedirectException as e:
-            print e.message
-            # flask.flash(e.message)
-            # return flask.redirect(flask.url_for('input_structure'))
-            return jsonify(message=e.message),500
-
-        # print '############################'
-        # ppppp = os.path.abspath(jsmol_name+'.cif')
-        # print ppppp
-        # print os.getcwd()
-        # fileobject = io.StringIO(unicode(filecontent))
-        # # form_data = dict(request_info.form)
-        # form_data = request_info['form']
-        # frame = get_structure(
-        #     fileobject, fileformat, extra_data=form_data)
-        # write(ppppp,frame,format='cif')
-        jsmol_name = dict(absolute=os.path.abspath(jsmol_name),relative='../'+jsmol_name)
-        print '#########'
-        print jsmol_name
-        task = predict_chemical_shifts.apply_async(
-                kwargs=dict(filecontent=filecontent, fileformat=fileformat,
-                            jsmol_name=jsmol_name,
-                            call_source=call_source, request_info=request_info))
-
-        urls = {'Location': url_for('taskstatus',task_id=task.id),
-                'Redirect': url_for('longtask_completed',task_id=task.id)}
-
-        return jsonify({}), 202, urls
-    else:  # GET Request
-        return flask.redirect(flask.url_for('input_structure'))
-
-
-@app.route('/Chemical_Shielding_Predictions/')
-@app.route('/Chemical_Shielding_Predictions/<task_id>')
-def longtask_completed(task_id):
-    from flask import render_template
-    task = predict_chemical_shifts.AsyncResult(task_id)
-    #print task.info['data']
-    # task.info['data']['jsmol_name'] = os.path.basename(task.info['data']['jsmol_name'])
-
-    return render_template('visualizer.html', **task.info['data'])
-
-
-@app.route('/status/<task_id>')
-def taskstatus(task_id):
-    task = predict_chemical_shifts.AsyncResult(task_id)
-    if task.state == 'PENDING':
-        response = {
-            'state': task.state,
-            'current': 0,
-            'total': 1,
-            'status': 'Pending...'
-        }
-    elif task.state in ['STARTED','PROGRESS']:
-        response = {
-            'state': task.state,
-            'current': task.info.get('current', 0),
-            'total': task.info.get('total', 1),
-            'status': task.info.get('status', '')
-        }
-    elif task.state == 'SUCCESS':
-        response = {
-            'state': task.state,
-            'current': task.info.get('current', 0),
-            'total': task.info.get('total', 1),
-            'status': task.info.get('status', '')
-        }
-        if 'result' in task.info:
-            response['result'] = task.info['result']
-
-    else:
-        # something went wrong in the background job
-        response = {
-            'state': task.state,
-            'current': 1,
-            'total': 1,
-            'status': str(task.info),  # this is the exception raised
-        }
-    return flask.jsonify(response)
 
 def get_dummy_work(celery_self,frame):
     from time import sleep
@@ -513,7 +551,7 @@ def get_shielding_single_kernel(celery_self,frame):
                                  meta={'current': ii, 'total': len(sps),
                                        'status': str(sp)})
 
-    np.round(shielding, decimals=2, out=shielding)
+    np.round(shielding, decimals=4, out=shielding)
     return shielding
 
 def load_model_data_msk(sp,cutoff):
@@ -564,7 +602,7 @@ def get_shielding_multi_kernel(celery_self,frame):
                                  meta={'current': ii, 'total': len(sps),
                                        'status': str(sp)})
 
-    np.round(shielding, decimals=2, out=shielding)
+    np.round(shielding, decimals=4, out=shielding)
     return shielding
 
 def get_json_for_visualizer(frame):
@@ -601,6 +639,27 @@ def get_xyz(frame,shielding):
 
     write_xyz(f_obj, new_frame)
     return f_obj.read()
+
+def get_cif(frame):
+    from ase.io.cif import write_cif
+    my_cif = DummyFileObject()
+    write_cif(my_cif,frame)
+    return my_cif.read()
+
+
+def get_json(frame):
+    # {"mol":{"a":[{"l":H,"x":0,"y":0.5,"z":0},{"l":C,"x":1,"y":0.5,"z":0}],"b":[]}}
+    pos_string = '{\"mol\":{\"a\":['
+    for sym, pos in zip(frame.get_chemical_symbols(), frame.get_positions()):
+        pos_string += '{' + '"l":{sym},"x":{p1:.3f},"y":{p2:.3f},"z":{p3:.3f}'.format(sym=sym, p1=pos[0], p2=pos[1],
+                                                                                      p3=pos[2]) + '},'
+
+    pos_string += '],\"b\":[]}}'
+    cell = frame.get_cell().flatten()
+    cell_string = ''
+    for ss in cell:
+        cell_string += ' {:.4f} '.format(ss)
+    return pos_string, cell_string
 
 def ase2qp(aseatoms):
     from quippy import Atoms as qpAtoms
@@ -678,7 +737,6 @@ def get_fingerprints(frames, soap_params, nprocess, sp=None):
 def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
 
-
 def create_files_for_jsmol(frame, jsmol_name, fileformat, shielding):
     """
     Save and .cif file and a file with the list of shifts, both needed for the jmol window
@@ -687,13 +745,19 @@ def create_files_for_jsmol(frame, jsmol_name, fileformat, shielding):
     cifname = str(jsmol_name + u'.cif')
     datname = str(jsmol_name + u'.dat')
 
-
     with open(datname, 'w') as f:
         f.write('data \"property_shifts\"\n')
         for it in range(len(shielding)):
             f.write('%.6f\n' % shielding[it])
         f.write('end \"property_shifts\"\n')
+
     write(cifname, frame, format='cif')
+
+    # import os
+    #
+    # os.chown(cifname,9999,9999)
+    # os.chown(datname, 9999, 9999)
+
     return 1
 
 
