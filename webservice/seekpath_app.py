@@ -117,8 +117,9 @@ if is_debug:
     app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
     app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 else:
-    app.config['CELERY_BROKER_URL'] = 'redis://:devpassword@redis:6379/0'
-    app.config['CELERY_RESULT_BACKEND'] = 'redis://:devpassword@redis:6379/0'
+    REDIS_PORT = os.environ.get('REDIS_PORT')
+    app.config['CELERY_BROKER_URL'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
+    app.config['CELERY_RESULT_BACKEND'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
 
 app.config['CELERYD_CONCURRENCY'] = 1 # number of worker in the task pool
 app.config['CELERYD_HIJACK_ROOT_LOGGER'] = True

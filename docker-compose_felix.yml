@@ -3,20 +3,21 @@ version: '2'
 services:
   redis:
     image: 'redis:3.0-alpine'
-    command: redis-server --requirepass devpassword
+    command: redis-server --requirepass devpassword --port 6676
     volumes:
       - 'redis:/var/lib/redis/data'
     ports:
-      - '6379:6379'
+      - '6676:6676'
 
   website:
     build: .
     command: ["/sbin/my_init"]
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'false'
+      FAST_DEV : 'true'
       MSK : 'false'
       PYTHONUNBUFFERED: 'true'
+      REDIS_PORT : '6676'
 
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
@@ -32,8 +33,9 @@ services:
       - '.env'
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'false'
+      FAST_DEV : 'true'
       MSK : 'false'
+      REDIS_PORT : '6676'
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
 
