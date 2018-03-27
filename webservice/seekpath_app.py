@@ -22,6 +22,7 @@ from ase.io import write
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
 sys.path.insert(0,'/Users/iMac/git/glosim2/')
+sys.path.insert(0,'/Users/albert/Git/glosim2/')
 from libmatch.soap import get_Soaps
 
 logger = logging.getLogger("seekpath_server")

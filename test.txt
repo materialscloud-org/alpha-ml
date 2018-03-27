@@ -1,0 +1,280 @@
+Step 1/36 : FROM phusion/passenger-customizable:0.9.19
+ ---> 007b1d9914cc
+Step 2/36 : MAINTAINER Felix Musil <felix.musil@epfl.ch>
+ ---> Using cache
+ ---> 3b07bdd61cd3
+Step 3/36 : USER root
+ ---> Using cache
+ ---> 013714b39bc8
+Step 4/36 : ENV HOME /root
+ ---> Using cache
+ ---> 22e379e5d591
+Step 5/36 : CMD ["/sbin/my_init"]
+ ---> Using cache
+ ---> f52d4a3239f5
+Step 6/36 : RUN /pd_build/utilities.sh &&     /pd_build/python.sh
+ ---> Using cache
+ ---> 09f88f1f1498
+Step 7/36 : RUN apt-get update     && apt-get -y install     python-pip     apache2     libapache2-mod-xsendfile     libapache2-mod-wsgi     apt-utils     gcc     gfortran     libblas-dev     liblapack-dev     && rm -rf /var/lib/apt/lists/*     && apt-get clean all
+ ---> Using cache
+ ---> faa3c4cd98dd
+Step 8/36 : ENV HOME /home/app
+ ---> Using cache
+ ---> 6d8f4255fbbb
+Step 9/36 : USER app
+ ---> Using cache
+ ---> 5300d46a40ab
+Step 10/36 : RUN pip2 install numpy==1.13 scipy==1.0.0 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4
+ ---> Using cache
+ ---> b68b46776809
+Step 11/36 : RUN pip2 install --upgrade --user ase==3.15.0
+ ---> Using cache
+ ---> 8e61ff7da5d5
+Step 12/36 : RUN mkdir $HOME/git     && cd $HOME/git/     && git clone --recursive https://github.com/libAtoms/QUIP.git     && cd $HOME/git/QUIP     && git checkout 95da7aad1f48a6f78e5effce8de82f114e37606f     && mkdir $HOME/git/QUIP/build/     && mkdir $HOME/git/QUIP/build/linux_x86_64_gfortran/
+ ---> Using cache
+ ---> 20aefdd7552a
+Step 13/36 : COPY GAP $HOME/git/QUIP/src/GAP
+ ---> Using cache
+ ---> 706af6aa4e93
+Step 14/36 : COPY Makefile.inc $HOME/git/QUIP/build/linux_x86_64_gfortran/
+ ---> Using cache
+ ---> d14b6095c21a
+Step 15/36 : RUN cd $HOME/git/QUIP/     && export QUIP_ARCH=linux_x86_64_gfortran     && make
+ ---> Using cache
+ ---> 6d96ec1d1f4c
+Step 16/36 : RUN cd $HOME/git/QUIP/     && export QUIP_ARCH=linux_x86_64_gfortran     && make quippy     && make QUIPPY_INSTALL_OPTS=--user install-quippy
+ ---> Using cache
+ ---> d037a33bf601
+Step 17/36 : RUN mkdir $HOME/code
+ ---> Using cache
+ ---> 4b8a0f43bbb7
+Step 18/36 : RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4 scikit-learn==0.19.1 celery==4.1.0 redis==2.10.6
+ ---> Using cache
+ ---> 4744b1466b50
+Step 19/36 : RUN cd $HOME/git/      && git clone https://github.com/cosmo-epfl/glosim2.git
+ ---> Using cache
+ ---> 0443bcc42ac8
+Step 20/36 : USER root
+ ---> Using cache
+ ---> 409d3abb5247
+Step 21/36 : COPY webservice $HOME/code/webservice
+ ---> c5e262c8dae0
+Step 22/36 : RUN mkdir $HOME/data
+ ---> Running in ae920da13a20
+Removing intermediate container ae920da13a20
+ ---> 68efc10e428e
+Step 23/36 : RUN chown -R app:app $HOME/code/webservice
+ ---> Running in 62f3ba1660af
+Removing intermediate container 62f3ba1660af
+ ---> 3166a0809ae0
+Step 24/36 : RUN chown -R app:app $HOME/data
+ ---> Running in 61ecd32046bd
+Removing intermediate container 61ecd32046bd
+ ---> 67c82368cab6
+Step 25/36 : USER app
+ ---> Running in d7453dcb24aa
+Removing intermediate container d7453dcb24aa
+ ---> ffbb4aef2a42
+Step 26/36 : ENV SP_WSGI_FILE=$HOME/code/webservice/seekpath_app.wsgi
+ ---> Running in bdd75cf2b664
+Removing intermediate container bdd75cf2b664
+ ---> 90b36d1bf17d
+Step 27/36 : RUN echo "import sys" > $SP_WSGI_FILE &&     echo "sys.path.insert(0, '/home/app/code/webservice')" >> $SP_WSGI_FILE &&     echo "from seekpath_app import app as application" >> $SP_WSGI_FILE
+ ---> Running in 40c9c7ad4695
+Removing intermediate container 40c9c7ad4695
+ ---> 3fce9d0702cd
+Step 28/36 : USER root
+ ---> Running in bc72f787a39e
+Removing intermediate container bc72f787a39e
+ ---> 8a368ae47671
+Step 29/36 : ADD ./.docker_files/seekpath-apache.conf /etc/apache2/sites-available/seekpath.conf
+ ---> f1485bd0d512
+Step 30/36 : RUN a2enmod wsgi && a2enmod xsendfile &&     a2dissite 000-default && a2ensite seekpath
+ ---> Running in 3a79b2b9fc11
+Module wsgi already enabled
+Module xsendfile already enabled
+Site 000-default disabled.
+To activate the new configuration, you need to run:
+  service apache2 reload
+Enabling site seekpath.
+To activate the new configuration, you need to run:
+  service apache2 reload
+Removing intermediate container 3a79b2b9fc11
+ ---> 0c37baf3f0ed
+Step 31/36 : RUN mkdir /etc/service/apache
+ ---> Running in e78739c18465
+Removing intermediate container e78739c18465
+ ---> 75a417fdb3ae
+Step 32/36 : ADD ./.docker_files/apache_run.sh /etc/service/apache/run
+ ---> 8b5aed8e8203
+Step 33/36 : RUN mkdir -p /etc/my_init.d
+ ---> Running in 2e3f8e420854
+Removing intermediate container 2e3f8e420854
+ ---> 516672bee0f5
+Step 34/36 : ADD ./.docker_files/create_secret_key.sh /etc/my_init.d/create_secret_key.sh
+ ---> a1a4840b56ad
+Step 35/36 : EXPOSE 80
+ ---> Running in 2b91da42293a
+Removing intermediate container 2b91da42293a
+ ---> a4fd56130154
+Step 36/36 : RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+ ---> Running in 1782b7dc0530
+Removing intermediate container 1782b7dc0530
+ ---> af2a19751f6c
+Successfully built af2a19751f6c
+Successfully tagged nmrtest_website:latest
+Step 1/36 : FROM phusion/passenger-customizable:0.9.19
+ ---> 007b1d9914cc
+Step 2/36 : MAINTAINER Felix Musil <felix.musil@epfl.ch>
+ ---> Using cache
+ ---> 3b07bdd61cd3
+Step 3/36 : USER root
+ ---> Using cache
+ ---> 013714b39bc8
+Step 4/36 : ENV HOME /root
+ ---> Using cache
+ ---> 22e379e5d591
+Step 5/36 : CMD ["/sbin/my_init"]
+ ---> Using cache
+ ---> f52d4a3239f5
+Step 6/36 : RUN /pd_build/utilities.sh &&     /pd_build/python.sh
+ ---> Using cache
+ ---> 09f88f1f1498
+Step 7/36 : RUN apt-get update     && apt-get -y install     python-pip     apache2     libapache2-mod-xsendfile     libapache2-mod-wsgi     apt-utils     gcc     gfortran     libblas-dev     liblapack-dev     && rm -rf /var/lib/apt/lists/*     && apt-get clean all
+ ---> Using cache
+ ---> faa3c4cd98dd
+Step 8/36 : ENV HOME /home/app
+ ---> Using cache
+ ---> 6d8f4255fbbb
+Step 9/36 : USER app
+ ---> Using cache
+ ---> 5300d46a40ab
+Step 10/36 : RUN pip2 install numpy==1.13 scipy==1.0.0 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4
+ ---> Using cache
+ ---> b68b46776809
+Step 11/36 : RUN pip2 install --upgrade --user ase==3.15.0
+ ---> Using cache
+ ---> 8e61ff7da5d5
+Step 12/36 : RUN mkdir $HOME/git     && cd $HOME/git/     && git clone --recursive https://github.com/libAtoms/QUIP.git     && cd $HOME/git/QUIP     && git checkout 95da7aad1f48a6f78e5effce8de82f114e37606f     && mkdir $HOME/git/QUIP/build/     && mkdir $HOME/git/QUIP/build/linux_x86_64_gfortran/
+ ---> Using cache
+ ---> 20aefdd7552a
+Step 13/36 : COPY GAP $HOME/git/QUIP/src/GAP
+ ---> Using cache
+ ---> 706af6aa4e93
+Step 14/36 : COPY Makefile.inc $HOME/git/QUIP/build/linux_x86_64_gfortran/
+ ---> Using cache
+ ---> d14b6095c21a
+Step 15/36 : RUN cd $HOME/git/QUIP/     && export QUIP_ARCH=linux_x86_64_gfortran     && make
+ ---> Using cache
+ ---> 6d96ec1d1f4c
+Step 16/36 : RUN cd $HOME/git/QUIP/     && export QUIP_ARCH=linux_x86_64_gfortran     && make quippy     && make QUIPPY_INSTALL_OPTS=--user install-quippy
+ ---> Using cache
+ ---> d037a33bf601
+Step 17/36 : RUN mkdir $HOME/code
+ ---> Using cache
+ ---> 4b8a0f43bbb7
+Step 18/36 : RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future ipython==5.4 scikit-learn==0.19.1 celery==4.1.0 redis==2.10.6
+ ---> Using cache
+ ---> 4744b1466b50
+Step 19/36 : RUN cd $HOME/git/      && git clone https://github.com/cosmo-epfl/glosim2.git
+ ---> Using cache
+ ---> 0443bcc42ac8
+Step 20/36 : USER root
+ ---> Using cache
+ ---> 409d3abb5247
+Step 21/36 : COPY webservice $HOME/code/webservice
+ ---> Using cache
+ ---> c5e262c8dae0
+Step 22/36 : RUN mkdir $HOME/data
+ ---> Using cache
+ ---> 68efc10e428e
+Step 23/36 : RUN chown -R app:app $HOME/code/webservice
+ ---> Using cache
+ ---> 3166a0809ae0
+Step 24/36 : RUN chown -R app:app $HOME/data
+ ---> Using cache
+ ---> 67c82368cab6
+Step 25/36 : USER app
+ ---> Using cache
+ ---> ffbb4aef2a42
+Step 26/36 : ENV SP_WSGI_FILE=$HOME/code/webservice/seekpath_app.wsgi
+ ---> Using cache
+ ---> 90b36d1bf17d
+Step 27/36 : RUN echo "import sys" > $SP_WSGI_FILE &&     echo "sys.path.insert(0, '/home/app/code/webservice')" >> $SP_WSGI_FILE &&     echo "from seekpath_app import app as application" >> $SP_WSGI_FILE
+ ---> Using cache
+ ---> 3fce9d0702cd
+Step 28/36 : USER root
+ ---> Using cache
+ ---> 8a368ae47671
+Step 29/36 : ADD ./.docker_files/seekpath-apache.conf /etc/apache2/sites-available/seekpath.conf
+ ---> Using cache
+ ---> f1485bd0d512
+Step 30/36 : RUN a2enmod wsgi && a2enmod xsendfile &&     a2dissite 000-default && a2ensite seekpath
+ ---> Using cache
+ ---> 0c37baf3f0ed
+Step 31/36 : RUN mkdir /etc/service/apache
+ ---> Using cache
+ ---> 75a417fdb3ae
+Step 32/36 : ADD ./.docker_files/apache_run.sh /etc/service/apache/run
+ ---> Using cache
+ ---> 8b5aed8e8203
+Step 33/36 : RUN mkdir -p /etc/my_init.d
+ ---> Using cache
+ ---> 516672bee0f5
+Step 34/36 : ADD ./.docker_files/create_secret_key.sh /etc/my_init.d/create_secret_key.sh
+ ---> Using cache
+ ---> a1a4840b56ad
+Step 35/36 : EXPOSE 80
+ ---> Using cache
+ ---> a4fd56130154
+Step 36/36 : RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+ ---> Using cache
+ ---> af2a19751f6c
+Successfully built af2a19751f6c
+Successfully tagged nmrtest_celery:latest
+Attaching to nmrtest_redis_1, nmrtest_celery_1, nmrtest_website_1
+[36mredis_1    |[0m                 _._                                                  
+[36mredis_1    |[0m            _.-``__ ''-._                                             
+[36mredis_1    |[0m       _.-``    `.  `_.  ''-._           Redis 3.0.7 (00000000/0) 64 bit
+[36mredis_1    |[0m   .-`` .-```.  ```\/    _.,_ ''-._                                   
+[36mredis_1    |[0m  (    '      ,       .-`  | `,    )     Running in standalone mode
+[36mredis_1    |[0m  |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+[36mredis_1    |[0m  |    `-._   `._    /     _.-'    |     PID: 1
+[36mredis_1    |[0m   `-._    `-._  `-./  _.-'    _.-'                                   
+[36mredis_1    |[0m  |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+[36mredis_1    |[0m  |    `-._`-._        _.-'_.-'    |           http://redis.io        
+[36mredis_1    |[0m   `-._    `-._`-.__.-'_.-'    _.-'                                   
+[36mredis_1    |[0m  |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+[36mredis_1    |[0m  |    `-._`-._        _.-'_.-'    |                                  
+[36mredis_1    |[0m   `-._    `-._`-.__.-'_.-'    _.-'                                   
+[36mredis_1    |[0m       `-._    `-.__.-'    _.-'                                       
+[36mredis_1    |[0m           `-._        _.-'                                           
+[36mredis_1    |[0m               `-.__.-'                                               
+[36mredis_1    |[0m 
+[36mredis_1    |[0m 1:M 27 Mar 09:41:06.182 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
+[36mredis_1    |[0m 1:M 27 Mar 09:41:06.182 # Server started, Redis version 3.0.7
+[36mredis_1    |[0m 1:M 27 Mar 09:41:06.182 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
+[36mredis_1    |[0m 1:M 27 Mar 09:41:06.182 * The server is now ready to accept connections on port 6379
+[32mwebsite_1  |[0m *** Running /etc/my_init.d/00_regen_ssh_host_keys.sh...
+[32mwebsite_1  |[0m *** Running /etc/my_init.d/30_presetup_nginx.sh...
+[32mwebsite_1  |[0m *** Running /etc/my_init.d/create_secret_key.sh...
+[32mwebsite_1  |[0m *** Running /etc/rc.local...
+[32mwebsite_1  |[0m *** Booting runit daemon...
+[32mwebsite_1  |[0m *** Runit started as PID 11
+[32mwebsite_1  |[0m AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.4. Set the 'ServerName' directive globally to suppress this message
+[33mcelery_1   |[0m DEBUG:seekpath_server:Start
+[33mcelery_1   |[0m /home/app/.local/lib/python2.7/site-packages/celery/platforms.py:795: RuntimeWarning: You're running the worker with superuser privileges: this is
+[33mcelery_1   |[0m absolutely not recommended!
+[33mcelery_1   |[0m 
+[33mcelery_1   |[0m Please specify a different user using the -u option.
+[33mcelery_1   |[0m 
+[33mcelery_1   |[0m User information: uid=0 euid=0 gid=0 egid=0
+[33mcelery_1   |[0m 
+[33mcelery_1   |[0m   uid=uid, euid=euid, gid=gid, egid=egid,
+[33mcelery_1   |[0m [2018-03-27 09:41:07,715: INFO/MainProcess] Connected to redis://:**@redis:6379/0
+[33mcelery_1   |[0m [2018-03-27 09:41:07,722: INFO/MainProcess] mingle: searching for neighbors
+[33mcelery_1   |[0m [2018-03-27 09:41:08,741: INFO/MainProcess] mingle: all alone
+[33mcelery_1   |[0m [2018-03-27 09:41:08,757: INFO/MainProcess] celery@e8c6d197f884 ready.
+[33mcelery_1   |[0m [2018-03-27 09:44:04,839: INFO/MainProcess] Received task: seekpath_app.predict_chemical_shifts[0b608880-70f0-48fe-b396-0f7fed27ccfc]  
+[33mcelery_1   |[0m [2018-03-27 09:44:07,877: INFO/ForkPoolWorker-1] Task seekpath_app.predict_chemical_shifts[0b608880-70f0-48fe-b396-0f7fed27ccfc] succeeded in 3.035714183s: {'current': 100, 'status': 'Task completed!', 'total': 100, 'data': {'shielding': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 'raw_code': '{<br>&nbsp;&nbsp;&#34;cell&#34;:&nbsp;[<br>&nbsp;&nbsp;&nbsp;&nbsp;[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8.206047178,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0<br>&nbsp;&nbsp;&nbsp;&nbsp;],&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.74602482773,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0<br>&nbsp;&nbsp;&nbsp;&nbsp;],&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;[<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0,&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10.6000629696<br>&nbsp;&nbsp;&nbsp;&nbsp;]<br>...', ...}}
+Gracefully stopping... (press Ctrl+C again to force)

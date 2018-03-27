@@ -19,7 +19,7 @@ services:
       PYTHONUNBUFFERED: 'true'
 
     volumes:
-      - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
+      - '/Users/albert/PycharmProjects/nmr_test/data:/home/app/data'
     ports:
       - '5050:80'
 
@@ -35,7 +35,7 @@ services:
       FAST_DEV : 'true'
       MSK : 'false'
     volumes:
-      - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
+      - '/Users/albert/PycharmProjects/nmr_test/data:/home/app/data'
 
 volumes:
   redis:

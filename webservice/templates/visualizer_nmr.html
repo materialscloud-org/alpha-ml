@@ -226,16 +226,15 @@
 				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
 				var structure = '{{ jsmol_pos | safe }}';
 				var prefix = 'set forceAutoBond ON;load data "model current_model"'
-				var suffix = ' end "model current_model"  spacegroup "" unitcell "[{{ jsmol_cell | safe }}]";set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set showUnitcellDetails TRUE;';
+				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
+        var cell = 'set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set displayCellParameters TRUE;';
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
-				var shifts_ms = '{all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
-				var style = "set fontSize 15;select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select all;select property_shifts!=0; mapProperty {selected}.property_shifts {all}.property_shifts atomName;select OFF property_shifts!=0; label %[property_shifts];font label monospaced italic;";
+				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
+				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
 
-				Jmol.script(JmolApplet0, prefix+structure+suffix+shifts_ms+style);
-
-
-				/*
+				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
+				Jmol.script(JmolApplet0, 'show menu')
 				Jmol.jmolMenu(JmolApplet0,[
 						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
 						["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
@@ -246,13 +245,13 @@
 				],1,"shifts_menu","display chemical shifts");
 
 				Jmol.jmolMenu(JmolApplet0, [
-						["load '' {1 1 1}; "+ shifts_ms + " ; "+style +"  ;", "{1 1 1}"],
-						["load '' {2 2 2}; "+ shifts_ms + " ; "+style +" ; selectionHalos ON;", "{2 2 2}"],
-						["load '' {3 3 3}; "+ shifts_ms + " ; "+style +" ;", "{3 3 3}"]
+						["load '' {1 1 1} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; " +cell +" ;"+style +" ;", "{1 1 1}"],
+						["load '' {2 2 2} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{2 2 2}"],
+						["load '' {3 3 3} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{3 3 3}"]
 				],1,"periodic_menu", "display multiple unit cells");
-				*/
 
 			</script>
+            <a href="javascript:Jmol.script(JmolApplet0,'console')">console</a>
 		</div>
 
 			<div id='rawcode'>
