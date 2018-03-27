@@ -21,7 +21,7 @@ services:
       PYTHONUNBUFFERED: 'true'
 
     volumes:
-      - 'nmr_data_dir'
+     - 'nmr_data_dir:/home/app/data'
     ports:
       - '3246:80'
 
@@ -39,7 +39,7 @@ services:
       MSK : 'true'
       REDIS_PORT : '3247'
     volumes:
-      - 'nmr_data_dir'
+     - 'nmr_data_dir:/home/app/data'
 
 volumes:
   redis:
