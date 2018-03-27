@@ -3,14 +3,14 @@ version: '2'
 
 services:
   redis:
-    hostname: redis
+    restart: always
     image: 'redis:3.0-alpine'
     command: redis-server --requirepass devpassword --port 3247
     volumes:
       - 'redis:/var/lib/redis/data'
 
   website:
-    hostname: website
+    restart: always
     build: .
     command: ["/sbin/my_init"]
     environment:
@@ -26,7 +26,7 @@ services:
       - '3246:80'
 
   celery:
-    hostname: celery
+    restart: always
     build: .
     command: >
         bash -c "cd /home/app/code/webservice &&
