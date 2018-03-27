@@ -15,8 +15,12 @@
 		<script src="../static/js/SVGRenderer.min.js"></script>
 
 		<!-- Jmol -->
-		<script type="text/javascript" src="../static/jsmol/JSmol.min.js"></script>
+		<script type="text/javascript" src="../static/jsmol/JSmol.min.js">
+		</script>
 		<script type="text/javascript">
+                 // To fix Load denied by X-Frame-Options: error
+                 // https://sourceforge.net/p/jmol/mailman/message/36069075/
+		 delete Jmol._tracker;
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");

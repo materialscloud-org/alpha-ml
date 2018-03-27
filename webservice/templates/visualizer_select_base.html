@@ -200,7 +200,7 @@ $("form#process_structure").submit(function(event){
   var formData = new FormData($(this)[0]);
 
   $.ajax({
-    url: "/process_structure",
+    url: "../process_structure",
    type: 'POST',
     data: formData,
     async: true,
@@ -251,7 +251,7 @@ $("form#process_example_structure").submit(function(event){
   var formData = new FormData($(this)[0]);
 
   $.ajax({
-    url: "/process_structure",
+    url: "../process_structure",
    type: 'POST',
     data: formData,
     async: true,
