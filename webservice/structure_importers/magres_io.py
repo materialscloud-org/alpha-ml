@@ -469,7 +469,6 @@ def write_magres(fd, image):
                                     'atom': {'label': lab,
                                              'index': ind}}
                             image_data['magres'][u].append(tens)
-
     # Calculation block, if present
     if 'magresblock_calculation' in image.info:
         image_data['calculation'] = image.info['magresblock_calculation']

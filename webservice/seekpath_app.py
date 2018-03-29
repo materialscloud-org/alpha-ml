@@ -230,6 +230,11 @@ def index():
     """
     return flask.redirect(flask.url_for('input_structure'))
 
+def home_link():
+    """
+    Main view, redirect to input_structure
+    """
+    return flask.redirect(flask.url_for('input_structure'))
 
 @app.route('/termsofuse/')
 def termsofuse():
@@ -469,9 +474,14 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
     ## next replaces
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
+    magres_code = str(jinja2.escape(get_magres(frame,shielding))).replace(
+        '\n', '<br>').replace(' ', '&nbsp;').replace(
+        '#','&#35').replace('$','&#36').replace(
+        '[','&#91').replace(']','&#93').replace('/','&#47')
 
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
+
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
@@ -481,6 +491,7 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
         jsmol_cell=jsmol_cell,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
+        magres_code=magres_code,
         jsmol_name=jsmol_name['relative'],
         # jsmol_name=jsmol_name['absolute'],
         shielding=shielding.tolist(),
@@ -647,6 +658,25 @@ def get_cif(frame):
     write_cif(my_cif,frame)
     return my_cif.read()
 
+def get_magres(frame,shielding):
+    # TODO change import to ase version when ase==3.16.0
+    from structure_importers.magres_io import write_magres
+    numbers = frame.get_atomic_numbers()
+    positions = frame.get_positions()
+    cell = frame.get_cell()
+    pbc = frame.get_pbc()
+    shielding_tensor =np.array([np.eye(3)*ss for ss in shielding])
+    new_frame = Atoms(numbers=numbers, positions=positions, cell=cell, pbc=pbc)
+    new_frame.set_array('ms'.encode('ascii', 'ignore'), shielding_tensor)
+    new_frame.info = {'magres_units': {'ms': 'ppm'},
+                      'magresblock_calculation': {'calc_code': [['ML_NMR']],
+                                                  'calc_code_version': [['svnunknown']],
+                                                  'calc_name': [['gpr']]}
+                      }
+
+    f_obj = DummyFileObject()
+    write_magres(f_obj, new_frame)
+    return f_obj.read()
 
 def get_json(frame):
     # {"mol":{"a":[{"l":H,"x":0,"y":0.5,"z":0},{"l":C,"x":1,"y":0.5,"z":0}],"b":[]}}

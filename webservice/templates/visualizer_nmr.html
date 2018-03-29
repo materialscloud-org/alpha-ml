@@ -24,8 +24,8 @@
 			};
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
-		 height: "75%",
-		 width: "75%",
+		 height: 800,
+		 width: 800,
 		// php sets the Jmol variable Info.use
 		 use: "HTML5",
 		// The next line assumes that the .jar files in the Jmol distribution have been moved
@@ -219,7 +219,8 @@
 
 	<div id="result">
 
-		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(15%, 0%);">
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(25%, 0%);">
+
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
 
@@ -270,6 +271,19 @@
 				<p><code id="rawcodedata">{{ raw_code|safe }}</code></p>
 			</div>
 
+			<h3>Magres File</h3>
+			<div>
+				<p>
+						The calculated shieldings (shifts) are stored as tensor with the isotropic shielding (shift) as diagonal elements.
+				</p>
+				<p>
+					<button class="clipboardbtn" data-clipboard-target="#xyzdata">
+						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
+
+				</p>
+				<p><code id="magresdata">{{ magres_code|safe }}</code></p>
+			</div>
+
 			<h3>Extended XYZ</h3>
 			<div>
 				<p>
@@ -290,7 +304,12 @@
 	</div>
 
 <div id='below'>
-
+	<div id='return'>
+		<ul>
+			<a href="../input_structure" class="clipboardbtn" role="button" style="text-decoration: none">Start new calculation</a>
+			<!-- <input type="submit" value="Start new calculation" class="clipboardbtn" onclick="new_calculation()"> -->
+		</ul>
+	</div>
 	<div id='citations'>
 			<h2>How to cite</h2>
 			<p>If you use this tool, please cite the following work:

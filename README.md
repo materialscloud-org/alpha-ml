@@ -52,3 +52,8 @@ redis is a framework to simplify the use of database/broker in the flask app.
  launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist
  ```
  Linux should already be running is in the background.
+
+#to run locally
+launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist    #launch redis in the background
+celery worker -l info -A seekpath_app.celery #in terminal 1 in /webservice
+python seekpath_app.py #in terminal 2 in /websercive
