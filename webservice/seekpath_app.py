@@ -262,8 +262,7 @@ def process_structure():
     from flask import request,jsonify,url_for,redirect
     from seekpath_web_module import read_test_frame,FlaskRedirectException
 
-    id = '_'+str(uuid.uuid1()).replace('-','_')
-    id = ''
+
     if request.method == 'POST':
         # Submit user defined structure
         if 'structurefile' in request.files:
@@ -271,13 +270,6 @@ def process_structure():
             fileformat = flask.request.form.get('fileformat', 'unknown')
             filecontent = structurefile.read()
             call_source = "process_structure"
-            if is_debug:
-                jsmol_name = 'static/jsmol/data/uploaded/UPLOADED'+id
-                jsmol_name = dict(absolute=os.path.abspath(jsmol_name),
-                                  relative='../' + jsmol_name)
-            else:
-                jsmol_name = dict(absolute='/home/app/code/webservice/static/jsmol/data/UPLOADED'+id,
-                                  relative='../static/jsmol/data/UPLOADED'+id,)
 
         # Use example structures
         elif 'examplestructure' in request.form:
@@ -289,14 +281,6 @@ def process_structure():
                 flask.flash("This is not a valid example: {}".format(example_name))
                 return flask.redirect(flask.url_for('input_structure'))
 
-            # jsmol_name = 'static/jsmol/data/' + example_name
-            if is_debug:
-                jsmol_name = 'static/jsmol/data/'+example_name
-                jsmol_name = dict(absolute=os.path.abspath(jsmol_name),
-                                  relative='../' + jsmol_name)
-            else:
-                jsmol_name = dict(absolute='/home/app/code/webservice/static/jsmol/data/'+example_name,
-                                  relative='../static/jsmol/data/'+example_name,)
             fileformat = 'xyz-ase'
             call_source = "process_example_structure"
             # I expect that the valid_examples dictionary already filters only
@@ -326,7 +310,6 @@ def process_structure():
 
         task = predict_chemical_shifts.apply_async(
                 kwargs=dict(filecontent=filecontent, fileformat=fileformat,
-                            jsmol_name=jsmol_name,
                             call_source=call_source, request_info=request_info))
 
         urls = {'Location': url_for('taskstatus',task_id=task.id),
@@ -398,7 +381,7 @@ def utility_processor():
 # THE MAIN FUNCTIONALITY
 
 @celery.task(bind=True)
-def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source="", request_info=None):
+def predict_chemical_shifts(self,filecontent, fileformat, call_source="", request_info=None):
     # from structure_importers import get_structure
     import io,time,copy, json, jinja2
     from ase.data import chemical_symbols
@@ -451,11 +434,7 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
         shielding = get_dummy_work(self, frame)
     ##############################################################################
 
-    # LOG.info('{}'.format(jsmol_name))
-
     compute_time = time.time() - start_time
-
-    create_files_for_jsmol(frame, jsmol_name['absolute'], fileformat, shielding)
 
     out_json_data = get_json_for_visualizer(frame)
 
@@ -481,8 +460,6 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
         jsmol_cell=jsmol_cell,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
-        jsmol_name=jsmol_name['relative'],
-        # jsmol_name=jsmol_name['absolute'],
         shielding=shielding.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
@@ -737,29 +714,6 @@ def get_fingerprints(frames, soap_params, nprocess, sp=None):
 
 def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
-
-def create_files_for_jsmol(frame, jsmol_name, fileformat, shielding):
-    """
-    Save and .cif file and a file with the list of shifts, both needed for the jmol window
-    """
-
-    cifname = str(jsmol_name + u'.cif')
-    datname = str(jsmol_name + u'.dat')
-
-    with open(datname, 'w') as f:
-        f.write('data \"property_shifts\"\n')
-        for it in range(len(shielding)):
-            f.write('%.6f\n' % shielding[it])
-        f.write('end \"property_shifts\"\n')
-
-    write(cifname, frame, format='cif')
-
-    # import os
-    #
-    # os.chown(cifname,9999,9999)
-    # os.chown(datname, 9999, 9999)
-
-    return 1
 
 
 if __name__ == "__main__":
