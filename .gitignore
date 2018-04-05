@@ -6,3 +6,4 @@ webservice/*.pyc
 webservice/structure_importers/*.pyc
 .DS_Store
 *.DS_Store
+.idea
