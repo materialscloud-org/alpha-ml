@@ -24,8 +24,15 @@
 			};
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
-		 height: 800,
-		 width: 800,
+		 height: "100%",
+		 width: "100%",
+		 debug: false,
+		 coverImage:"",
+		 coverScript: "",
+		 disableInitialConsole: true,
+		 color: "white",
+		 deferUncover: true,                 // wait to uncover applet until script completed
+		 deferApplet: false,                  // wait to load applet until click
 		// php sets the Jmol variable Info.use
 		 use: "HTML5",
 		// The next line assumes that the .jar files in the Jmol distribution have been moved
@@ -219,7 +226,7 @@
 
 	<div id="result">
 
-		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(25%, 0%);">
+		<div id="jmolapp" style="width:50%;height:50%;margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(0%, 0%);">
 
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
