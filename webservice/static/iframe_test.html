@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="./js/iframeResizer.min.js"></script>
+</head>
+<body bgcolor="#E6E6FA">
+
+<iframe id="contentiframe" src="http://localhost:5050/input_structure/" scrolling="no" style="width: 100%; border: 20px;">
+
+</iframe>
+<script>
+iFrameResize({ log: false, heightCalculationMethod: 'taggedElement', inPageLinks: true, minHeight: '100 px', }, '#contentiframe')
+</script>
+
+</iframe>
+
+</body>
+</html>

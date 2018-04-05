@@ -1,6 +1,7 @@
-<html lang="en">
+<!DOCTYPE html>
+<html  lang="en">
 <head>
-		<meta charset="utf-8">
+		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Shift-ML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
@@ -26,10 +27,15 @@
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
 			 //Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
+
+
+		var jmolH = 400;
+		var jmolW = jmolH*16/9;
+
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
-		 height: "75%",
-		 width: "75%",
+		 height: jmolH,
+		 width: jmolW,
 		// php sets the Jmol variable Info.use
 		 use: "HTML5",
 		// The next line assumes that the .jar files in the Jmol distribution have been moved
@@ -219,11 +225,9 @@
 	</div>
 
 
-
-
 	<div id="result">
 
-		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(15%, 0%);">
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
 
@@ -325,5 +329,7 @@
 
 
 <div style ="position: relative" data-iframe-height></div>
+
+
 </body>
 </html>
