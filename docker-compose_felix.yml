@@ -2,12 +2,11 @@ version: '2'
 
 services:
   redis:
-    image: 'redis:3.0-alpine'
+    image: 'redis:4.0.8-alpine'
     command: redis-server --requirepass devpassword --port 6676
     volumes:
       - 'redis:/var/lib/redis/data'
-    ports:
-      - '6676:6676'
+
 
   website:
     build: .

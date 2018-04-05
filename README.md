@@ -6,7 +6,7 @@ sudo docker build -t nmr_app .
 
 To access the image's CL with the test data:
 
-sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/data:/home/app/data  nmr_app 
+sudo docker run -p 5050:80 --rm -v /Users/albert/PycharmProjects/data:/home/app/data  nmr_app 
  
  The data model_sp_*.pck needs to be in mounted local directory so it can be loaded by the app from /home/app/data
  
@@ -14,7 +14,7 @@ sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/data:/home/app/da
  
  To build and run the docker images
  ``` 
- docker-compose -f docker-compose_felix.yml up --build
+ docker-compose -f docker-compose_albert.yml up --build
   ```
  OR (without stdout redirection)
  ```
@@ -26,6 +26,17 @@ sudo docker run -p 5050:80 --rm -v /Users/iMac/PycharmProjects/data:/home/app/da
  ```
  docker-compose rm -f
  ```
+ # To run the app locally
+ In a terminal in websevice run:
+ ``` 
+ launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist  OR 
+ celery worker -l info -A seekpath_app.celery
+ ```
+ And in another in webservice:
+ ``` 
+ python seekpath_app.py
+ ```
+ 
  # Additional packages
  
 ```
@@ -52,3 +63,8 @@ redis is a framework to simplify the use of database/broker in the flask app.
  launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist
  ```
  Linux should already be running is in the background.
+
+#to run locally
+launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist    #launch redis in the background
+celery worker -l info -A seekpath_app.celery #in terminal 1 in /webservice
+python seekpath_app.py #in terminal 2 in /websercive

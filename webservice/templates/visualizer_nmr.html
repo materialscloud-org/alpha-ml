@@ -1,6 +1,7 @@
-<html lang="en">
+<!DOCTYPE html>
+<html  lang="en">
 <head>
-		<meta charset="utf-8">
+		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Shift-ML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
@@ -15,17 +16,35 @@
 		<script src="../static/js/SVGRenderer.min.js"></script>
 
 		<!-- Jmol -->
-		<script type="text/javascript" src="../static/jsmol/JSmol.min.js"></script>
+		<script type="text/javascript" src="../static/jsmol/JSmol.min.js">
+		</script>
 		<script type="text/javascript">
+                 // To fix Load denied by X-Frame-Options: error
+                 // https://sourceforge.net/p/jmol/mailman/message/36069075/
+		 delete Jmol._tracker;
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
 			 //Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
+
+
+		var jmolH = 500;
+		var jmolW = jmolH*16/9;
+
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
-		 height: "75%",
-		 width: "75%",
+
+		 height: jmolH,
+		 width: jmolW,
+		 debug: false,
+		 coverImage:"",
+		 coverScript: "",
+		 disableInitialConsole: true,
+		 color: "white",
+		 deferUncover: true,                 // wait to uncover applet until script completed
+		 deferApplet: false,                  // wait to load applet until click
+
 		// php sets the Jmol variable Info.use
 		 use: "HTML5",
 		// The next line assumes that the .jar files in the Jmol distribution have been moved
@@ -217,23 +236,25 @@
 
 	<div id="result">
 
-		<div id="jmolapp" style="margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(15%, 0%);">
+		<!--<div id="jmolapp" style="width:400px;height:300px;margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(0%, 0%);">
+-->
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
+
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
 
 				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
 				var structure = '{{ jsmol_pos | safe }}';
 				var prefix = 'set forceAutoBond ON;load data "model current_model"'
-				var suffix = ' end "model current_model"  spacegroup "" unitcell "[{{ jsmol_cell | safe }}]";set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set showUnitcellDetails TRUE;';
+				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
+        var cell = 'set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set displayCellParameters TRUE;';
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
-				var shifts_ms = '{all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
-				var style = "set fontSize 15;select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select all;select property_shifts!=0; mapProperty {selected}.property_shifts {all}.property_shifts atomName;select OFF property_shifts!=0; label %[property_shifts];font label monospaced italic;";
+				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
+				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
 
-				Jmol.script(JmolApplet0, prefix+structure+suffix+shifts_ms+style);
-
-
-				/*
+				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
+				Jmol.script(JmolApplet0, 'show menu')
 				Jmol.jmolMenu(JmolApplet0,[
 						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
 						["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
@@ -244,13 +265,13 @@
 				],1,"shifts_menu","display chemical shifts");
 
 				Jmol.jmolMenu(JmolApplet0, [
-						["load '' {1 1 1}; "+ shifts_ms + " ; "+style +"  ;", "{1 1 1}"],
-						["load '' {2 2 2}; "+ shifts_ms + " ; "+style +" ; selectionHalos ON;", "{2 2 2}"],
-						["load '' {3 3 3}; "+ shifts_ms + " ; "+style +" ;", "{3 3 3}"]
+						["load '' {1 1 1} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; " +cell +" ;"+style +" ;", "{1 1 1}"],
+						["load '' {2 2 2} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{2 2 2}"],
+						["load '' {3 3 3} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{3 3 3}"]
 				],1,"periodic_menu", "display multiple unit cells");
-				*/
 
 			</script>
+            <a href="javascript:Jmol.script(JmolApplet0,'console')">console</a>
 		</div>
 
 		<!-- <div>
@@ -278,6 +299,19 @@
 				<p><code id="rawcodedata">{{ raw_code|safe }}</code></p>
 			</div>
 
+			<h3>Magres File</h3>
+			<div>
+				<p>
+						The calculated shieldings (shifts) are stored as tensor with the isotropic shielding (shift) as diagonal elements.
+				</p>
+				<p>
+					<button class="clipboardbtn" data-clipboard-target="#magresdata">
+						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
+
+				</p>
+				<p><code id="magresdata">{{ magres_code|safe }}</code></p>
+			</div>
+
 			<h3>Extended XYZ</h3>
 			<div>
 				<p>
@@ -298,37 +332,31 @@
 	</div>
 
 <div id='below'>
-
-	<div id='citations'>
-			<h2>How to cite</h2>
-			<p>If you use this tool, please cite the following work:
-			<ul>
-			<li>
-					<a href="" target="_blank" >
-							Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).</a>
-
-			<li>
-			 The input parsers use a number of libraries (see name in the dropdown list) from
-					<a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
-					 <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
-		 </li>
-			</ul>
-			</p>
-
-
-		<!--  <h2>Important note</h2>
-<p>
- The structure visualized above is <span style="font-style: italic;">not</span>
- the structure you passed in input, but its primitive cell.
- Moreover, the primitive cell has been standardized
- (using the conventions of spglib).<br/>
-
-<span style="font-weight: bold;">If you want to run a new simulation,
-	and plan (now or later) to use the suggested path provided here,
-	please use the primitive cell above.</span>
-</p> -->
+	<div id='return'>
+		<ul>
+			<a href="../input_structure" class="clipboardbtn" role="button" style="text-decoration: none">Start new calculation</a>
+			<!-- <input type="submit" value="Start new calculation" class="clipboardbtn" onclick="new_calculation()"> -->
+		</ul>
 
 	</div>
+	<div id='citations'>
+        <h2>How to cite</h2>
+        <p>If you use this tool, please cite the following work:
+        <ul>
+        <li>
+            <a href="" target="_blank">
+                Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
+            </a>
+        </li>
+        <li>
+      	  The input parsers use a number of libraries (see name in the dropdown list) from
+      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
+             <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
+      	</li>
+        </ul>
+        </p>
+
+    </div>
 
 
 
@@ -340,5 +368,7 @@
 
 
 <div style ="position: relative" data-iframe-height></div>
+
+
 </body>
 </html>

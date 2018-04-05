@@ -16,6 +16,6 @@ fi
 
 ## Delete PID files if exists
 ## For now I keep commented, will see if needed
-# rm -f /var/run/apache2/apache2.pid
+rm -f /var/run/apache2/apache2.pid
 
 exec apache2 -D FOREGROUND

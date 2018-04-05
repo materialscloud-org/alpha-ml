@@ -98,13 +98,13 @@
 <ul>
 <li><strong>predicts</strong> the NMR chemical shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
 <!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
-    <li>provides <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color: #0000ff">extended xyz</a> format and in JSON.</li>
+    <li>provides <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color: #0000ff">extended xyz</a> format, in the <a href="https://www.ccpnc.ac.uk/output/magres" target="_blank" style="color: #0000ff">magres</a> format (the calculated shieldings are given as tensor with the isotropic shielding as diagonal elements) and in JSON.</li>
 </ul>
 <p>
 <p><em>Alternatively, you can calculate an example</em>.<br>
 </p>
 </div>
-
+<!--
 <h2>Shift-ML definitions and advantages</h2>
 <div>
 <p>The main advantages of this work are:
@@ -115,6 +115,7 @@
 </ul>
 </p>
 </div>
+-->
 </div>
 
 {% endblock %}
@@ -241,10 +242,170 @@
   </div>
 </form>
 
-
+    <!--
     <script src="/submit_js/process_structure-process_structure"></script>
 
     <script src="/submit_js/process_example_structure-process_structure"></script>
+    -->
+    <script type="text/javascript">
+
+        // Status
+function loading_overlay(count){
+        $.LoadingOverlay("progress", count);
+        $.LoadingOverlay("text", "Working...");
+        }
+
+function pending_overlay(){
+  $.LoadingOverlay("show", {
+          image       : "",
+          text        : "Waiting in the Queue...",
+          progress    : true
+          });
+}
+
+function checkExists(sel) {
+    var status = false;
+    if ($(sel).length) status = true;
+    return status;
+}
+
+//Program a custom submit function for the form
+$("form#process_structure").submit(function(event){
+
+  //disable the default form submission
+  event.preventDefault();
+
+  //grab all form data
+  var formData = new FormData($(this)[0]);
+
+  $.ajax({
+    url: "../process_structure",
+    type: 'POST',
+    data: formData,
+    async: true,
+    cache: false,
+    contentType: false,
+    processData: false,
+    dataType: 'json',
+    success: function(data, textStatus,jqXHR) {
+                    status_url = jqXHR.getResponseHeader('Location');
+                    redirect_url = jqXHR.getResponseHeader('Redirect');
+
+                    update_progress(status_url,redirect_url);
+                },
+    error: function(jqXHR) {
+        //<div class="alert alert-danger" id="flash_alert">
+        //error_message = data['error_message']//jqXHR.getResponseHeader('error_message');
+        //</div>
+
+        var error_message = jqXHR.responseJSON.message
+
+        if (checkExists('#alert_list')) {
+            // alert('alert_list');
+            div = $("".concat('<li>',error_message,'</li>'));
+            $('#alert_list').append(div);
+        }
+        else {
+            //alert('flash_alert');
+            div = $("".concat('<div class="alert alert-danger" id="flash_alert"> Warning: <ul type="circle" id="alert_list"> <li>',error_message,'</li></ul></div>'));
+            $('#flash_alert').append(div);
+        }
+        //alert(error_message);
+
+
+        // alert('Unexpected error');
+    }
+  });
+
+  return false;
+});
+
+//Program a custom submit function for the form
+$("form#process_example_structure").submit(function(event){
+
+  //disable the default form submission
+  event.preventDefault();
+
+  //grab all form data
+  var formData = new FormData($(this)[0]);
+
+  $.ajax({
+    url: "../process_structure",
+    type: 'POST',
+    data: formData,
+    async: true,
+    cache: false,
+    contentType: false,
+    processData: false,
+    dataType: 'json',
+    success: function(data, textStatus,jqXHR) {
+                    status_url = jqXHR.getResponseHeader('Location');
+                    redirect_url = jqXHR.getResponseHeader('Redirect');
+
+                    update_progress(status_url,redirect_url);
+                },
+    error: function(jqXHR) {
+        //<div class="alert alert-danger" id="flash_alert">
+        //error_message = data['error_message']//jqXHR.getResponseHeader('error_message');
+        //</div>
+
+        var error_message = jqXHR.responseJSON.message
+
+        if (checkExists('#alert_list')) {
+            // alert('alert_list');
+            div = $("".concat('<li>',error_message,'</li>'));
+            $('#alert_list').append(div);
+        }
+        else {
+            //alert('flash_alert');
+            div = $("".concat('<div class="alert alert-danger" id="flash_alert"> Warning: <ul type="circle" id="alert_list"> <li>',error_message,'</li></ul></div>'));
+            $('#flash_alert').append(div);
+        }
+        //alert(error_message);
+
+
+        // alert('Unexpected error');
+    }
+  });
+
+  return false;
+});
+
+
+function update_progress(status_url,redirect_url) {
+
+    pending_overlay();
+    // send GET request to status URL
+    $.getJSON(status_url, function(data) {
+        // update UI
+        percent = parseInt(data['current'] * 100 / data['total']);
+
+        if (data['state'] == 'PROGRESS') {
+          loading_overlay(percent)
+        }
+        if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+            if ('result' in data) {
+                // show result
+
+                $("html").load(redirect_url);
+                $(location).attr('href',redirect_url);
+            }
+            else {
+                // something unexpected happened
+                $(status_div.childNodes[3]).text('Result: ' + data['state']);
+
+            }
+        }
+        else {
+            // rerun in x seconds
+            setTimeout(function() {
+                update_progress(status_url, redirect_url);
+            }, 300 );
+        }
+    });
+}
+    </script>
+
 
 
 <!--
@@ -269,7 +430,8 @@
         <li>
             <a href="" target="_blank">
                 Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
-
+            </a>
+        </li>
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
       	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,

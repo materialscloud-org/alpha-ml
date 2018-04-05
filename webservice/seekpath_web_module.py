@@ -316,20 +316,18 @@ def get_magres(frame,shielding):
     positions = frame.get_positions()
     cell = frame.get_cell()
     pbc = frame.get_pbc()
+    shielding_tensor =np.array([np.eye(3)*ss for ss in shielding])
     new_frame = Atoms(numbers=numbers, positions=positions, cell=cell, pbc=pbc)
-    new_frame.set_array('iso_cs'.encode('ascii', 'ignore'), shielding)
-    new_frame.info = {'ml_units': {'iso_cs': 'ppm'},
+    new_frame.set_array('ms'.encode('ascii', 'ignore'), shielding_tensor)
+    new_frame.info = {'magres_units': {'ms': 'ppm'},
                       'magresblock_calculation': {'calc_code': [['ML_NMR']],
                                                   'calc_code_version': [['svnunknown']],
                                                   'calc_name': [['gpr']]}
                       }
 
     f_obj = DummyFileObject()
-
     write_magres(f_obj, new_frame)
     return f_obj.read()
-
-
 
 def get_qe_pw(raw_data, out_json_data):
     """
