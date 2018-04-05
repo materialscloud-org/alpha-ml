@@ -51,7 +51,7 @@ def load_all_models_data():
     :return:
     '''
     dataPath = '../data/'
-    # TODO dataPath = '/home/app/data/'
+    # TODO	dataPath = '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     models = {}
     for sp in [1,6,7,8]:
@@ -454,7 +454,3 @@ def get_cp2k(raw_data):
         raw=raw_data,  # export the complete raw data to the template
         zip=zip,
         set=set)  # add zip and set to the template environment for some loops
-
-
-
-

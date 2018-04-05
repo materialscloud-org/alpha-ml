@@ -31,7 +31,7 @@ def tuple_from_ase(asestructure):
     Given a ASE structure, return a structure tuple as expected from seekpath
 
     :param asestructure: a ASE Atoms object
-    
+
     :return: a structure tuple (cell, positions, numbers) as accepted
         by seekpath.
     """
@@ -40,9 +40,6 @@ def tuple_from_ase(asestructure):
                        asestructure.get_scaled_positions().tolist(),
                        atomic_numbers)
     return structure_tuple
-
-
-
 
 
 def get_structure(fileobject, fileformat, extra_data=None):
@@ -61,10 +58,10 @@ def get_structure(fileobject, fileformat, extra_data=None):
         'vasp-ase': 'vasp',
         'xsf-ase': 'xsf',
         'castep-ase': 'castep-cell',
-        'pdb-ase': 'proteindatabank',
+		'castepout-ase': 'castep-castep',
+        'qe-ase': 'espresso-out',
         'xyz-ase': 'extxyz',
-        'cif-ase':
-        'cif',  # currently broken in ASE: https://gitlab.com/ase/ase/issues/15
+        'cif-ase':'cif',  # currently broken in ASE: https://gitlab.com/ase/ase/issues/15
     }
     if fileformat in ['xyz-ase']:
         from xyz_io import read_xyz
@@ -126,4 +123,3 @@ def is_proper_crystal(frame):
             raise WrongDensity
     except:
         raise WrongDensity
-

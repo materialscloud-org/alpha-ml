@@ -20,7 +20,7 @@
 
     <!--
     <script src="../static/js/jquery-3.1.0.min.js"></script>
-    <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
+    <script src="../static/js/jquery-ui.1.12.1.min.js"></script>
     <link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
     <script src="../static/js/loadingoverlay.js"></script>
     -->
@@ -54,8 +54,26 @@
 
     <script src="../static/js/iframeResizer.contentWindow.min.js"></script>
 
+		<script type="text/javascript">
+			function showText(obj) {
+				if(obj.id=='insertrefs') {
+					document.getElementById('H_ref').style.display='block';
+					document.getElementById('C_ref').style.display='block';
+					document.getElementById('N_ref').style.display='block';
+					document.getElementById('O_ref').style.display='block';
+					document.getElementById('head_ref').style.display='block';
+					}
+				else {
+					document.getElementById('H_ref').style.display='none';
+					document.getElementById('C_ref').style.display='none';
+					document.getElementById('N_ref').style.display='none';
+					document.getElementById('O_ref').style.display='none';
+					document.getElementById('head_ref').style.display='none';
+					}
+			return;
+			}
+		</script>
 </head>
-
 
 
 <body>
@@ -125,11 +143,71 @@
           <option value="vasp-ase">VASP POSCAR [parser: ase]</option>
           <option value="xsf-ase">XCrySDen (.xsf) [parser: ase]</option>
           <option value="castep-ase">CASTEP (.cell) [parser: ase]</option>
-	      <option value="pdb-ase">Protein Data Bank format (.pdb) [parser: ase]</option>
-
+					<option value="castepout-ase">CASTEP Output (.castep) [parser: ase]</option>
+		      <option value="qe-ase">Quantum Espresso Output (scf/relax) [parser: ase]</option>
         </select>
-	</div>
-      </div>
+			</div>
+		</div>
+
+		<div class='row'>
+			<div class='col-sm-6'>
+				<label for="outputformat">Select here the output format:</label>
+			</div>
+			<div class='col-sm-6'>
+				<form>
+							<input type="radio" name="outputformat" value="shieldings" checked="checked" onclick="showText(this)">&nbsp Chemical shieldings</br>
+							<input type="radio" name="outputformat" value="shifts_intref" onclick="showText(this)" >&nbsp Chemical shifts (internal reference)</br>
+							<input type="radio" name="outputformat" value="shifts_extref" id="insertrefs" onclick="showText(this)">&nbsp Chemical shifts (personalize reference)</br>
+					</form>
+				</div>
+			</div>
+
+			<div class='row' id="head_ref" style="display:none">
+				<div class='col-sm-6'></div>
+				<div class='col-sm-3'><form>Slope:</form></div>
+				<div class='col-sm-3'><form>Intercept:</form></div>
+			</div>
+
+			<div class='row' id="H_ref" style="display:none">
+				<div class='col-sm-5'></div>
+				<div class='col-sm-1' style="text-align:right"><label><sup>1</sup>H</label></div>
+				<div class='col-sm-3'>
+					  <input type="number" step="any" name="Hs" value="1">
+				</div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Hi" value="30.8">
+				</div>
+
+			</div>
+			<div class='row' id="C_ref" style="display:none">
+				<div class='col-sm-5'></div><div class='col-sm-1' style="text-align:right"><label><sup>13</sup>C</label></div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Cs" value="1">
+				</div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Ci" value="169.5">
+				</div>
+			</div>
+
+			<div class='row' id="N_ref" style="display:none">
+				<div class='col-sm-5'></div><div class='col-sm-1' style="text-align:right"><label><sup>15</sup>N</label></div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Ns" value="1">
+				</div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Ni" value="0">
+				</div>
+			</div>
+
+			<div class='row' id="O_ref" style="display:none">
+				<div class='col-sm-5'></div><div class='col-sm-1' style="text-align:right"><label><sup>17</sup>O</label></div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Os" value="1">
+				</div>
+				<div class='col-sm-3'>
+						<input type="number" step="any" name="Oi" value="0">
+				</div>
+			</div>
 
         <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
