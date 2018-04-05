@@ -451,7 +451,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
                                  inputstructure_positions_cartesian)
     ]
 
-    rm_spectra()
+    # rm_spectra()
     ##############################################################################
     if is_fast_dev is False and is_msk is False:
         shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
@@ -488,8 +488,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
         tmp[it]=rreplace(tmp[it],'</b>&nbsp;','&nbsp;',8)
         tmp[it]=rreplace(tmp[it],'0000','',1)
     xyz='<br>'.join([str(x) for x in tmp])
-    with open('/Users/fedeparuzzo/git/nmr_test/webservice/tmp.txt','w') as f:
-        f.write(xyz)
+
     jsmol_pos,jsmol_cell = get_json(frame)
 
     data = dict(
