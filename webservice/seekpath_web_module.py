@@ -51,7 +51,7 @@ def load_all_models_data():
     :return:
     '''
     dataPath = '../data/'
-    # TODO dataPath = '/home/app/data/'
+    # TODO	dataPath = '/home/app/data/'
     # ref_desc = np.load(dataPath + 'test_soap.npy')
     models = {}
     for sp in [1,6,7,8]:

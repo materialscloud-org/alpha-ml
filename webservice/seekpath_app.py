@@ -14,6 +14,7 @@ standard_library.install_aliases()
 import os,sys,flask,datetime,logging, logging.handlers
 import numpy as np
 import cPickle as pck
+import json
 from celery import Celery
 from structure_importers import get_structure
 from ase import Atoms
@@ -22,7 +23,9 @@ from ase.io import write
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
 sys.path.insert(0,'/Users/iMac/git/glosim2/')
+sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
 sys.path.insert(0,'/Users/albert/Git/glosim2/')
+
 from libmatch.soap import get_Soaps
 
 logger = logging.getLogger("seekpath_server")
@@ -59,6 +62,10 @@ if os.environ.get('MSK') == 'false':
     is_msk = False
 else:
     is_msk = True
+
+is_debug = True
+is_fast_dev = False
+is_msk = False
 # is_fast_dev = False
 # is_debug =  False
 
@@ -94,7 +101,7 @@ class ConfigurationError(Exception):
 
 valid_examples = {
     "GUMMUW04": ("GUMMUW04"),
-	"EDEBUK": ("EDEBUK")
+    "EDEBUK": ("EDEBUK")
 }
 
 if __name__ == "__main__":
@@ -268,12 +275,34 @@ def process_structure():
     from flask import request,jsonify,url_for,redirect
     from seekpath_web_module import read_test_frame,FlaskRedirectException
 
-
     if request.method == 'POST':
         # Submit user defined structure
+        slopes=None
+        intercepts=None
         if 'structurefile' in request.files:
             structurefile = flask.request.files['structurefile']
             fileformat = flask.request.form.get('fileformat', 'unknown')
+            outputformat = flask.request.form.get('outputformat', 'unknown')
+            if outputformat=='shifts_intref':
+                 slopes=json.dumps({1:1,6:1,7:1,8:1})
+                 intercepts=json.dumps({1:30.8,6:169.5,7:0,8:0})
+            elif outputformat=='shifts_extref':
+                 Hs=flask.request.form.get('Hs','unknown')
+                 Hi=flask.request.form.get('Hi','unknown')
+                 Cs=flask.request.form.get('Cs','unknown')
+                 Ci=flask.request.form.get('Ci','unknown')
+                 Ns=flask.request.form.get('Ns','unknown')
+                 Ni=flask.request.form.get('Ni','unknown')
+                 Os=flask.request.form.get('Os','unknown')
+                 Oi=flask.request.form.get('Oi','unknown')
+                 slopes={1:Hs,6:Cs,7:Ns,8:Os}
+                 intercepts={1:Hi,6:Ci,7:Ni,8:Oi}
+                 slopes=json.dumps(slopes)
+                 intercepts=json.dumps(intercepts)
+
+            print outputformat
+            print slopes
+            print intercepts
             filecontent = structurefile.read()
             call_source = "process_structure"
 
@@ -289,13 +318,12 @@ def process_structure():
 
             fileformat = 'xyz-ase'
             call_source = "process_example_structure"
+
             # I expect that the valid_examples dictionary already filters only
             # existing files, so I don't try/except here
             file_name = '/home/app/code/webservice/file_examples/' + example_name + '.xyz'
             if is_debug:
                 file_name = './file_examples/' + example_name + '.xyz'
-
-
 
             with open(file_name, 'r') as f:
                 filecontent = f.read()
@@ -313,10 +341,11 @@ def process_structure():
             # return flask.redirect(flask.url_for('input_structure'))
             return jsonify(message=e.message),500
 
-
         task = predict_chemical_shifts.apply_async(
                 kwargs=dict(filecontent=filecontent, fileformat=fileformat,
-                            call_source=call_source, request_info=request_info))
+                		     slopes=slopes, intercepts=intercepts,
+                			call_source=call_source, request_info=request_info))
+
 
         urls = {'Location': url_for('taskstatus',task_id=task.id),
                 'Redirect': url_for('longtask_completed',task_id=task.id)}
@@ -387,7 +416,8 @@ def utility_processor():
 # THE MAIN FUNCTIONALITY
 
 @celery.task(bind=True)
-def predict_chemical_shifts(self,filecontent, fileformat, call_source="", request_info=None):
+def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, call_source="", request_info=None):
+
     # from structure_importers import get_structure
     import io,time,copy, json, jinja2
     from ase.data import chemical_symbols
@@ -430,12 +460,13 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
         for label, coords in zip(inputstructure_symbols,
                                  inputstructure_positions_cartesian)
     ]
-    ##############################################################################
 
+    rm_spectra()
+    ##############################################################################
     if is_fast_dev is False and is_msk is False:
-        shielding = get_shielding_single_kernel(self,frame)
+        shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
     elif is_fast_dev is False and is_msk is True:
-        shielding = get_shielding_multi_kernel(self,frame)
+        shielding = get_shielding_multi_kernel(self, frame, slopes, intercepts)
     else:
         shielding = get_dummy_work(self, frame)
     ##############################################################################
@@ -460,6 +491,15 @@ def predict_chemical_shifts(self,filecontent, fileformat, call_source="", reques
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
 
+    tmp=xyz.split('<br>')
+    for it in range(2,len(tmp)):
+        tmp[it]=rreplace(tmp[it],'&nbsp;','&nbsp;<b>',10)
+        tmp[it]=rreplace(tmp[it],'&nbsp;<b>','</b>&nbsp;',9)
+        tmp[it]=rreplace(tmp[it],'</b>&nbsp;','&nbsp;',8)
+        tmp[it]=rreplace(tmp[it],'0000','',1)
+    xyz='<br>'.join([str(x) for x in tmp])
+    with open('/Users/fedeparuzzo/git/nmr_test/webservice/tmp.txt','w') as f:
+        f.write(xyz)
     jsmol_pos,jsmol_cell = get_json(frame)
 
     data = dict(
@@ -506,13 +546,19 @@ def load_model_data(sp):
         model = pck.load(f)
     return model
 
-def get_shielding_single_kernel(celery_self,frame):
+def get_shielding_single_kernel(celery_self,frame, slopes, intercepts):
+    import json
     shielding = np.zeros((len(frame),))
     sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
 
     celery_self.update_state(state='PROGRESS',
                              meta={'current': 0, 'total': len(sps),
                                    'status': ''})
+    numbers = frame.get_atomic_numbers()
+
+    if slopes!=None:
+        slopes=json.loads(slopes)
+        intercepts=json.loads(intercepts)
 
     for ii,sp in enumerate(sps):
 
@@ -531,8 +577,13 @@ def get_shielding_single_kernel(celery_self,frame):
         kernel_test = np.dot(model['soap_ref'], descriptor.T)
 
         y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
+        if slopes!=None:
+            slope=slopes[str(sp)]
+            intercept=intercepts[str(sp)]
+            y_pred=shielding2shifts(y_pred,slope,intercept)
 
         shielding[frame.get_atomic_numbers() == sp] = y_pred
+        #create_spectrum(sp, y_pred, is_debug)
 
         celery_self.update_state(state='PROGRESS',
                                  meta={'current': ii, 'total': len(sps),
@@ -547,11 +598,14 @@ def load_model_data_msk(sp,cutoff):
     :return:
     '''
     from seekpath_app import dataPath
+
     with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
         model = pck.load(f)
     return model
 
-def get_shielding_multi_kernel(celery_self,frame):
+def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
+    import json
+
     shielding = np.zeros((len(frame),))
     sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
     train_sizes = {1:30000,6:19532,7:12760,8:14770}
@@ -559,6 +613,11 @@ def get_shielding_multi_kernel(celery_self,frame):
                              meta={'current': 0, 'total': len(sps),
                                    'status': ''})
     numbers = frame.get_atomic_numbers()
+
+    if slopes!=None:
+        slopes=json.loads(slopes)
+        intercepts=json.loads(intercepts)
+
     for ii,sp in enumerate(sps):
         kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
         kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
@@ -582,8 +641,13 @@ def get_shielding_multi_kernel(celery_self,frame):
 
 
         y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
+        if slopes!=None:
+            slope=slopes[str(sp)]
+            intercept=intercepts[str(sp)]
+            y_pred=shielding2shifts(y_pred,slope,intercept)
 
         shielding[numbers == sp] = y_pred
+        #create_spectrum(sp,y_pred,is_debug)
 
         celery_self.update_state(state='PROGRESS',
                                  meta={'current': ii, 'total': len(sps),
@@ -742,6 +806,70 @@ def get_fingerprints(frames, soap_params, nprocess, sp=None):
 
 def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
+
+
+
+def shielding2shifts(shielding,slope,intercept):
+    shifts=float(intercept)-float(slope)*shielding
+    return shifts
+
+def rreplace(s, old, new, occurrence):
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
+
+def rm_spectra():
+    import subprocess
+    simbols={1:'H',6:'C',7:'N',8:'O'}
+    if is_debug:
+        fig_name='static/jsmol/data/uploaded/*SPECTRUM*'
+        fig_name =os.path.abspath(fig_name)
+    else:
+        fig_name ='/home/app/code/webservice/static/jsmol/data/*SPECTRUM*'
+
+    command='rm {}'.format(fig_name)
+    subprocess.call(command, shell=True)
+
+def create_spectrum(sp, shielding, is_debug):
+    import matplotlib.pyplot as plt
+    colors={1:'#1d4484',6:'#E42828',7:'#A3CB58',8:'#F47531'}
+    increment={1:2,6:5,7:10,8:10}
+    simbols={1:'H',6:'C',7:'N',8:'O'}
+    labels={1:'$^1$H',6:'$^{13}$C',7:'$^{15}$N',8:'$^{17}$O'}
+
+
+    #llim={1:-2,6:-5,7:-10,8:-50}
+    #rlim={1:12,6:200,7:400,8:400}
+    #if llim[sp]>min(shielding[numbers == sp]):
+    #    llim[sp]=min(shielding[numbers == sp])-increment[sp]
+    #if rlim[sp]<max(shielding[numbers == sp]):
+    #    rlim[sp]=max(shielding[numbers == sp])+increment[sp]
+    #t = np.arange(llim[sp], rlim[sp], 0.01)
+
+    f = np.arange((min(shielding)-increment[sp]), (max(shielding)+increment[sp]), 0.01)
+    i = np.zeros(len(f))
+    idx=[np.isclose(f, it) for it in shielding]
+    i[np.where(sum(idx)<>0)]=1
+
+    plt.figure(figsize=(12,5),frameon=False)
+    plt.tick_params(axis='y',which='both',left='off', labelleft='off')
+    plt.plot(f,i,color=colors[sp])
+    ax = plt.gca()
+    ax.tick_params(direction='in', length=3, width=2, labelsize=16, pad=10)
+    ax.yaxis.set_ticks_position('none')
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.set_xlim(min(f), max(f));
+    ax.set_xlabel("{} Chemical Shifts / ppm".format(labels[sp]),fontsize=22)
+
+    if is_debug:
+        fig_name = 'static/jsmol/data/uploaded/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
+        fig_name = os.path.abspath(fig_name)
+    else:
+        fig_name = '/home/app/code/webservice/static/jsmol/data/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
+
+    plt.savefig(fig_name, bbox_inches='tight')
+    return 1
 
 
 if __name__ == "__main__":
