@@ -1,6 +1,7 @@
-<html lang="en">
+<!DOCTYPE html>
+<html  lang="en">
 <head>
-		<meta charset="utf-8">
+		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Shift-ML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
@@ -15,15 +16,25 @@
 		<script src="../static/js/SVGRenderer.min.js"></script>
 
 		<!-- Jmol -->
-		<script type="text/javascript" src="../static/jsmol/JSmol.min.js"></script>
+		<script type="text/javascript" src="../static/jsmol/JSmol.min.js">
+		</script>
 		<script type="text/javascript">
+                 // To fix Load denied by X-Frame-Options: error
+                 // https://sourceforge.net/p/jmol/mailman/message/36069075/
+		 delete Jmol._tracker;
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
 			 //Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
+
+
+		var jmolH = 400;
+		var jmolW = jmolH*16/9;
+
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
+
 		 height: "100%",
 		 width: "100%",
 		 debug: false,
@@ -33,6 +44,7 @@
 		 color: "white",
 		 deferUncover: true,                 // wait to uncover applet until script completed
 		 deferApplet: false,                  // wait to load applet until click
+
 		// php sets the Jmol variable Info.use
 		 use: "HTML5",
 		// The next line assumes that the .jar files in the Jmol distribution have been moved
@@ -222,11 +234,10 @@
 	</div>
 
 
-
-
 	<div id="result">
 
 		<div id="jmolapp" style="width:50%;height:50%;margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(0%, 0%);">
+		//<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
 
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
@@ -318,35 +329,23 @@
 		</ul>
 	</div>
 	<div id='citations'>
-			<h2>How to cite</h2>
-			<p>If you use this tool, please cite the following work:
-			<ul>
-			<li>
-					<a href="" target="_blank" >
-							Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
+        <h2>How to cite</h2>
+        <p>If you use this tool, please cite the following work:
+        <ul>
+        <li>
+            <a href="" target="_blank">
+                Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
+            </a>
+        </li>
+        <li>
+      	  The input parsers use a number of libraries (see name in the dropdown list) from
+      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
+             <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
+      	</li>
+        </ul>
+        </p>
 
-			<li>
-			 The input parsers use a number of libraries (see name in the dropdown list) from
-					<a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
-					 <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
-		 </li>
-			</ul>
-			</p>
-
-
-		<!--  <h2>Important note</h2>
-<p>
- The structure visualized above is <span style="font-style: italic;">not</span>
- the structure you passed in input, but its primitive cell.
- Moreover, the primitive cell has been standardized
- (using the conventions of spglib).<br/>
-
-<span style="font-weight: bold;">If you want to run a new simulation,
-	and plan (now or later) to use the suggested path provided here,
-	please use the primitive cell above.</span>
-</p> -->
-
-	</div>
+    </div>
 
 
 
@@ -358,5 +357,7 @@
 
 
 <div style ="position: relative" data-iframe-height></div>
+
+
 </body>
 </html>

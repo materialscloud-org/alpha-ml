@@ -2,12 +2,10 @@ version: '2'
 
 services:
   redis:
-    image: 'redis:3.0-alpine'
-    command: redis-server --requirepass devpassword
+    image: 'redis:4.0.8-alpine'
+    command: redis-server --requirepass devpassword --port 3247
     volumes:
       - 'redis:/var/lib/redis/data'
-    ports:
-      - '6379:6379'
 
   website:
     build: .
@@ -16,12 +14,13 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'false'
       MSK : 'true'
+      REDIS_PORT : '3247'
       PYTHONUNBUFFERED: 'true'
 
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
     ports:
-      - '5050:80'
+      - '3246:80'
 
   celery:
     build: .
@@ -34,6 +33,9 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'false'
       MSK : 'true'
+      REDIS_PORT : '3247'
+    ports:
+      - '3248:80'
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
 

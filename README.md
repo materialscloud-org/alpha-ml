@@ -26,6 +26,17 @@ sudo docker run -p 5050:80 --rm -v /Users/albert/PycharmProjects/data:/home/app/
  ```
  docker-compose rm -f
  ```
+ # To run the app locally
+ In a terminal in websevice run:
+ ``` 
+ launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist  OR 
+ celery worker -l info -A seekpath_app.celery
+ ```
+ And in another in webservice:
+ ``` 
+ python seekpath_app.py
+ ```
+ 
  # Additional packages
  
 ```
