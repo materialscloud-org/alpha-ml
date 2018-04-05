@@ -475,13 +475,10 @@ def predict_chemical_shifts(self,filecontent, fileformat,jsmol_name, call_source
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
     magres_code = str(jinja2.escape(get_magres(frame,shielding))).replace(
-        '\n', '<br>').replace(' ', '&nbsp;').replace(
-        '#','&#35').replace('$','&#36').replace(
-        '[','&#91').replace(']','&#93').replace('/','&#47')
+        '\n', '<br>').replace(' ', '&nbsp;')
 
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
-
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
