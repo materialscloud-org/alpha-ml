@@ -41,7 +41,7 @@ logger.setLevel(logging.DEBUG)
 
 
 
-Shift_ML_version = '0.0.3'
+Shift_ML_version = '0.9'
 
 
 MAX_NUMBER_OF_ATOMS = 2000
@@ -62,16 +62,6 @@ if os.environ.get('MSK') == 'false':
     is_msk = False
 else:
     is_msk = True
-
-is_debug = True
-is_fast_dev = False
-is_msk = False
-# is_fast_dev = False
-# is_debug =  False
-
-# logger.info('######################################')
-# logger.info(os.environ.get('DEBUG'))
-# logger.info('{} {}'.format(is_debug,is_fast_dev))
 
 
 dataPath = '/home/app/data/'
