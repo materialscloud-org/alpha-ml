@@ -29,14 +29,14 @@
 			};
 
 
-		var jmolH = 400;
+		var jmolH = 500;
 		var jmolW = jmolH*16/9;
 
 		 var Info = {
 		// By using %s, the applet will be resized if the window is resized
 
-		 height: "100%",
-		 width: "100%",
+		 height: jmolH,
+		 width: jmolW,
 		 debug: false,
 		 coverImage:"",
 		 coverScript: "",
@@ -236,9 +236,10 @@
 
 	<div id="result">
 
-		<div id="jmolapp" style="width:50%;height:50%;margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(0%, 0%);">
-		<!--<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
-		-->
+		<!--<div id="jmolapp" style="width:400px;height:300px;margin-left: auto; margin-right: auto; text-align:left; position:relative;transform: translate(0%, 0%);">
+-->
+		<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
+
 			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts with the atomic structure</h2>
 			<script type="text/javascript">
 
