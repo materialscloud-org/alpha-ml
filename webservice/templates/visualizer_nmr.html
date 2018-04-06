@@ -3,7 +3,7 @@
 <head>
 		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Shift-ML</title>
+		<title>ShiftML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
 
 		<link rel="stylesheet" type="text/css" href="../static/css/visualizer.min.css"/>
@@ -25,7 +25,7 @@
 		 function readyfunc()
 			{
 			 Jmol.script(JmolApplet0, "select all ; zoom 60;");
-			 //Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
+			 Jmol.script(JmolApplet0, 'set antialiasDisplay ON;');
 			};
 
 
@@ -103,7 +103,7 @@
 
 			<div id="maintitle">
 	{% block seekpathtitle %}
-	<h1 style="text-align: center;"><span style="font-weight: bold;">Shift-ML</span>: chemical shifts in molecular solids by machine learning</h1>
+	<h1 style="text-align: center;"><span style="font-weight: bold;">ShiftML</span>: Chemical Shifts in Molecular Solids by Machine Learning</h1>
 
 		{% endblock seekpathtitle %}
 			</div>
@@ -362,7 +362,7 @@
 
 
 	<div id='finalinfo'>
-			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. Shift-ML version: {{ Shift_ML_version }}.
+			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. ShiftML version: {{ Shift_ML_version }}.
 	</div>
 
 </div>

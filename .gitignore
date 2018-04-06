@@ -2,4 +2,9 @@ data/model_sp*.pck
 webservice/SECRET_KEY
 webservice/seekpath_app.wsgi
 webservice/seekpath-site.conf
-*.pyc
+webservice/*.pyc
+webservice/structure_importers/*.pyc
+.DS_Store
+*.DS_Store
+.idea
+

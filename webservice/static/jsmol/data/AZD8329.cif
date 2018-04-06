@@ -1,0 +1,114 @@
+
+#######################################################################
+#
+#                 Cambridge Crystallographic Data Centre
+#                                CCDC 
+#
+#######################################################################
+#
+# If this CIF has been generated directly or indirectly from an entry in the 
+# Cambridge Structural Database, then it will include bibliographic, chemical, 
+# crystal, experimental, refinement or atomic coordinate data resulting from 
+# the CCDC's data processing and validation procedures. Files generated from 
+# CSD entries are Copyright 2011 Cambridge Crystallographic Data Centre. They 
+# may be used in bona fide research applications only, and may not be copied or 
+# further disseminated in any form, whether machine-readable or not, except for 
+# the purposes of generating routine backup copies on your local computer 
+# system.
+# 
+# Files arising from any other source may also contain material that is the 
+# copyright of third parties, including the originator, and you should check 
+# with the originator concerning the permitted uses of the information 
+# contained in this CIF.
+#
+# For further information on the CCDC and the free tools enCIFer and Mercury
+# for validating and visualising CIF files, please visit www.ccdc.cam.ac.uk
+#
+#######################################################################
+
+data_frm_0001
+_symmetry_cell_setting           triclinic
+_symmetry_space_group_name_H-M   'P -1'
+_symmetry_Int_Tables_number      2
+loop_
+_symmetry_equiv_pos_site_id
+_symmetry_equiv_pos_as_xyz
+1 x,y,z
+2 -x,-y,-z
+_cell_length_a                   10.0914
+_cell_length_b                   11.3985
+_cell_length_c                   13.1734
+_cell_angle_alpha                99.0958
+_cell_angle_beta                 59.5067
+_cell_angle_gamma                73.2907
+_cell_volume                     1162.66
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+C1 C 0.0381956 0.805923 0.0117285
+C2 C 0.034924 0.798347 0.118425
+C3 C 0.182942 0.717155 0.104997
+C4 C 0.335363 0.646268 -0.0189494
+C5 C 0.338541 0.652624 -0.125931
+C6 C 0.189022 0.730609 -0.111412
+C7 C 0.17882 0.707709 0.21194
+C8 C 0.162362 0.666987 -0.286397
+C9 C 0.171727 0.730685 -0.371598
+C10 C 0.208133 0.834542 -0.344349
+C11 C 0.147158 0.708371 -0.467101
+C12 C -0.167801 0.845049 -0.330063
+C13 C -0.314261 0.816139 -0.323615
+C14 C -0.350091 0.86288 -0.416236
+C15 C -0.400847 1.01369 -0.382032
+C16 C -0.384781 1.07328 -0.16052
+C17 C -0.218879 0.996178 -0.298795
+C18 C -0.252758 1.04193 -0.392485
+C19 C -0.48041 0.892514 -0.18537
+C20 C -0.532149 1.04373 -0.149984
+C21 C -0.565826 1.08974 -0.243597
+C22 C 0.128725 0.545622 -0.276838
+C23 C 0.292429 0.429172 -0.313674
+C24 C 0.0834773 0.494137 -0.367347
+C25 C -0.0248581 0.57524 -0.139259
+O1 O 0.046788 0.770285 0.32265
+O2 O 0.317036 0.631402 0.202925
+O3 O 0.274455 0.636 -0.577532
+N1 N 0.190244 0.740585 -0.212829
+N2 N 0.217204 0.836767 -0.246874
+N3 N -0.00417602 0.765991 -0.449642
+H1 H -0.0698076 0.866335 0.0237539
+H2 H -0.0769111 0.853001 0.206345
+H3 H 0.446153 0.589472 -0.0327162
+H4 H 0.45034 0.600847 -0.214586
+H5 H 0.304431 0.631164 0.281146
+H6 H 0.223801 0.899832 -0.38935
+H7 H 0.000614193 0.753651 -0.525928
+H8 H -0.160948 0.820725 -0.255139
+H9 H -0.279623 0.710559 -0.347561
+H10 H -0.452222 0.841581 -0.410372
+H11 H -0.237676 0.809311 -0.513717
+H12 H -0.425018 1.04597 -0.447339
+H13 H -0.421884 1.17911 -0.134925
+H14 H -0.361307 1.04413 -0.0939785
+H15 H -0.116387 1.01716 -0.30534
+H16 H -0.137211 0.990676 -0.489432
+H17 H -0.286704 1.14717 -0.370016
+H18 H -0.459613 0.858774 -0.119329
+H19 H -0.58389 0.872284 -0.177369
+H20 H -0.647833 1.09694 -0.0530539
+H21 H -0.669506 1.07058 -0.236568
+H22 H -0.60517 1.1959 -0.218669
+H23 H 0.402602 0.411326 -0.407129
+H24 H 0.321648 0.448926 -0.245686
+H25 H 0.276328 0.338185 -0.316435
+H26 H 0.188376 0.46329 -0.466627
+H27 H 0.058053 0.408842 -0.355182
+H28 H -0.030987 0.569071 -0.347323
+H29 H -0.13561 0.664529 -0.107163
+H30 H 0.0071035 0.587587 -0.0720667
+H31 H -0.0623723 0.494325 -0.134463
+
+#END
