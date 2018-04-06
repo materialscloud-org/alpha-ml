@@ -30,7 +30,7 @@
     <script src="{{ url_for('static', filename='js/jquery-ui.1.12.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loadingoverlay.js') }}"></script>
 
-    <title>Shift-ML</title>
+    <title>ShiftML</title>
     <script>
     $( function() {
       $( "#accordion" ).accordion({
@@ -77,12 +77,13 @@
 
 
 <body>
-
+<div>
+</div>
 
 <div id='container'>
 <div id='maintitle'>
   {% block seekpathtitle %}
-    <h1 style="text-align: center;"><span style="font-weight: bold;">Shift-ML</span>: chemical shifts in molecular solids by machine learning</h1>
+    <h1 style="text-align: left;"><span style="font-weight: bold; ">ShiftML</span>: Chemical Shifts in Molecular Solids by Machine Learning</h1>
   {% endblock %}
 </div>
 
@@ -92,7 +93,7 @@
 
 {% block aboutblock %}
 <div id="accordion">
-<h2>What Shift-ML does</h2>
+<h2>What ShiftML does</h2>
 <div>
 <p>This tool takes an <strong>input a crystal structure in Ångström</strong> (in a number of different formats), and
 <ul>
@@ -105,7 +106,7 @@
 </p>
 </div>
 <!--
-<h2>Shift-ML definitions and advantages</h2>
+<h2>ShiftML definitions and advantages</h2>
 <div>
 <p>The main advantages of this work are:
 <ul>
@@ -157,7 +158,10 @@
 			<div class='col-sm-6'>
 				<form>
 							<input type="radio" name="outputformat" value="shieldings" checked="checked" onclick="showText(this)">&nbsp Chemical shieldings</br>
-							<input type="radio" name="outputformat" value="shifts_intref" onclick="showText(this)" >&nbsp Chemical shifts (internal reference)</br>
+							<input type="radio" name="outputformat" value="shifts_intref" onclick="showText(this)" >&nbsp Chemical shifts (internal reference) <strong style="font-size:16px;color:blue" class="fa" title=" &#185;H: Slope=1, Intercept=30.8
+&#185;&#179;C: Slope=1, Intercept=169.5
+&#185;&#x2075;N: Slope=1, Intercept=185
+&#185;&#x2077;O: Slope=1, Intercept=248.3"><sup>&#9432;</sup></strong></br>
 							<input type="radio" name="outputformat" value="shifts_extref" id="insertrefs" onclick="showText(this)">&nbsp Chemical shifts (personalize reference)</br>
 					</form>
 				</div>
@@ -196,7 +200,7 @@
 						<input type="number" step="any" name="Ns" value="1">
 				</div>
 				<div class='col-sm-3'>
-						<input type="number" step="any" name="Ni" value="0">
+						<input type="number" step="any" name="Ni" value="185">
 				</div>
 			</div>
 
@@ -206,7 +210,7 @@
 						<input type="number" step="any" name="Os" value="1">
 				</div>
 				<div class='col-sm-3'>
-						<input type="number" step="any" name="Oi" value="0">
+						<input type="number" step="any" name="Oi" value="248.3">
 				</div>
 			</div>
 
@@ -228,8 +232,9 @@
 	</div>
 	<div class="col-xs-12 col-sm-6">
 	  <select name="examplestructure">
-	    <option value='GUMMUW04'>GUMMUW04</option>
-			<option value='EDEBUK'>EDEBUK</option>
+	    <option value='Cocaine'>Cocaine</option>
+			<option value='AZD8329'>AZD8329</option>
+			<option value='Sucrose'>Sucrose</option>
 
 	  </select>
 	</div>

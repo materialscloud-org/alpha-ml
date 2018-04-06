@@ -90,8 +90,9 @@ class ConfigurationError(Exception):
 
 
 valid_examples = {
-    "GUMMUW04": ("GUMMUW04"),
-    "EDEBUK": ("EDEBUK")
+    "Cocaine": ("Cocaine"),
+    "AZD8329": ("AZD8329"),
+    "Sucrose": ("Sucrose")
 }
 
 if __name__ == "__main__":
@@ -275,7 +276,7 @@ def process_structure():
             outputformat = flask.request.form.get('outputformat', 'unknown')
             if outputformat=='shifts_intref':
                  slopes=json.dumps({1:1,6:1,7:1,8:1})
-                 intercepts=json.dumps({1:30.8,6:169.5,7:0,8:0})
+                 intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248.3})
             elif outputformat=='shifts_extref':
                  Hs=flask.request.form.get('Hs','unknown')
                  Hi=flask.request.form.get('Hi','unknown')
