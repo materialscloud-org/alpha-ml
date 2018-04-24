@@ -246,7 +246,7 @@ def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_dat
                     'form_data': form_data,
                 })
             raise FlaskRedirectException(
-                "Sorry, Shift-ML is limited to the predictions of "
+                "Sorry, ShiftML is limited to the predictions of "
                 "isotropic chemical shift of 1H, 13C, 15N and 17O."
                 "The atomic species you provided are {}"
                 "".format(np.unique( [ str(z2symb[sp]) for sp in np.unique(frame.get_atomic_numbers().tolist())])))
