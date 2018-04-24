@@ -19,6 +19,7 @@ from celery import Celery
 from structure_importers import get_structure
 from ase import Atoms
 from ase.io import write
+import datetime
 
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
@@ -274,6 +275,8 @@ def process_structure():
             structurefile = flask.request.files['structurefile']
             fileformat = flask.request.form.get('fileformat', 'unknown')
             outputformat = flask.request.form.get('outputformat', 'unknown')
+            email = flask.request.form.get('email','example@example.com')
+            write_email(email)
             if outputformat=='shifts_intref':
                  slopes=json.dumps({1:1,6:1,7:1,8:1})
                  intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248.3})
@@ -291,9 +294,9 @@ def process_structure():
                  slopes=json.dumps(slopes)
                  intercepts=json.dumps(intercepts)
 
-            print outputformat
-            print slopes
-            print intercepts
+#            print outputformat
+#            print slopes
+#            print intercepts
             filecontent = structurefile.read()
             call_source = "process_structure"
 
@@ -663,6 +666,10 @@ class DummyFileObject(object):
         self.data += text
     def read(self):
         return self.data
+
+def write_email(email):
+    with open("static/request_log.txt", "a") as myfile:
+        myfile.write(email + '\t' + str(datetime.datetime.now()) + '\n')
 
 def get_xyz(frame,shielding):
     from ase.io.extxyz import write_xyz

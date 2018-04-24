@@ -73,6 +73,15 @@
 			return;
 			}
 		</script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-118131226-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-118131226-1');
+    </script>
 </head>
 
 
@@ -95,7 +104,7 @@
 <div id="accordion">
 <h2>What ShiftML does</h2>
 <div>
-<p>ShiftML takes an <strong>input a crystal structure</strong> (in a number of different formats), and
+<p>ShiftML takes as an <strong>input a crystal structure</strong> (in a number of different formats), and
 <ul>
 <li><strong>predicts</strong> the NMR chemical shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
 <!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
@@ -289,6 +298,8 @@ $("form#process_structure").submit(function(event){
 
   //grab all form data
   var formData = new FormData($(this)[0]);
+  email = collect_email();
+  formData.append('email', email);
 
   $.ajax({
     url: "../process_structure",
@@ -383,7 +394,10 @@ $("form#process_example_structure").submit(function(event){
   return false;
 });
 
-
+function collect_email() {
+  var email = prompt("Please enter your email", "example@example.com");
+  return email;
+}
 function update_progress(status_url,redirect_url) {
 
     pending_overlay();
