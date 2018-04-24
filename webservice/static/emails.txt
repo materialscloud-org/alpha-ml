@@ -1,9 +1,0 @@
-email adresses of users
-example@example.com
-test2
-example@example.com
-example@example.com
-example@example.com
-example@example.com
-example@example.com
-example@example.com

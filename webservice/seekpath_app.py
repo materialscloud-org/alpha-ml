@@ -19,6 +19,7 @@ from celery import Celery
 from structure_importers import get_structure
 from ase import Atoms
 from ase.io import write
+import datetime
 
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
@@ -667,8 +668,8 @@ class DummyFileObject(object):
         return self.data
 
 def write_email(email):
-    with open("static/emails.txt", "a") as myfile:
-        myfile.write(email + '\n')
+    with open("static/request_log.txt", "a") as myfile:
+        myfile.write(email + '\t' + str(datetime.datetime.now()) + '\n')
 
 def get_xyz(frame,shielding):
     from ase.io.extxyz import write_xyz
