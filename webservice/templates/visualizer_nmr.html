@@ -251,7 +251,7 @@
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
 				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
-				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
+				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %1.2[property_shifts];font label 15 monospaced italic;";
 
 				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
 				Jmol.script(JmolApplet0, 'show menu')

@@ -462,7 +462,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
                                  inputstructure_positions_cartesian)
     ]
 
-    rm_spectra()
+    #rm_spectra()
     ##############################################################################
     if is_fast_dev is False and is_msk is False:
         shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
@@ -648,6 +648,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
             y_pred=shielding2shifts(y_pred,slope,intercept)
 
         shielding[numbers == sp] = y_pred
+
         #create_spectrum(sp,y_pred,is_debug)
 
         celery_self.update_state(state='PROGRESS',
@@ -655,6 +656,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
                                        'status': str(sp)})
 
     np.round(shielding, decimals=4, out=shielding)
+
     return shielding
 
 def get_json_for_visualizer(frame):
