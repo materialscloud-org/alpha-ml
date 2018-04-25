@@ -306,7 +306,7 @@ def get_xyz(frame,shielding):
     # write(fn,new_frame,format='extxyz')
     f_obj = DummyFileObject()
 
-    write_xyz(f_obj, new_frame)
+    write_xyz(f_obj, new_frame, Shift_ML_version)
     return f_obj.read()
 
 def get_magres(frame,shielding):
@@ -326,7 +326,7 @@ def get_magres(frame,shielding):
                       }
 
     f_obj = DummyFileObject()
-    write_magres(f_obj, new_frame)
+    write_magres(f_obj, new_frame, Shift_ML_version)
     return f_obj.read()
 
 def get_qe_pw(raw_data, out_json_data):
