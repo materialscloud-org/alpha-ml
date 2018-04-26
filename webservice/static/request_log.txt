@@ -1,2 +1,10 @@
 example@example.com	2018-04-24 19:59:54.173656
 albert@hofstetter.epfl.ch	2018-04-24 20:01:07.508951
+example@example.com	2018-04-25 16:06:46.521128
+example@example.com	2018-04-25 16:08:21.060250
+example@example.com	2018-04-25 16:08:40.117875
+example@example.com	2018-04-25 16:17:12.512268
+example@example.com	2018-04-25 16:18:00.763580
+example@example.com	2018-04-25 16:18:07.301476
+example@example.com	2018-04-26 13:59:40.160525
+example@example.com	2018-04-26 14:14:09.621390

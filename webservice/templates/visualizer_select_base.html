@@ -114,7 +114,7 @@
 <ul>
 <li><strong>predicts</strong> the isotropic NMR chemical shieldings/shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
 <!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
-    <li>provides a <strong>JSmol interactive output</strong>, and <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color:DodgerBlue;">extended xyz</a> format, in the <a href="https://www.ccpnc.ac.uk/output/magres" target="_blank" style="color:DodgerBlue;">magres</a> format (the calculated shieldings are given as tensor with the isotropic shielding as diagonal elements) and in JSON.</li>
+    <li>provides a <strong>JSmol interactive output</strong>, and <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color:DodgerBlue;">extended xyz</a> format, in the <a href="https://www.ccpnc.ac.uk/output/magres" target="_blank" style="color:DodgerBlue;">magres</a> format (the calculated shieldings/shifts are given as a tensor with the isotropic shielding/shift as all three diagonal elements) and in JSON.</li>
 </ul>
 <p>
 <p>ShiftML has so far been tested for <strong>DFT-optimized</strong> crystal structures of molecular solids containing <strong><sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O</strong> atoms.
@@ -141,7 +141,7 @@
 
 <h2><a name="tool"></a>Upload your structure</h2>
 <div class='alert alert-danger'>
-		<div style="text-align:center"><label>Version 1.0 Beta of ShiftML predicts chemical shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.</label></div>
+		<div style="text-align:center"><label>Version 1.0 Beta of ShiftML predicts chemical shieldings/shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.</label></div>
 	</div>
 
 <div style="margin-left: 20px; margin-right: 20px">
@@ -493,7 +493,7 @@ function update_progress(status_url,redirect_url) {
         <li>
           The funding by the European Research Council under the European Union's Horizon 2020 research and innovation program <br>
           (grant agreement no. 677013-HBMAP)
-          <a href="http://http://ec.europa.eu/programmes/horizon2020/" target="_blank">
+          <a href="https://ec.europa.eu/programmes/horizon2020/" target="_blank">
             <img src="../static/img/EC-H2020.png" alt="EC-H2020 logo" height="42" vspace="10" hspace="10">
           </a>
         </li>

@@ -125,7 +125,7 @@
 			<div id="accordion-initialcoords">
 				<h2>Show parsed input coordinates (please double-check here if the parser worked properly)</h2>
 				<div>
-					<p style="text-align: center">The input cell has a volume {{ volume }} </p>
+					<!--<p style="text-align: center">The input cell has a volume {{ volume }} </p>-->
 					<h3>Input cell vectors (&#8491;)</h3>
 					<table class="center">
 						<thead>
@@ -321,7 +321,7 @@
 			<h3>Magres File</h3>
 			<div>
 				<p>
-						The calculated shieldings (shifts) are stored as tensor with the isotropic shielding (shift) as diagonal elements.
+						The calculated shieldings/shifts are given as a tensor with the isotropic shielding/shift as all three diagonal elements.
 				</p>
 				<p>
 					<button class="clipboardbtn" data-clipboard-target="#magresdata">
@@ -356,9 +356,10 @@
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-            <a href="" target="_blank">
+						Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
+            <!--<a href="" target="_blank">
                 Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
-            </a>
+            </a>-->
         </li>
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
