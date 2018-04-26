@@ -64,6 +64,9 @@ if os.environ.get('MSK') == 'false':
 else:
     is_msk = True
 
+is_debug = True
+is_fast_dev = False
+is_msk = False
 
 dataPath = '/home/app/data/'
 if is_debug:
@@ -279,7 +282,7 @@ def process_structure():
             write_email(email)
             if outputformat=='shifts_intref':
                  slopes=json.dumps({1:1,6:1,7:1,8:1})
-                 intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248.3})
+                 intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248})
             elif outputformat=='shifts_extref':
                  Hs=flask.request.form.get('Hs','unknown')
                  Hi=flask.request.form.get('Hi','unknown')
