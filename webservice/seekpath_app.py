@@ -477,13 +477,17 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     ## I manually escape it to then add <br> and pass it to a filter with
     ## |safe. I have to 'unicode' it otherwise it keeps escaping also the
     ## next replaces
+    raw_print = str(raw_code)
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
+
     magres_code = str(jinja2.escape(get_magres(frame,shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
+    magres_print = str(get_magres(frame,shielding))
 
     xyz = str(jinja2.escape(get_xyz(frame, shielding))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
+    xyz_print = str(get_xyz(frame, shielding))
 
     tmp=xyz.split('<br>')
     for it in range(2,len(tmp)):
@@ -497,11 +501,14 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
 
     data = dict(
         xyz=xyz,
+        xyz_print=xyz_print,
         jsmol_pos=jsmol_pos,
         jsmol_cell=jsmol_cell,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
+        raw_print=raw_print,
         magres_code=magres_code,
+        magres_print=magres_print,
         shielding=shielding.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,

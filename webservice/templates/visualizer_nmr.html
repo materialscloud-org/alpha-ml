@@ -313,6 +313,33 @@
 				<p>
 					<button class="clipboardbtn" data-clipboard-target="#rawcodedata">
 						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
+
+						<button type="button" id="save_raw" title="Save file">Save</button>
+							<script type="text/template" id="raw_var" >
+								{{ raw_print|safe }}
+							</script>
+					    <script type="text/javascript">
+
+					        // when document is ready
+					        document.getElementById("save_raw").onclick = function() {
+
+											var str = encodeURIComponent(document.getElementById('raw_var').innerHTML.trim());
+											var uri = 'data:text/txt;charset=utf-8,' + str;
+
+												var downloadLink = document.createElement("a");
+												downloadLink.href = uri;
+												downloadLink.download = "ShiftML.JSON";
+
+												document.body.appendChild(downloadLink);
+												downloadLink.click();
+												document.body.removeChild(downloadLink);
+					            	// other possibility?
+					            	//var content = document.getElementById('xyz_var').innerHTML.trim();
+					            	// a [save as] dialog will be shown
+					            	//window.open("data:application/txt," + encodeURIComponent(content),"_self");
+					        }
+					    </script>
+
 				</p>
 
 				<p><code id="rawcodedata">{{ raw_code|safe }}</code></p>
@@ -327,6 +354,32 @@
 					<button class="clipboardbtn" data-clipboard-target="#magresdata">
 						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
 
+						<button type="button" id="save_magres" title="Save file">Save</button>
+							<script type="text/template" id="magres_var" >
+								{{ magres_print|safe }}
+							</script>
+					    <script type="text/javascript">
+
+					        // when document is ready
+					        document.getElementById("save_magres").onclick = function() {
+
+											var str = encodeURIComponent(document.getElementById('magres_var').innerHTML.trim());
+											var uri = 'data:text/txt;charset=utf-8,' + str;
+
+												var downloadLink = document.createElement("a");
+												downloadLink.href = uri;
+												downloadLink.download = "ShiftML.magres";
+
+												document.body.appendChild(downloadLink);
+												downloadLink.click();
+												document.body.removeChild(downloadLink);
+					            	// other possibility?
+					            	//var content = document.getElementById('xyz_var').innerHTML.trim();
+					            	// a [save as] dialog will be shown
+					            	//window.open("data:application/txt," + encodeURIComponent(content),"_self");
+					        }
+					    </script>
+
 				</p>
 				<p><code id="magresdata">{{ magres_code|safe }}</code></p>
 			</div>
@@ -334,8 +387,34 @@
 			<h3>Extended XYZ</h3>
 			<div>
 				<p>
-					<button class="clipboardbtn" data-clipboard-target="#xyzdata">
+						<button class="clipboardbtn" data-clipboard-target="#xyzdata">
 						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
+
+						<button type="button" id="save_xyz" title="Save file">Save</button>
+							<script type="text/template" id="xyz_var" >
+								{{ xyz_print|safe }}
+							</script>
+					    <script type="text/javascript">
+
+					        // when document is ready
+					        document.getElementById("save_xyz").onclick = function() {
+
+											var str = encodeURIComponent(document.getElementById('xyz_var').innerHTML.trim());
+											var uri = 'data:text/txt;charset=utf-8,' + str;
+
+												var downloadLink = document.createElement("a");
+												downloadLink.href = uri;
+												downloadLink.download = "ShiftML.xyz";
+
+												document.body.appendChild(downloadLink);
+												downloadLink.click();
+												document.body.removeChild(downloadLink);
+					            	// other possibility?
+					            	//var content = document.getElementById('xyz_var').innerHTML.trim();
+					            	// a [save as] dialog will be shown
+					            	//window.open("data:application/txt," + encodeURIComponent(content),"_self");
+					        }
+					    </script>
 
 				</p>
 				<p><code id="xyzdata">{{ xyz|safe }}</code></p>
