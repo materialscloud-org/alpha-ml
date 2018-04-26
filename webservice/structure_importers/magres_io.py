@@ -8,6 +8,7 @@ Authors: Simone Sturniolo (ase implementation), Tim Green (original magres
 import re
 import numpy as np
 from collections import OrderedDict
+import json
 
 import ase.units
 from ase.atoms import Atoms
@@ -386,7 +387,7 @@ def tensor_string(tensor):
     return ' '.join(' '.join(str(x) for x in xs) for xs in tensor)
 
 
-def write_magres(fd, image, Shift_ML_version):
+def write_magres(fd, image, Shift_ML_version, slopes, intercepts):
     """
     A writing function for magres files. Two steps: first data are arranged
     into structures, then dumped to the actual file
@@ -566,6 +567,14 @@ def write_magres(fd, image, Shift_ML_version):
     fd.write('# Please read and cite the following:\n')
     fd.write('# Federico M. Paruzzo, Albert Hofstetter, Felix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).\n')
 
+    disclaimer_str = '\n'
+    if slopes!=None:
+        tmp_slopes=json.loads(slopes)
+        disclaimer_str += '# Slopes for shift conversion: "1H '+tmp_slopes['1']+', 13C '+tmp_slopes['6']+ ', 15N '+tmp_slopes['7']+ ', 17O '+tmp_slopes['8']+'\n'
+    if intercepts!=None:
+        tmp_intercepts=json.loads(intercepts)
+        disclaimer_str += '# Intercepts for shift conversion"1H '+tmp_intercepts['1']+', 13C '+tmp_intercepts['6']+ ', 15N '+tmp_intercepts['7']+ ', 17O '+tmp_intercepts['8']+'\n'
+    fd.write(disclaimer_str)
 
     for b in block_writers:
         if b in image_data:
