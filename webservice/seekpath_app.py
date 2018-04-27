@@ -42,7 +42,7 @@ logger.setLevel(logging.DEBUG)
 
 
 
-Shift_ML_version = '0.9'
+Shift_ML_version = '1.0 Beta'
 
 
 MAX_NUMBER_OF_ATOMS = 2000
@@ -274,8 +274,8 @@ def process_structure():
             structurefile = flask.request.files['structurefile']
             fileformat = flask.request.form.get('fileformat', 'unknown')
             outputformat = flask.request.form.get('outputformat', 'unknown')
-            email = flask.request.form.get('email','example@example.com')
-            write_email(email)
+            #email = flask.request.form.get('email','example@example.com')
+            #write_email(email)
             if outputformat=='shifts_intref':
                  slopes=json.dumps({1:1,6:1,7:1,8:1})
                  intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248})
@@ -672,11 +672,11 @@ class DummyFileObject(object):
         self.data += text
     def read(self):
         return self.data
-
+'''
 def write_email(email):
     with open("static/request_log.txt", "a") as myfile:
         myfile.write(email + '\t' + str(datetime.datetime.now()) + '\n')
-
+'''
 def get_xyz(frame,shielding, slopes, intercepts):
     from ase.io.extxyz import write_xyz
     numbers = frame.get_atomic_numbers()
