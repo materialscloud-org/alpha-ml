@@ -99,13 +99,16 @@
 <div>
 	<h2>About ShiftML</h2>
 	<p style="text-align:justify">ShiftML was developed jointly by the <a href="https://cosmo.epfl.ch" target="_blank">Ceriotti</a> and <a href="https://lrm.epfl.ch" target="_blank">Emsley</a> groups at the EPFL. ShiftML uses a machine learning framework to predict chemical shifts in solids which is based on capturing the local environments of individual atoms. ShiftML has been trained on 2000 structures taken from the <a href="https://www.ccdc.cam.ac.uk" target="_blank">Cambridge Structural Database (CSD)</a>, chosen to be as diverse as possible. On a separate test set of 500 randomly selected structures it predicts chemical shifts of molecular solids to an accuracy with respect to GIPAW DFT of (RMSE) 0.49 ppm for <sup>1</sup>H, 4.3 ppm for <sup>13</sup>C, 13.3 ppm for <sup>15</sup>N, and 17.7 ppm for <sup>17</sup>O and with an R<sup>2</sup> of 0.97 for <sup>1</sup>H, 0.99 for <sup>13</sup>C, 0.99 for <sup>15</sup>N, and 0.99 for <sup>17</sup>O. </p>
-	<p style="text-align:justify"> <strong>Please read and cite the following</strong>: Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted). </p>
+	<p style="text-align:justify"> <strong>Please read and cite the following</strong>: <a href="https://arxiv.org/abs/1805.11541" target="_blank">  Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning </a> (submitted). </p>
 </div>
 
 <div>
-	<h3><strong>Version 1.0 Beta; 02.05.2018</strong></h3>
-		<p style="text-align:justify">This is the first release of ShiftML, with limited functionality. This version predicts chemical shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O. It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT.</p>
-	</div>
+  <h3><strong>Version 1.01 Beta; 27.06.2018</strong></h3>
+		<p style="text-align:justify">This is the first release of ShiftML, with limited functionality. This version predicts chemical shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.
+      It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT.
+      <strong> Version 1.01 Beta </strong> introduces sparsified kernels, which reduces the calculation time while maintining the same accuracy. <br><br>
+    </p>
+  </div>
 
 <div id="accordion" style="text-align:justify">
 <h2>What ShiftML does</h2>
@@ -118,9 +121,22 @@
 </ul>
 <p>
 <p>ShiftML has so far been tested for <strong>DFT-optimized</strong> crystal structures of molecular solids containing <strong><sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O</strong> atoms.
-	Paruzzo, et al. (submitted). (Link coming soon. <a href="mailto:shiftml@epfl.ch">Contact us</a> if you need more information.)
-<p>
-<p>Version 1.0 Beta implements the multi-scale-kernel version as described in Paruzzo, et al. (submitted). (Link coming soon. <a href="mailto:shiftml@epfl.ch">Contact us</a> if you need more information.) <br>
+	<a href="https://arxiv.org/abs/1805.11541" target="_blank" style="color:DodgerBlue;"> Paruzzo, et al.</a> (submitted).
+</p>
+<p><strong>Version 1.01 Beta </strong>implements a sparsified multi-scale-kernel version, which reduces the calculation time while maintining the same accuracy. <br></p>
+</div>
+
+<h2>Version history</h2>
+<div>
+<p><strong>27.06.2018: Version 1.01 Beta </strong>
+<ul>
+  <li>Implementation of a sparsified multi-scale-kernel, which reduces the calculation time while maintining the same accuracy. </li>
+</ul>
+</p>
+<p><strong>02.05.2018: Version 1.0 Beta </strong>
+<ul>
+  <li>Implementation of the multi-scale-kernel version as described in <a href="https://arxiv.org/abs/1805.11541" target="_blank" style="color:DodgerBlue;"> Paruzzo, et al.</a> (submitted).</li>
+</ul>
 </p>
 </div>
 <!--
@@ -141,7 +157,7 @@
 
 <h2><a name="tool"></a>Upload your structure</h2>
 <div class='alert alert-danger'>
-		<div style="text-align:center"><label>Version 1.0 Beta of ShiftML predicts chemical shieldings/shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.</label></div>
+		<div style="text-align:center"><label>Version 1.01 Beta of ShiftML predicts chemical shieldings/shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.</label></div>
 	</div>
 
 <div style="margin-left: 20px; margin-right: 20px">
@@ -464,7 +480,7 @@ function update_progress(status_url,redirect_url) {
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-                Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
+                <a href="https://arxiv.org/abs/1805.11541" target="_blank"> Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning </a> (submitted).
         </li>
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
