@@ -32,8 +32,8 @@ services:
       - '.env'
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'true'
-      MSK : 'false'
+      FAST_DEV : 'false'
+      MSK : 'true'
       REDIS_PORT : '6676'
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
