@@ -1,0 +1,108 @@
+####################################################################### 
+# 
+# This file contains crystal structure data downloaded from the 
+# Cambridge Structural Database (CSD) hosted by the Cambridge 
+# Crystallographic Data Centre (CCDC).
+# 
+# Full information about CCDC data access policies and citation 
+# guidelines are available at http://www.ccdc.cam.ac.uk/access/V1 
+# 
+# Audit and citation data items may have been added by the CCDC. 
+# Please retain this information to preserve the provenance of 
+# this file and to allow appropriate attribution of the data. 
+# 
+#######################################################################
+
+data_SUCROS01
+_audit_block_doi                 10.5517/cc584yh
+#This CIF has been generated from an entry in the Cambridge Structural Database
+_database_code_depnum_ccdc_archive 'CCDC 156796'
+_database_code_CSD               SUCROS01
+_audit_creation_method           'Created from the CSD'
+_audit_update_record             
+;
+2018-04-06 downloaded from the CCDC.
+;
+_database_code_NBS               742993
+_chemical_name_common            'Teaching Subset: Fundamental Chemistry'
+_chemical_formula_moiety         'C12 H22 O11'
+_chemical_name_systematic        Sucrose
+_chemical_absolute_configuration unk
+_diffrn_ambient_temperature      173
+_exptl_crystal_density_diffrn    1.608
+#These two values have been output from a single CSD field.
+_refine_ls_R_factor_gt           0.0261
+_refine_ls_wR_factor_gt          0.0261
+_diffrn_radiation_probe          x-ray
+_symmetry_cell_setting           monoclinic
+_symmetry_space_group_name_H-M   'P 21'
+_symmetry_Int_Tables_number      4
+_space_group_name_Hall           'P 2yb'
+loop_
+_symmetry_equiv_pos_site_id
+_symmetry_equiv_pos_as_xyz
+1 x,y,z
+2 -x,1/2+y,-z
+_cell_length_a                   7.7235(5)
+_cell_length_b                   8.6786(7)
+_cell_length_c                   10.824(1)
+_cell_angle_alpha                90
+_cell_angle_beta                 102.982(3)
+_cell_angle_gamma                90
+_cell_volume                     706.98
+_exptl_crystal_colour            colorless
+_exptl_crystal_description       block
+_cell_formula_units_Z            2
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+C1 C 0.51381(17) 0.46485(17) 0.19977(12)
+H1 H 0.4614 0.5681 0.1725
+C2 C 0.45402(18) 0.69073(18) 0.39791(14)
+H2 H 0.4740 0.7909 0.4426
+H3 H 0.3705 0.7077 0.3152
+C3 C 0.36281(18) 0.34777(18) 0.18693(13)
+H4 H 0.2906 0.3513 0.0979
+C4 C 0.62968(17) 0.62982(16) 0.37620(12)
+C5 C 0.43453(19) 0.18502(17) 0.21433(13)
+H5 H 0.5028 0.1776 0.3043
+C6 C 0.78544(17) 0.63266(17) 0.49368(12)
+H6 H 0.7720 0.7269 0.5438
+C7 C 0.55670(19) 0.15063(18) 0.12492(14)
+H7 H 0.4860 0.1516 0.0354
+C8 C 0.94544(17) 0.65734(17) 0.43497(13)
+H8 H 0.9837 0.5571 0.4042
+C9 C 0.70462(19) 0.27055(18) 0.14033(13)
+H9 H 0.7832 0.2621 0.2271
+C10 C 0.87071(17) 0.76257(17) 0.32317(13)
+H10 H 0.8870 0.8721 0.3520
+C11 C 0.8158(2) 0.2513(2) 0.04128(14)
+H11 H 0.9164 0.3247 0.0593
+H12 H 0.8653 0.1456 0.0467
+C12 C 0.95158(19) 0.74155(19) 0.20920(14)
+H13 H 0.8806 0.8003 0.1369
+H14 H 1.0733 0.7847 0.2288
+O1 O 0.60841(13) 0.47474(12) 0.32912(9)
+O2 O 0.37776(14) 0.58427(15) 0.47147(10)
+H15 H 0.3419 0.5059 0.4276
+O3 O 0.24992(14) 0.38693(14) 0.27066(10)
+H16 H 0.1649 0.4411 0.2317
+O4 O 0.68162(12) 0.72862(13) 0.28766(9)
+O5 O 0.29479(17) 0.07307(15) 0.19113(11)
+H17 H 0.2626 0.0549 0.2588
+O6 O 0.79722(14) 0.50475(14) 0.57543(9)
+H18 H 0.8167 0.4248 0.5370
+O7 O 0.64472(17) 0.00705(15) 0.15076(13)
+H19 H 0.5694 -0.0629 0.1502
+O8 O 1.09052(13) 0.72786(15) 0.52139(10)
+H20 H 1.1856 0.6835 0.5169
+O9 O 0.63140(14) 0.42421(13) 0.12189(9)
+O10 O 0.71283(16) 0.27749(15) -0.08332(10)
+H21 H 0.7167 0.3714 -0.1012
+O11 O 0.95925(14) 0.58346(15) 0.17275(11)
+H22 H 0.8564 0.5459 0.1565
+
+#END

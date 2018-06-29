@@ -628,6 +628,7 @@ def output_column_format(atoms, columns, arrays,
                               [str(nc) for nc in property_ncols])])
 
     comment_str = ''
+
     if atoms.cell.any():
         comment_str += lattice_str + ' '
     comment_str += 'Properties={}'.format(props_str)

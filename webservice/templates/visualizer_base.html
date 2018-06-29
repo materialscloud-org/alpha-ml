@@ -15,9 +15,9 @@
     <script src="../static/js/Projector.min.js"></script>
     <script src="../static/js/SVGRenderer.min.js"></script>
 
-    <script src="../static/js/jquery-3.1.0.min.js"></script>        
-    <script src="../static/js/jquery-ui.1.12.1.min.js"></script>        
-    <script src="../static/js/BZVisualizer.min.js"></script>        
+    <script src="../static/js/jquery-3.1.0.min.js"></script>
+    <script src="../static/js/jquery-ui.1.12.1.min.js"></script>
+    <script src="../static/js/BZVisualizer.min.js"></script>
     <script src="../static/js/webglcheck.min.js"></script>
     <script src="../static/js/clipboard.min.js"></script>
     <script src="../static/js/download.min.js"></script>
@@ -77,8 +77,18 @@
     {% block customheads %}
     {% endblock %}
 
-    <script src="../static/js/iframeResizer.contentWindow.min.js"></script>    
+    <script src="../static/js/iframeResizer.contentWindow.min.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-118131226-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-118131226-1');
+    </script>
+    
 </head>
 <body onresize='resize_canvases()'>
 
@@ -95,7 +105,7 @@
           <h2>Show parsed input coordinates (please double-check here if the parser worked properly)</h2>
           <div>
             <h3>Volume ratio between input structure and primitive structure</h3>
-            <p style="text-align: center">The input cell has a volume {{ volume_ratio_prim }} times larger than the primitive cell</p>              
+            <p style="text-align: center">The input cell has a volume {{ volume_ratio_prim }} times larger than the primitive cell</p>
             <h3>Input cell vectors (&#8491;)</h3>
             <table class="center">
               <thead>
@@ -104,7 +114,7 @@
                 <th style="text-align: center">y</th>
                 <th style="text-align: center">z</th>
               </thead>
-              <tbody>      
+              <tbody>
                 {% for v in inputstructure_cell_vectors %}
                 <tr>
                   <td style="padding-right: 15px; text-align: center">v<sub>{{ v[0] }}</sub></td>
@@ -114,8 +124,8 @@
                 </tr>
                 {% endfor %}
               </tbody>
-            </table> 
-     
+            </table>
+
             <h3>Input atom coordinates (scaled)</h3>
             <table class="center">
               <thead>
@@ -124,7 +134,7 @@
                 <th style="text-align: center">r<sub>2</sub></th>
                 <th style="text-align: center">r<sub>3</sub></th>
               </thead>
-              <tbody>      
+              <tbody>
                 {% for b in inputstructure_atoms_scaled %}
                 <tr>
                   <td style="padding-right: 15px; text-align: center">{{ b[0] }}</td>
@@ -134,8 +144,8 @@
                 </tr>
                 {% endfor %}
               </tbody>
-            </table> 
-    
+            </table>
+
             <h3>Input atom coordinates (Cartesian, &#8491;)</h3>
             <table class="center">
               <thead>
@@ -144,7 +154,7 @@
                 <th style="text-align: center">y</th>
                 <th style="text-align: center">z</th>
               </thead>
-              <tbody>      
+              <tbody>
                 {% for b in inputstructure_atoms_cartesian %}
                 <tr>
                   <td style="padding-right: 15px; text-align: center">{{ b[0] }}</td>
@@ -154,7 +164,7 @@
                 </tr>
                 {% endfor %}
               </tbody>
-            </table>  
+            </table>
           </div>
         </div>
       </div>
@@ -166,14 +176,14 @@
           <div class="webgl-hidden" id="have-javascript">
             <div class="webgl-hidden webgl-div" id="webgl-yes">
               <div id="webgl-experimental">
-                <div class="alert alert-warning">              
+                <div class="alert alert-warning">
                   Your browser support for WebGL is marked as
                   experimental. This means
                   3D content (Brillouin zone and crystal structure) may not be shown as expected.
                   <br/>
                   You may want to consider an <a href="http://get.webgl.org" target="_blank">upgrade of your browser</a>.
                 </div>
-              </div> 
+              </div>
               <!-- <div>
                 WebGL detected, all good!
               </div> -->
@@ -190,10 +200,10 @@
               </div>
             </div>
             <div class="webgl-hidden webgl-div" id="webgl-no">
-              <div  class="alert alert-danger"> 
-                <p>We are sorry, but your browser does not seem to support WebGL, so we cannot show 3D objects like the 
+              <div  class="alert alert-danger">
+                <p>We are sorry, but your browser does not seem to support WebGL, so we cannot show 3D objects like the
                   Brillouin zone or the crystal structure.</p>
-                <p>You may want to visit <a href="http://get.webgl.org" target="_blank">this page</a> to get a list of 
+                <p>You may want to visit <a href="http://get.webgl.org" target="_blank">this page</a> to get a list of
                   recent browsers that support WebGL.</p>
               </div>
             </div>
@@ -216,7 +226,7 @@
 
 
     <div id='aboveleft'>
-      <div id='canvas3dtitle'><h3>Brillouin zone 
+      <div id='canvas3dtitle'><h3>Brillouin zone
         (<a href="#bz_coords">go to coordinates</a>)</h3><p><em>Drag to rotate, scroll to zoom, double-click to enable/disable interaction</em></p></div>
       <div id='canvas3dcontainer'>
           <div id='canvas3d'></div><div id='info'></div>
@@ -225,13 +235,13 @@
 	<script>
 	  var download_bz = function() {
 	    if ( use_svg_renderer == true ) {
-              download(renderer.domElement.outerHTML, 
-              "seekpath-brillouinzone.svg", 
+              download(renderer.domElement.outerHTML,
+              "seekpath-brillouinzone.svg",
               "image/svg+xml");
             }
             else {
-              download(renderer.domElement.toDataURL("image/png"), 
-             "seekpath-brillouinzone.png", 
+              download(renderer.domElement.toDataURL("image/png"),
+             "seekpath-brillouinzone.png",
              "image/png");
 	    }
           }
@@ -249,14 +259,14 @@
     </div>
 
     <div id='aboveright'>
-      <div id='structuretitle'><h3>Primitive structure 
+      <div id='structuretitle'><h3>Primitive structure
         (<a href="#prim_coords">go to coordinates</a>)</h3><p><em>Drag to rotate, scroll to zoom, double-click to enable/disable interaction</em></p></div>
       <div id='structure'><script>
         parentcanvas = document.getElementById('structure');
         the_width = parentcanvas.offsetWidth;
         the_height = parentcanvas.offsetHeight;
 
-        structureviewer = new ChemDoodle.TransformCanvas3D('structureviewer', 
+        structureviewer = new ChemDoodle.TransformCanvas3D('structureviewer',
           the_width, the_height);
         structureviewer.emptyMessage = 'Loading data...';
         structureviewer.specs.set3DRepresentation('Ball and Stick');
@@ -279,7 +289,7 @@
         structureviewer.defaulttouchend = structureviewer.touchend;
         structureviewer.defaulttouchhold = structureviewer.touchhold;
         structureviewer.defaulttouchmove = structureviewer.touchmove;
-        structureviewer.defaulttouchstart = structureviewer.touchstart;                        
+        structureviewer.defaulttouchstart = structureviewer.touchstart;
 
         structureviewer.enabled = true;
 
@@ -294,7 +304,7 @@
               structureviewer.touchend = structureviewer.defaulttouchend;
               structureviewer.touchhold = structureviewer.defaulttouchhold;
               structureviewer.touchmove = structureviewer.defaulttouchmove;
-              structureviewer.touchstart = structureviewer.defaulttouchstart;                        
+              structureviewer.touchstart = structureviewer.defaulttouchstart;
               structureviewer.specs.backgroundColor = "white";
               structureviewer.setupScene();
               structureviewer.repaint();
@@ -323,8 +333,8 @@
 
 
   </div>
-    
-  <div id='below'>  
+
+  <div id='below'>
   <div id='groupbelow'>
       <div id='tablekpoints'>
         <a name="bz_coords"></a>
@@ -337,7 +347,7 @@
             <th style="text-align: center">y</th>
             <th style="text-align: center">z</th>
           </thead>
-          <tbody>      
+          <tbody>
             {% for b in reciprocal_primitive_vectors %}
             <tr>
               <td style="padding-right: 15px; text-align: center">b<sub>{{ b[0] }}</sub></td>
@@ -347,7 +357,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table> 
+        </table>
 
         <h3>High-symmetry points (scaled units)</h3>
         <table class="center">
@@ -358,7 +368,7 @@
             <th style="text-align: center">k<sub>3</sub></th>
           </thead>
 
-          <tbody>      
+          <tbody>
 
             {% for k in kpoints_rel %}
             <tr>
@@ -371,7 +381,7 @@
 
 
           </tbody>
-        </table> 
+        </table>
 
         <h3>High-symmetry points (1/&#8491;)</h3>
         <table class="center">
@@ -382,7 +392,7 @@
             <th style="text-align: center">k<sub>z</sub></th>
           </thead>
 
-          <tbody>      
+          <tbody>
 
             {% for k in kpoints %}
             <tr>
@@ -395,7 +405,7 @@
 
 
           </tbody>
-        </table> 
+        </table>
 
         <h3>Suggested path</h3>
         <p>
@@ -427,7 +437,7 @@
             <th style="text-align: center">y</th>
             <th style="text-align: center">z</th>
           </thead>
-          <tbody>      
+          <tbody>
             {% for v in direct_vectors %}
             <tr>
               <td style="padding-right: 15px; text-align: center">v<sub>{{ v[0] }}</sub></td>
@@ -437,8 +447,8 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table> 
- 
+        </table>
+
         <h3>Atom coordinates (scaled)</h3>
         <table class="center">
           <thead>
@@ -447,7 +457,7 @@
             <th style="text-align: center">r<sub>2</sub></th>
             <th style="text-align: center">r<sub>3</sub></th>
           </thead>
-          <tbody>      
+          <tbody>
             {% for b in atoms_scaled %}
             <tr>
               <td style="padding-right: 15px; text-align: center">{{ b[0] }}</td>
@@ -457,7 +467,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table> 
+        </table>
 
         <h3>Atom coordinates (Cartesian, &#8491;)</h3>
         <table class="center">
@@ -467,7 +477,7 @@
             <th style="text-align: center">y</th>
             <th style="text-align: center">z</th>
           </thead>
-          <tbody>      
+          <tbody>
             {% for b in atoms_cartesian %}
             <tr>
               <td style="padding-right: 15px; text-align: center">{{ b[0] }}</td>
@@ -477,7 +487,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </table> 
+        </table>
 
       </div>
 
@@ -489,13 +499,13 @@
         <ul>
         <li><a name="hpkot"></a><a href="http://dx.doi.org/10.1016/j.commatsci.2016.10.015" target="_blank">Y. Hinuma, G. Pizzi, Y. Kumagai, F. Oba, I. Tanaka, Band structure diagram paths based on crystallography, Comp. Mat. Sci. 128, 140 (2017). DOI: 10.1016/j.commatsci.2016.10.015</a>  (the "HPKOT" paper; arXiv version: <a href="https://arxiv.org/abs/1602.06402" target="_blank">arXiv:1602.06402</a>).
         </li>
-        <li>You should also cite <a href="http://atztogo.github.io/spglib/" target="_blank">Spglib</a> 
+        <li>You should also cite <a href="http://atztogo.github.io/spglib/" target="_blank">Spglib</a>
             that is an essential library used in the implementation.
         </li>
       	<li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
-      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>, 
-             <a href="https://github.com/aiidateam/qe-tools" target="_blank">qe-tools</a> or 
+      	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
+             <a href="https://github.com/aiidateam/qe-tools" target="_blank">qe-tools</a> or
              <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
       	</li>
         </ul>
@@ -503,12 +513,12 @@
         <h2>Important note</h2>
 	<p>
 	  The structure visualized above is <span style="font-style: italic;">not</span>
-	  the structure you passed in input, but its primitive cell. 
-	  Moreover, the primitive cell has been standardized 
+	  the structure you passed in input, but its primitive cell.
+	  Moreover, the primitive cell has been standardized
 	  (using the conventions of spglib).<br/>
 
-	 <span style="font-weight: bold;">If you want to run a new simulation, 
-    and plan (now or later) to use the suggested path provided here, 
+	 <span style="font-weight: bold;">If you want to run a new simulation,
+    and plan (now or later) to use the suggested path provided here,
     please use the primitive cell above.</span>
 	</p>
 
@@ -524,14 +534,14 @@
           <p>
             <button class="clipboardbtn" data-clipboard-target="#qepwdata">
               <img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
-             (Replace <code>&lt;...&gt;</code> with the actual content for your 
+             (Replace <code>&lt;...&gt;</code> with the actual content for your
             simulation</code>)
             </p>
           <p><code id="qepwdata">{{ qe_pw|safe }}</code></p>
         </div>
 <!--        <h3>Quantum ESPRESSO matdyn.x input</h3>
         <div>
-          <p>To be used with <code>q_in_cryst_coord=.true.</code> in 
+          <p>To be used with <code>q_in_cryst_coord=.true.</code> in
             the <code>&amp;INPUT</code> namelist.</p>
           <p><code>{{ qe_matdyn|safe }}</code></p>
         </div>-->
