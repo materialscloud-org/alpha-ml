@@ -13,8 +13,8 @@ services:
     command: ["/sbin/my_init"]
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'true'
-      MSK : 'false'
+      FAST_DEV : 'false'
+      MSK : 'true'
       PYTHONUNBUFFERED: 'true'
       REDIS_PORT : '6676'
 

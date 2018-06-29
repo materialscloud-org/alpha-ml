@@ -622,6 +622,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
         kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
         model_msk = load_model_data_msk(sp, 'msk')
         msk_coefs = model_msk['msk_params']
+        fac = 0
         for cutoff in [2,3,4,5,6,7]:
             atoms = ase2qp(frame)
             model = load_model_data_msk(sp,cutoff)
@@ -637,8 +638,9 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
 
             np.dot(model['soap_ref'], descriptor.T,out=kk)
             np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
-
-
+            fac += msk_coefs[cutoff]
+    
+        np.divide(kernel_test,fac,out=kernel_test)
         y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
         if slopes!=None:
             slope=slopes[str(sp)]

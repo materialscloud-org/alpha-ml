@@ -283,7 +283,6 @@ def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_dat
         })
 
 
-
 class DummyFileObject(object):
     def __init__(self):
         self.data = ''

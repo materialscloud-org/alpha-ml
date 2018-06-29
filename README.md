@@ -8,6 +8,7 @@ To access the image's CL with the test data:
 
 sudo docker run -p 5050:80 --rm -v /Users/albert/PycharmProjects/data:/home/app/data  nmr_app 
  
+
  The data model_sp_*.pck needs to be in mounted local directory so it can be loaded by the app from /home/app/data
  
 # Docker compose`
@@ -15,6 +16,7 @@ sudo docker run -p 5050:80 --rm -v /Users/albert/PycharmProjects/data:/home/app/
  To build and run the docker images
  ``` 
  docker-compose -f docker-compose_albert.yml up --build
+ docker-compose -f docker-compose_felix.yml up --build
   ```
  OR (without stdout redirection)
  ```
