@@ -44,15 +44,27 @@ RUN /pd_build/utilities.sh && \
 ## However, then one has to configure the web server to use wsgi with python3
 RUN apt-get update \
     && apt-get -y install \
-    python-pip \
-    apache2 \
-    libapache2-mod-xsendfile \
-    libapache2-mod-wsgi \
     apt-utils \
     gcc \
     gfortran \
     libblas-dev \
     liblapack-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean all
+
+RUN apt-get update \
+    && apt-get -y remove \
+		python python2.7 python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean all
+
+RUN apt-get update \
+    && apt-get -y install \
+    python python2.7  \
+    python-pip \
+    apache2 \
+    libapache2-mod-xsendfile \
+    libapache2-mod-wsgi \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean all
 
