@@ -10,7 +10,7 @@
 ##
 # Actually, I use passenger-full that already has python
 # https://github.com/phusion/passenger-docker#using
-FROM phusion/passenger-customizable:0.9.19
+FROM phusion/passenger-customizable:0.9.35
 
 MAINTAINER Felix Musil <felix.musil@epfl.ch>
 
