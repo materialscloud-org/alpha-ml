@@ -7,9 +7,16 @@ http://localhost:5000 from a browser. Otherwise, read the instructions
 in README_DEPLOY.md to deploy on a Apache server.
 """
 
+
+
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
+
+# https://github.com/ContinuumIO/anaconda-issues/issues/6678
+# there are some warnings about numpy that are useless
+import warnings
+warnings.filterwarnings("always")
 
 import os,sys,flask,datetime,logging, logging.handlers
 import numpy as np
@@ -20,6 +27,8 @@ from structure_importers import get_structure
 from ase import Atoms
 from ase.io import write
 import datetime
+
+
 
 sys.path.insert(0,'/local/git/glosim2/')
 sys.path.insert(0,'/home/app/git/glosim2/')
