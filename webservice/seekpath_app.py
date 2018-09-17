@@ -600,16 +600,21 @@ def get_shielding_single_kernel(celery_self,frame, slopes, intercepts):
     np.round(shielding, decimals=4, out=shielding)
     return shielding
 
-def load_model_data_msk(sp,cutoff):
+def load_model_params(sp,cutoff):
     '''
     Load the model data at the start of the app
     :return:
     '''
     from seekpath_app import dataPath
 
-    with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
-        model = pck.load(f)
-    return model
+    with open(dataPath + 'model_sp_{}_c_{}-model_params.json'.format(z2symb[sp],cutoff), 'r') as f:
+        model_params = json.load(f)
+    return model_params
+
+def load_model_ref(sp,cutoff):
+    from seekpath_app import dataPath
+    fn = dataPath+ 'model_sp_{}_c_{}-soap_ref.npy'.format(z2symb[sp],cutoff)
+    return np.load(fn,mmap_mode='r')
 
 def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
     import json
@@ -629,28 +634,38 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
     for ii,sp in enumerate(sps):
         kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
         kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        model_msk = load_model_data_msk(sp, 'msk')
-        msk_coefs = model_msk['msk_params']
+        model_msk = load_model_params(sp, 'msk')
+        msk_coefs = model_msk['kernel_params']['msk_params']
         fac = 0
         for cutoff in [2,3,4,5,6,7]:
             atoms = ase2qp(frame)
-            model = load_model_data_msk(sp,cutoff)
+            soap_ref = load_model_ref(sp,cutoff)
+            step = 5000
+            refs = list(range(0,soap_ref.shape[0]-1, step)) + [soap_ref.shape[0]]
+            chunks = zip(refs[:-1], refs[1:])
+
+            model_params = load_model_params(sp, cutoff)
             ll = list(sps)
             ll.remove(sp)
             soap_params = dict(
                 centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
                 nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
             )
-            soap_params.update(model['soap_params'])
+            soap_params.update(model_params['soap_params'])
 
             descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-            np.dot(model['soap_ref'], descriptor.T,out=kk)
+            for start, end in chunks:
+                kk[start:end] = np.dot(soap_ref[start:end,:], descriptor.T)
+            #np.dot(model['soap_ref'], descriptor.T,out=kk)
             np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
             fac += msk_coefs[cutoff]
+
+            # reload to remove memory
+            del soap_ref, descriptor
+            soap_ref = load_model_ref(sp,cutoff)
     
         np.divide(kernel_test,fac,out=kernel_test)
-        y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
+        y_pred = predict(kernel_test, model_msk.alpha, model_msk['kernel_params'].zeta)
         if slopes!=None:
             slope=slopes[str(sp)]
             intercept=intercepts[str(sp)]
