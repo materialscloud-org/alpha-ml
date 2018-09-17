@@ -679,6 +679,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
                                        'status': str(sp)})
 
     np.round(shielding, decimals=4, out=shielding)
+    del kk,kernel_test,descriptor
     return shielding
 
 def get_json_for_visualizer(frame):
