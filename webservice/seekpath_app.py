@@ -51,7 +51,7 @@ logger.setLevel(logging.DEBUG)
 
 
 
-Shift_ML_version = '1.02 Beta'
+Shift_ML_version = '1.03 Beta'
 
 
 MAX_NUMBER_OF_ATOMS = 2000
