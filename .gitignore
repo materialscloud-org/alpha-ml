@@ -10,3 +10,4 @@ webservice/structure_importers/*.pyc
 *.pyc
 *.ipynb_checkpoints
 *.ipynb
+.vscode

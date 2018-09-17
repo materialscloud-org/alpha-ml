@@ -19,7 +19,7 @@ services:
       REDIS_PORT : '6676'
 
     volumes:
-      - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
+      - '/local/git/nmr_test/data:/home/app/data'
     ports:
       - '5050:80'
 
@@ -31,12 +31,13 @@ services:
     env_file:
       - '.env'
     environment:
+      C_FORCE_ROOT : 'true'
       DEBUG : 'false'
       FAST_DEV : 'true'
       MSK : 'false'
       REDIS_PORT : '6676'
     volumes:
-      - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
+      - '/local/git/nmr_test/data:/home/app/data'
 
 volumes:
   redis:
