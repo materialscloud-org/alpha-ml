@@ -657,15 +657,15 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
             for start, end in chunks:
                 kk[start:end] = np.dot(soap_ref[start:end,:], descriptor.T)
             #np.dot(model['soap_ref'], descriptor.T,out=kk)
-            np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
-            fac += msk_coefs[cutoff]
+            np.add(np.multiply(msk_coefs[str(cutoff)],kk,out=kk),kernel_test,out=kernel_test)
+            fac += msk_coefs[str(cutoff)]
 
             # reload to remove memory
             del soap_ref, descriptor
             soap_ref = load_model_ref(sp,cutoff)
     
         np.divide(kernel_test,fac,out=kernel_test)
-        y_pred = predict(kernel_test, model_msk.alpha, model_msk['kernel_params'].zeta)
+        y_pred = predict(kernel_test, model_msk['alpha'], model_msk['kernel_params']['zeta'])
         if slopes!=None:
             slope=slopes[str(sp)]
             intercept=intercepts[str(sp)]
