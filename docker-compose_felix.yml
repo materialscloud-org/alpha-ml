@@ -13,8 +13,8 @@ services:
     command: ["/sbin/my_init"]
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'false'
-      MSK : 'true'
+      FAST_DEV : 'true'
+      MSK : 'false'
       PYTHONUNBUFFERED: 'true'
       REDIS_PORT : '6676'
 
@@ -32,8 +32,8 @@ services:
       - '.env'
     environment:
       DEBUG : 'false'
-      FAST_DEV : 'false'
-      MSK : 'true'
+      FAST_DEV : 'true'
+      MSK : 'false'
       REDIS_PORT : '6676'
     volumes:
       - '/Users/iMac/PycharmProjects/nmr_test/data:/home/app/data'
