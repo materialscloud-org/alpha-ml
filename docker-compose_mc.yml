@@ -17,6 +17,7 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'false'
       MSK : 'true'
+      NB_OF_WORKERS : '5'
       REDIS_PORT : '3247'
       PYTHONUNBUFFERED: 'true'
 
@@ -37,6 +38,7 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'false'
       MSK : 'true'
+      NB_OF_WORKERS : '5'
       REDIS_PORT : '3247'
     volumes:
      - 'nmr_data_dir:/home/app/data'

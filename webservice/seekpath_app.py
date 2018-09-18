@@ -73,6 +73,7 @@ if os.environ.get('MSK') == 'false':
 else:
     is_msk = True
 
+NB_OF_WORKERS = int(os.environ.get('NB_OF_WORKERS'))
 
 dataPath = '/home/app/data/'
 if is_debug:
@@ -129,7 +130,7 @@ else:
     app.config['CELERY_BROKER_URL'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
     app.config['CELERY_RESULT_BACKEND'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
 
-app.config['CELERYD_CONCURRENCY'] = 1 # number of worker in the task pool
+app.config['CELERYD_CONCURRENCY'] = NB_OF_WORKERS # number of worker in the task pool
 app.config['CELERYD_HIJACK_ROOT_LOGGER'] = True
 
 
@@ -660,9 +661,9 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
             np.add(np.multiply(msk_coefs[str(cutoff)],kk,out=kk),kernel_test,out=kernel_test)
             fac += msk_coefs[str(cutoff)]
 
-            # reload to remove memory
+            # reload to remove memory, mmap so very fast
             del soap_ref, descriptor
-            soap_ref = load_model_ref(sp,cutoff)
+            soap_ref = load_model_ref(sp,cutoff) 
     
         np.divide(kernel_test,fac,out=kernel_test)
         y_pred = predict(kernel_test, model_msk['alpha'], model_msk['kernel_params']['zeta'])
@@ -679,7 +680,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
                                        'status': str(sp)})
 
     np.round(shielding, decimals=4, out=shielding)
-    del kk,kernel_test,descriptor
+    del kk,kernel_test
     return shielding
 
 def get_json_for_visualizer(frame):
