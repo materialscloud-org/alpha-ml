@@ -62,7 +62,7 @@ ENV HOME /home/app
 
 USER app
 ### INSTALL QUIP
-RUN pip2 install --upgrade --user ase==3.15.0
+RUN pip2 install --upgrade --user ase==3.15.0 matplotlib==2.2.3
 
 # fetch QUIP, GAP and shortcut files to install linux_x86_64_gfortran architecture
 RUN mkdir $HOME/git \
@@ -90,7 +90,7 @@ RUN mkdir $HOME/code
 
 RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython==5.4 scikit-learn==0.19.1 
 
-RUN pip2 install Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6
+RUN pip2 install matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6
 
 
 RUN cd $HOME/git/  \
