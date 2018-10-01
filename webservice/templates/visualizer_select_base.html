@@ -23,7 +23,7 @@
     <script src="{{ url_for('static', filename='js/jquery-ui.1.12.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loadingoverlay.js') }}"></script>
 
-    <title>ShiftML</title>
+    <title>ALPHA-ML</title>
     <script>
     $( function() {
       $( "#accordion" ).accordion({
@@ -46,7 +46,7 @@
     {% endblock %}
 
     <script src="../static/js/iframeResizer.contentWindow.min.js"></script>
-
+<!--TODO: DMW CHECK THESE -->
 		<script type="text/javascript">
 			function showText(obj) {
 				if(obj.id=='insertrefs') {
@@ -87,7 +87,7 @@
 <div id='container'>
 <div id='maintitle'>
   {% block seekpathtitle %}
-    <h1 style="text-align: left;"><span style="font-weight: bold; ">ShiftML</span>: Chemical Shifts in Molecular Solids by Machine Learning</h1>
+    <h1 style="text-align: left;"><span style="font-weight: bold; ">ALPHA-ML</span>: Machine Learning of Molecular Polarizabilities</h1>
   {% endblock %}
 </div>
 
@@ -97,23 +97,21 @@
 
 {% block aboutblock %}
 <div>
-	<h2>About ShiftML</h2>
-	<p style="text-align:justify">ShiftML was developed jointly by the <a href="https://cosmo.epfl.ch" target="_blank">Ceriotti</a> and <a href="https://lrm.epfl.ch" target="_blank">Emsley</a> groups at the EPFL. ShiftML uses a machine learning framework to predict chemical shifts in solids which is based on capturing the local environments of individual atoms. ShiftML has been trained on 2000 structures taken from the <a href="https://www.ccdc.cam.ac.uk" target="_blank">Cambridge Structural Database (CSD)</a>, chosen to be as diverse as possible. On a separate test set of 500 randomly selected structures it predicts chemical shifts of molecular solids to an accuracy with respect to GIPAW DFT of (RMSE) 0.49 ppm for <sup>1</sup>H, 4.3 ppm for <sup>13</sup>C, 13.3 ppm for <sup>15</sup>N, and 17.7 ppm for <sup>17</sup>O and with an R<sup>2</sup> of 0.97 for <sup>1</sup>H, 0.99 for <sup>13</sup>C, 0.99 for <sup>15</sup>N, and 0.99 for <sup>17</sup>O. </p>
-	<p style="text-align:justify"> <strong>Please read and cite the following</strong>: <a href="https://arxiv.org/abs/1805.11541" target="_blank">  Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning </a> (submitted). </p>
+	<h2>About ALPHA-ML</h2> <!--TODO: DMW EDIT THIS AND ADD CITATION -->
+        <p style="test-align:justify">ALPHA-ML was developed by the <a href="https://cosmo.epfl.ch" target="_blank">Ceriotti</a> group at EPFL and the <a href="http://distasio.chem.cornell.edu/" target="_blank">DiStasio</a> group at Cornell. ALPHA-ML uses a machine-learning framework based on comparisons of local atomic environments to predict the polarizabilities of molecules. This model was trained on the 7211 compounds in the <a href="http://iopscience.iop.org/article/10.1088/1367-2630/15/9/095003" target="_blank">QM7b</a> dataset, containing up to 7 heavy atoms (C,N,O,S,Cl) as well as hydrogen. For these molecules, the polarizability was calculated using B3LYP-DFT and CCSD. A model trained on the 5400 most diverse members of the QM7b set predicts the CCSD polarizability of the remaining molecules with an error of 0.04 a.u., an improvement of an order of magnitude over the prediction of DFT, and the polarizability of a showcase set of more complex molecules with an error of 0.24 a.u., comparable in accuracy to the DFT prediction. </p>
+        <p style="test-align:justify"> <strong>Please read and cite the following</strong>: <a href="https://arxiv.org" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio Jr. and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning</a> (submitted). </p>
 </div>
 
 <div>
-  <h3><strong>Version 1.02 Beta; 27.06.2018</strong></h3>
-		<p style="text-align:justify">This is the first release of ShiftML, with limited functionality. This version predicts chemical shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.
-      It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT.
-      <strong> Version 1.02 Beta </strong> introduces sparsified kernels, which reduces the calculation time and memory requirement while maintining similar accuracy. <br><br>
+  <h3><strong>Version 1.0 Beta; XX.08.2018</strong></h3>
+                <p style="test-align:justify">This is the first release of ALPHA-ML, with basic functionality. The polarizabilities of molecules containing H,C,N,O,S,Cl can be predicted. It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT.
     </p>
   </div>
 
 <div id="accordion" style="text-align:justify">
-<h2>What ShiftML does</h2>
+<h2>What ALPHA-ML does</h2> <!--TODO: DMW CHANGE THIS PART-->
 <div>
-<p>ShiftML takes as an <strong>input a crystal structure</strong> (in a number of different formats), and
+<p>ALPHA-ML takes as an <strong>input a crystal structure</strong> (in a number of different formats), and
 <ul>
 <li><strong>predicts</strong> the isotropic NMR chemical shieldings/shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
 <!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
@@ -128,14 +126,9 @@
 
 <h2>Version history</h2>
 <div>
-<p><strong>27.06.2018: Version 1.02 Beta </strong>
+<p><strong>XX.08.2018: Version 1.0 Beta </strong>
 <ul>
-  <li>Implementation of a sparsified multi-scale-kernel, which reduces the calculation time and memory requirement while maintining similar accuracy. </li>
-</ul>
-</p>
-<p><strong>02.05.2018: Version 1.0 Beta </strong>
-<ul>
-  <li>Implementation of the multi-scale-kernel version based on the description in <a href="https://arxiv.org/abs/1805.11541" target="_blank" style="color:DodgerBlue;"> Paruzzo, et al.</a> (submitted).</li>
+  <li>Implementation of ALPHA-ML framework as described in <a href="https://arxiv.org" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a> (submitted). </li>
 </ul>
 </p>
 </div>
@@ -157,7 +150,7 @@
 
 <h2><a name="tool"></a>Upload your structure</h2>
 <div class='alert alert-danger'>
-		<div style="text-align:center"><label>Version 1.02 Beta of ShiftML predicts chemical shieldings/shifts of structures containing only <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O.</label></div>
+		<div style="text-align:center"><label>Version 1.0 Beta of ALPHA-ML predicts polarizabilities of structures containing only H,C,N,O,S,Cl.</label></div>
 	</div>
 
 <div style="margin-left: 20px; margin-right: 20px">
@@ -188,7 +181,7 @@
 			</div>
 		</div>
 
-		<div class='row'>
+		<div class='row'><!--TODO: DMW EDIT THIS PART-->
 			<div class='col-sm-6'>
 				<label for="outputformat">Select the output format:</label>
 			</div>
@@ -263,7 +256,7 @@
   </form>
 </div>
 
-<h2>Otherwise, pick an example</h2>
+<h2>Otherwise, pick an example</h2> <!--TODO: DMW SORT OUT EXAMPLES-->
 <form id="process_example_structure" >
   <div style="margin-left: 20px; margin-right: 20px;">
     <div class='alert alert-info'>
@@ -273,8 +266,10 @@
 	</div>
 	<div class="col-xs-12 col-sm-6">
 	  <select name="examplestructure">
+            <option value='Caffeine'>Caffeine</option>
+            <option value='Aciclovir'>Aciclovir</option>
 	    <option value='Cocaine'>Cocaine</option>
-			<option value='AZD8329'>AZD8329</option>
+	    <option value='AZD8329'>AZD8329</option>
 	  </select>
 	</div>
       </div>
@@ -480,7 +475,7 @@ function update_progress(status_url,redirect_url) {
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-                <a href="https://arxiv.org/abs/1805.11541" target="_blank"> Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning </a> (submitted).
+                <a href="https://arxiv.org" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao,Robert A. DiStasio Jr. and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning  </a> (submitted).
         </li>
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
@@ -494,33 +489,20 @@ function update_progress(status_url,redirect_url) {
 
     <div id='acknowledgment'>
         <h2>Acknowledgment</h2>
-        <p>We are gratefull for the support from:
+        <p>We are grateful for support from:
         <ul>
         <li>
-            The Swiss National Science Foundation Grant No. 200021_160112
-            <a href="http://www.snf.ch/en/" target="_blank">
-              <img src="../static/img/logo_SNSF.png" alt="SNSF logo" height="42" vspace="10" hspace="10">
-            </a>
-        </li>
-        <li>
-          The NCCR MARVEL, funded by the Swiss National Science Foundation
-          <a href="http://nccr-marvel.ch" target="_blank">
-            <img src="../static/img/MARVEL_logo.png" alt="MARVEL logo" height="42" vspace="10" hspace="10">
-          </a>
-        </li>
-        <li>
-          The funding by the European Research Council under the European Union's Horizon 2020 research and innovation program <br>
+          Funding by the European Research Council under the European Union's Horizon 2020 research and innovation program <br>
           (grant agreement no. 677013-HBMAP)
           <a href="https://ec.europa.eu/programmes/horizon2020/" target="_blank">
             <img src="../static/img/EC-H2020.png" alt="EC-H2020 logo" height="42" vspace="10" hspace="10">
           </a>
         </li>
         <li>
-          The
           <a href="https://www.epfl.ch" target="_blank">
             EPFL
           </a>
-          through the use of the facilities of its Scientific IT and Application Support Center
+          for the use of the facilities of its Scientific IT and Application Support Center
           <!--
           The EPFL through the use of the facilities of its Scientific IT and Application Support Center
           <a href="https://www.epfl.ch" target="_blank">
