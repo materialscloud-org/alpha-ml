@@ -1,4 +1,4 @@
-data/model_sp*.pck
+data/*
 webservice/SECRET_KEY
 webservice/seekpath_app.wsgi
 webservice/seekpath-site.conf

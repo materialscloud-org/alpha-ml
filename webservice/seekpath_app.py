@@ -53,7 +53,6 @@ logger.setLevel(logging.DEBUG)
 
 ALPHA_ML_version = '1.0 Beta'
 
-
 MAX_NUMBER_OF_ATOMS = 2000
 
 PROGRESS_BAR_TIMEOUT = 300 # every 1 sec the progress bar is updated
@@ -73,6 +72,7 @@ if os.environ.get('MSK') == 'false':
 else:
     is_msk = True
 
+NB_OF_WORKERS = int(os.environ.get('NB_OF_WORKERS'))
 
 dataPath = '/home/app/data/'
 if is_debug:
@@ -129,7 +129,7 @@ else:
     app.config['CELERY_BROKER_URL'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
     app.config['CELERY_RESULT_BACKEND'] = 'redis://:devpassword@redis:{}/0'.format(REDIS_PORT)
 
-app.config['CELERYD_CONCURRENCY'] = 1 # number of worker in the task pool
+app.config['CELERYD_CONCURRENCY'] = NB_OF_WORKERS # number of worker in the task pool
 app.config['CELERYD_HIJACK_ROOT_LOGGER'] = True
 
 
@@ -600,16 +600,21 @@ def get_shielding_single_kernel(celery_self,frame, slopes, intercepts):
     np.round(shielding, decimals=4, out=shielding)
     return shielding
 
-def load_model_data_msk(sp,cutoff):
+def load_model_params(sp,cutoff):
     '''
     Load the model data at the start of the app
     :return:
     '''
     from seekpath_app import dataPath
 
-    with open(dataPath + 'model_sp_{}_c_{}.pck'.format(z2symb[sp],cutoff), 'rb') as f:
-        model = pck.load(f)
-    return model
+    with open(dataPath + 'model_sp_{}_c_{}-model_params.json'.format(z2symb[sp],cutoff), 'r') as f:
+        model_params = json.load(f)
+    return model_params
+
+def load_model_ref(sp,cutoff):
+    from seekpath_app import dataPath
+    fn = dataPath+ 'model_sp_{}_c_{}-soap_ref.npy'.format(z2symb[sp],cutoff)
+    return np.load(fn,mmap_mode='r')
 
 def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
     import json
@@ -629,28 +634,38 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
     for ii,sp in enumerate(sps):
         kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
         kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        model_msk = load_model_data_msk(sp, 'msk')
-        msk_coefs = model_msk['msk_params']
+        model_msk = load_model_params(sp, 'msk')
+        msk_coefs = model_msk['kernel_params']['msk_params']
         fac = 0
         for cutoff in [2,3,4,5,6,7]:
             atoms = ase2qp(frame)
-            model = load_model_data_msk(sp,cutoff)
+            soap_ref = load_model_ref(sp,cutoff)
+            step = 5000
+            refs = list(range(0,soap_ref.shape[0]-1, step)) + [soap_ref.shape[0]]
+            chunks = zip(refs[:-1], refs[1:])
+
+            model_params = load_model_params(sp, cutoff)
             ll = list(sps)
             ll.remove(sp)
             soap_params = dict(
                 centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
                 nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
             )
-            soap_params.update(model['soap_params'])
+            soap_params.update(model_params['soap_params'])
 
             descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
+            for start, end in chunks:
+                kk[start:end] = np.dot(soap_ref[start:end,:], descriptor.T)
+            #np.dot(model['soap_ref'], descriptor.T,out=kk)
+            np.add(np.multiply(msk_coefs[str(cutoff)],kk,out=kk),kernel_test,out=kernel_test)
+            fac += msk_coefs[str(cutoff)]
 
-            np.dot(model['soap_ref'], descriptor.T,out=kk)
-            np.add(np.multiply(msk_coefs[cutoff],kk,out=kk),kernel_test,out=kernel_test)
-            fac += msk_coefs[cutoff]
+            # reload to remove memory, mmap so very fast
+            del soap_ref, descriptor
+            soap_ref = load_model_ref(sp,cutoff) 
     
         np.divide(kernel_test,fac,out=kernel_test)
-        y_pred = predict(kernel_test, model_msk['model'].alpha, model_msk['model'].csi)
+        y_pred = predict(kernel_test, model_msk['alpha'], model_msk['kernel_params']['zeta'])
         if slopes!=None:
             slope=slopes[str(sp)]
             intercept=intercepts[str(sp)]
@@ -664,6 +679,7 @@ def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
                                        'status': str(sp)})
 
     np.round(shielding, decimals=4, out=shielding)
+    del kk,kernel_test
     return shielding
 
 def get_json_for_visualizer(frame):

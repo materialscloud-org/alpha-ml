@@ -17,6 +17,7 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'true'
       MSK : 'false'
+      NB_OF_WORKERS : '5'
       PYTHONUNBUFFERED: 'true'
 
     volumes:
@@ -35,6 +36,7 @@ services:
       DEBUG : 'false'
       FAST_DEV : 'true'
       MSK : 'false'
+      NB_OF_WORKERS : '5'
     volumes:
       - '/Users/albert/PycharmProjects/nmr_test/data:/home/app/data'
 
