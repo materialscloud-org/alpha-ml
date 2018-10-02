@@ -88,14 +88,9 @@ def get_power_spectrum(lam,frame):
     if lam == 0:
 
         featsize = nspecies*nspecies*nmax**2*(lmax+1)
-#        if sparse_options[0] != '':
         do_list = np.array(sparse_options[1],dtype=int)
         PS = np.zeros((1,natmax,len(do_list)),dtype=complex)
-#        else:
-#            do_list = xrange(featsize)
-#            PS = np.zeros((1,natmax,featsize),dtype=complex)
 
-#        for i in xrange(1):
         [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
     
         # PRECOMPUTE OMEGA CONJUGATE
@@ -113,8 +108,6 @@ def get_power_spectrum(lam,frame):
             inner = np.real(np.dot(power[iat],np.conj(power[iat])))
             power[iat] /= np.sqrt(inner)
 
-#            for j in xrange(len(do_list)):
-#                PS[i,:nat,j] = power[:,do_list[j]]
         PS[0,:nat] = power[:,do_list]
     
     else:
@@ -128,16 +121,11 @@ def get_power_spectrum(lam,frame):
                         w3j[mu,l1,l2,m] = wigner_3j(lam,l2,l1,mu-lam,m-l1-mu+lam,-m+l1) * (-1.0)**(m-l1)
 
         featsize = nspecies*nspecies*nmax**2*llmax
-#        if sparse_options[0] != '':
         do_list = sparse_options[1]
         PS = np.zeros((1,natmax,2*lam+1,len(do_list)),dtype=complex)
-#        else:
-#            do_list = xrange(featsize)
-#            PS = np.zeros((1,natmax,2*lam+1,featsize),dtype=complex)
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
         # reduce l dimensionality keeping the nonzero elements
-#        for i in xrange(1):
         [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
         power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
         p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
@@ -172,7 +160,6 @@ def get_power_spectrum(lam,frame):
         PS[0,:nat] = p2[:,:,do_list]
 
     # Multiply by A_matrix.
-#    if (sparse_options[0] != ''):
     PS = np.dot(PS,sparse_options[0])
 
     print "PS",PS[0]
