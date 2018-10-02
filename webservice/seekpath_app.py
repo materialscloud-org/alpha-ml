@@ -463,14 +463,21 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
                                  inputstructure_positions_cartesian)
     ]
 
+    # Now calculate the polarizability for this molecule
+    # Compute power spectra and combine with training set spectra
+    lm = [0,2]
+    all_PS  = [get_power_spectrum(lam,frame) for lam in lm]
+    all_ker = [get_kernel(lm[i],all_PS[i]) for i in xrange(len(lm))]
+    # Apply weights to predict polarizability
+
     # rm_spectra()
     ##############################################################################
-    if is_fast_dev is False and is_msk is False:
-        shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
-    elif is_fast_dev is False and is_msk is True:
-        shielding = get_shielding_multi_kernel(self, frame, slopes, intercepts)
-    else:
-        shielding = get_dummy_work(self, frame)
+#    if is_fast_dev is False and is_msk is False:
+#        shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
+#    elif is_fast_dev is False and is_msk is True:
+#        shielding = get_shielding_multi_kernel(self, frame, slopes, intercepts)
+#    else:
+    shielding = get_dummy_work(self, frame)
     ##############################################################################
 
     compute_time = time.time() - start_time
