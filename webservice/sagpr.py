@@ -95,27 +95,27 @@ def get_power_spectrum(lam,frame):
 #            do_list = xrange(featsize)
 #            PS = np.zeros((1,natmax,featsize),dtype=complex)
 
-        for i in xrange(1):
-            [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+#        for i in xrange(1):
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
     
-            # PRECOMPUTE OMEGA CONJUGATE
-            omegatrue = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
-            omegaconj = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
-            for l in xrange(lmax+1):
-                for im in xrange(2*l+1):
-                    omegatrue[:,:,:,l,im] = omega[:,:,:,l,im]/np.sqrt(np.sqrt(2*l+1))
-                    omegaconj[:,:,:,l,im] = np.conj(omega[:,:,:,l,im])/np.sqrt(np.sqrt(2*l+1))
+        # PRECOMPUTE OMEGA CONJUGATE
+        omegatrue = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
+        omegaconj = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
+        for l in xrange(lmax+1):
+            for im in xrange(2*l+1):
+                omegatrue[:,:,:,l,im] = omega[:,:,:,l,im]/np.sqrt(np.sqrt(2*l+1))
+                omegaconj[:,:,:,l,im] = np.conj(omega[:,:,:,l,im])/np.sqrt(np.sqrt(2*l+1))
     
-            # COMPUTE POWER SPECTRUM
-            power = np.einsum('asblm,adnlm->asdbnl',omegatrue,omegaconj)
-            power = power.reshape(nat,featsize)
-            for iat in xrange(nat):
-                inner = np.real(np.dot(power[iat],np.conj(power[iat])))
-                power[iat] /= np.sqrt(inner)
+        # COMPUTE POWER SPECTRUM
+        power = np.einsum('asblm,adnlm->asdbnl',omegatrue,omegaconj)
+        power = power.reshape(nat,featsize)
+        for iat in xrange(nat):
+            inner = np.real(np.dot(power[iat],np.conj(power[iat])))
+            power[iat] /= np.sqrt(inner)
 
 #            for j in xrange(len(do_list)):
 #                PS[i,:nat,j] = power[:,do_list[j]]
-            PS[i,:nat] = power[:,do_list]
+        PS[0,:nat] = power[:,do_list]
     
     else:
       
@@ -137,43 +137,45 @@ def get_power_spectrum(lam,frame):
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
         # reduce l dimensionality keeping the nonzero elements
-        for i in xrange(1):
-            [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
-            power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
-            p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
-            omegaconj = np.zeros((nat,nspecies,2*lam+1,nmax,lmax+1,lmax+1,2*lmax+1),complex)
-            harmconj = np.zeros((nat,nspecies,lmax+1,lmax+1,2*lmax+1,2*lam+1,nnmax),dtype=complex)
+#        for i in xrange(1):
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+        power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
+        p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
+        omegaconj = np.zeros((nat,nspecies,2*lam+1,nmax,lmax+1,lmax+1,2*lmax+1),complex)
+        harmconj = np.zeros((nat,nspecies,lmax+1,lmax+1,2*lmax+1,2*lam+1,nnmax),dtype=complex)
 
-            for lval in xrange(lmax+1):
-                for im in xrange(2*lval+1):
-                    for lval2 in xrange(lmax+1):
-                        for mu in xrange(2*lam+1):
-                            if abs(im-lval-mu+lam) <= lval2:
-                                harmconj[:,:,lval2,lval,im,mu,:] = np.conj(harmonic[:,:,lval2,lval2+im-lval-mu+lam,:])
-            for iat in xrange(nat):
-                for ispe in xrange(nspecies): 
-                    omegaconj[iat,ispe] = np.einsum('lnh,lkmvh->vnklm',orthoradint[iat,ispe],harmconj[iat,ispe])
-            for iat in xrange(nat):
-                for ia in xrange(nspecies):
-                    for ib in xrange(nspecies):
-                        power[iat,:,ia,ib] = np.einsum('nlv,xmlkv,xlkv->xnmlk',omega[iat,ia],omegaconj[iat,ib],w3j)
+        for lval in xrange(lmax+1):
+            for im in xrange(2*lval+1):
+                for lval2 in xrange(lmax+1):
+                    for mu in xrange(2*lam+1):
+                        if abs(im-lval-mu+lam) <= lval2:
+                            harmconj[:,:,lval2,lval,im,mu,:] = np.conj(harmonic[:,:,lval2,lval2+im-lval-mu+lam,:])
+        for iat in xrange(nat):
+            for ispe in xrange(nspecies): 
+                omegaconj[iat,ispe] = np.einsum('lnh,lkmvh->vnklm',orthoradint[iat,ispe],harmconj[iat,ispe])
+        for iat in xrange(nat):
+            for ia in xrange(nspecies):
+                for ib in xrange(nspecies):
+                    power[iat,:,ia,ib] = np.einsum('nlv,xmlkv,xlkv->xnmlk',omega[iat,ia],omegaconj[iat,ib],w3j)
 
-            for l in xrange(llmax):
-                p2[:,:,:,:,:,:,l] = power[:,:,:,:,:,:,lvalues[l][0],lvalues[l][1]]
-            p2 = p2.reshape(nat,2*lam+1,featsize)
-            # Normalize power spectrum
-            for iat in xrange(nat):
-                inner = np.zeros((2*lam+1,2*lam+1),complex)
-                for mu in xrange(2*lam+1):
-                    for nu in xrange(2*lam+1):
-                        inner[mu,nu] = np.dot(p2[iat,mu],np.conj(p2[iat,nu]))
-                p2[iat] /= np.sqrt(np.real(np.linalg.norm(inner)))
+        for l in xrange(llmax):
+            p2[:,:,:,:,:,:,l] = power[:,:,:,:,:,:,lvalues[l][0],lvalues[l][1]]
+        p2 = p2.reshape(nat,2*lam+1,featsize)
+        # Normalize power spectrum
+        for iat in xrange(nat):
+            inner = np.zeros((2*lam+1,2*lam+1),complex)
+            for mu in xrange(2*lam+1):
+                for nu in xrange(2*lam+1):
+                    inner[mu,nu] = np.dot(p2[iat,mu],np.conj(p2[iat,nu]))
+            p2[iat] /= np.sqrt(np.real(np.linalg.norm(inner)))
 
-            PS[i,:nat] = p2[:,:,do_list]
+        PS[0,:nat] = p2[:,:,do_list]
 
     # Multiply by A_matrix.
 #    if (sparse_options[0] != ''):
     PS = np.dot(PS,sparse_options[0])
+
+    print "PS",PS[0]
 
     return [PS,featsize]
 
