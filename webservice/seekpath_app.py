@@ -101,7 +101,8 @@ class ConfigurationError(Exception):
 
 valid_examples = {
     "Cocaine": ("Cocaine"),
-    "AZD8329": ("AZD8329"),
+    "Caffeine": ("Caffeine"),
+    "Aciclovir": ("Aciclovir"),
 }
 
 if __name__ == "__main__":
@@ -466,9 +467,11 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     # Now calculate the polarizability for this molecule
     # Compute power spectra and combine with training set spectra
     lm = [0,2]
-    all_PS  = [get_power_spectrum(lam,frame) for lam in lm]
-    all_ker = [get_kernel(lm[i],all_PS[i]) for i in xrange(len(lm))]
+    all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
+    all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
     # Apply weights to predict polarizability
+    polarizability = get_pol(all_ker)
+#    print polarizability
 
     # rm_spectra()
     ##############################################################################
@@ -552,7 +555,7 @@ def get_dummy_work(celery_self,frame):
 
 def load_model_data(sp):
     '''
-    Load the model data at the start of the app
+    Load the model data at the start of the app       # DMW: THIS NEEDS TO BE CHANGED MAYBE
     :return:
     '''
     from seekpath_app import dataPath

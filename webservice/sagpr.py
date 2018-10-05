@@ -5,6 +5,49 @@ from sympy.physics.wigner import wigner_3j
 
 #############################################################################################
 
+def complex_to_real_transformation(lval):
+    """Transformation matrix from complex to real spherical harmonics"""
+
+    if lval==0:
+        mat = 1.0
+
+    if lval==1:
+        mat = np.array([[1.0j,0.0,1.0j],
+                       [0.0,np.sqrt(2.0),0.0],
+                       [1.0,0.0,-1.0]
+                       ], dtype=complex) / np.sqrt(2.0)
+
+    if lval==2:
+        mat = np.array([[1.0j,0.0,0.0,0.0,-1.0j],
+                        [0.0,1.0j,0.0,1.0j,0.0],
+                        [0.0,0.0,np.sqrt(2.0),0.0,0.0],
+                        [0.0,1.0,0.0,-1.0,0.0],
+                        [1.0,0.0,0.0,0.0,1.0]      ],dtype=complex) / np.sqrt(2.0)
+
+    if lval==3:
+        mat =np.array([[1.0j,0.0,0.0,0.0,0.0,0.0,1.0j],
+                       [0.0,1.0j,0.0,0.0,0.0,-1.0j,0.0],
+                       [0.0,0.0,1.0j,0.0,1.0j,0.0,0.0],
+                       [0.0,0.0,0.0,np.sqrt(2.0),0.0,0.0,0.0],
+                       [0.0,0.0,1.0,0.0,-1.0,0.0,0.0],
+                       [0.0,1.0,0.0,0.0,0.0,1.0,0.0],
+                       [1.0,0.0,0.0,0.0,0.0,0.0,-1.0]   ], dtype=complex) / np.sqrt(2.0)
+
+    if lval==4:
+        mat =np.array([[1.0j,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-1.0j],
+                       [0.0,1.0j,0.0,0.0,0.0,0.0,0.0,1.0j,0.0],
+                       [0.0,0.0,1.0j,0.0,0.0,0.0,-1.0j,0.0,0.0],
+                       [0.0,0.0,0.0,1.0j,0.0,1.0j,0.0,0.0,0.0],
+                       [0.0,0.0,0.0,0.0,np.sqrt(2.0),0.0,0.0,0.0,0.0],
+                       [0.0,0.0,0.0,1.0,0.0,-1.0,0.0,0.0,0.0],
+                       [0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0],
+                       [0.0,1.0,0.0,0.0,0.0,0.0,0.0,-1.0,0.0],
+                       [1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0]], dtype=complex) / np.sqrt(2.0)
+
+    return mat
+
+#############################################################################################
+
 def setup_orthomatrix(nmax,rc,rk):
 
     sigma = np.zeros(nmax,float)
@@ -56,7 +99,7 @@ def get_power_spectrum(lam,frame):
             if all_names[ii] == atom_symbols[j]:
                 atom_indexes[j].append(ii)
 
-    centers = all_species
+    centers = centers = [atom_valence[i] for i in cen]
 
     ###
 
@@ -121,7 +164,7 @@ def get_power_spectrum(lam,frame):
                         w3j[mu,l1,l2,m] = wigner_3j(lam,l2,l1,mu-lam,m-l1-mu+lam,-m+l1) * (-1.0)**(m-l1)
 
         featsize = nspecies*nspecies*nmax**2*llmax
-        do_list = sparse_options[1]
+        do_list = np.array(sparse_options[1],dtype=int)
         PS = np.zeros((1,natmax,2*lam+1,len(do_list)),dtype=complex)
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
@@ -161,8 +204,6 @@ def get_power_spectrum(lam,frame):
 
     # Multiply by A_matrix.
     PS = np.dot(PS,sparse_options[0])
-
-    print "PS",PS[0]
 
     return [PS,featsize]
 
@@ -261,7 +302,78 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
 
 #############################################################################################
 
-def get_kernel(lam,PS):
+def get_kernel(lam,PS,frame,PS0):
+
+#    print "PS"
+#    print PS
+
+    # Get training and testing number of atoms
+    nat1 = np.load('/home/app/data/natoms.npy')
+    all_names = frame.get_chemical_symbols()
+    nat2 = len(all_names)
 
     # Read in the appropriate training-set power spectrum
-    print "NO"
+
+    if (lam==0):
+        # Compute nonlinear scalar kernel of order 2
+        # Firstly, read in training power spectrum
+        pstrain = np.load('/home/app/data/PStrain_lam0.npy')
+        ntrain = len(pstrain)
+        kreal = np.zeros((ntrain,1),dtype=float)
+        # We need to "pad" the testing power spectrum so we can take the dot product
+#        natmax = len(pstrain[0])
+#        pstest = np.zeros((1,nat2,len(PS[0,0])),dtype=complex)
+#        pstest[:,:nat2,:] = PS
+        # Now combine with testing power spectrum
+        for i in xrange(ntrain):
+            for iat in xrange(nat1[i]):
+                for jat in xrange(nat2):
+                    kreal[i,0] += np.real(np.dot(pstrain[i,iat],np.conj(PS[0,jat])))**2
+            kreal[i,0] /= (nat1[i]*nat2)
+
+    else:
+        # Compute nonlinear L=2 kernel of order 2
+        # Firstly, read in training power spectra
+#        pstrain  = np.load('/home/app/data/PStrain_lam2.npy')
+        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
+        ntrain = len(pstrain0)
+        kreal = np.zeros((ntrain,1,2*lam+1,2*lam+1),dtype=float)
+        # Get transformation matrices between real and complex spherical harmonics
+        CR = complex_to_real_transformation(lam)
+        CC = np.conj(CR)
+        CT = np.transpose(CR)
+        # "Pad" the testing power spectrum so we can take the dot product
+#        natmax = len(pstrain0[0])
+#        pstest  = np.zeros((1,natmax,2*lam+1,len(PS[0,0,0])),dtype=complex)
+#        pstest0 = np.zeros((1,natmax,len(PS0[0,0])),dtype=complex)
+#        pstest[:,:nat2,:]  = PS
+#        pstest0[:,:nat2,:] = PS0
+        # Now combine with testing power spectrum
+        for i in xrange(ntrain):
+            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
+            kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[0]))
+            kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[0].T)))
+#            print "KERLOC0",kerloc0[0,0]
+            kernel = np.zeros((2*lam+1,2*lam+1),complex)
+            for iat in xrange(nat1[i]):
+                for jat in xrange(nat2):
+                    kernel += kerloc[iat,jat]*kerloc0[iat,jat]
+            kernel /= float(nat1[i]*nat2)
+            kreal[i,0] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
+
+#    print kreal[0,0]
+
+    return kreal
+
+#############################################################################################
+
+def get_pol(kernels):
+
+    # Get polarizability
+
+    # First read in weights
+    print "YES"
+
+    # Multiply weights vector by kernels to give predictions
+
+    # Transform to Cartesian tensors and return
