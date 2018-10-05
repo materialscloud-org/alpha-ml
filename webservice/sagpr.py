@@ -304,9 +304,6 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
 
 def get_kernel(lam,PS,frame,PS0):
 
-#    print "PS"
-#    print PS
-
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
     all_names = frame.get_chemical_symbols()
@@ -320,10 +317,6 @@ def get_kernel(lam,PS,frame,PS0):
         pstrain = np.load('/home/app/data/PStrain_lam0.npy')
         ntrain = len(pstrain)
         kreal = np.zeros((ntrain,1),dtype=float)
-        # We need to "pad" the testing power spectrum so we can take the dot product
-#        natmax = len(pstrain[0])
-#        pstest = np.zeros((1,nat2,len(PS[0,0])),dtype=complex)
-#        pstest[:,:nat2,:] = PS
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
             for iat in xrange(nat1[i]):
@@ -342,26 +335,17 @@ def get_kernel(lam,PS,frame,PS0):
         CR = complex_to_real_transformation(lam)
         CC = np.conj(CR)
         CT = np.transpose(CR)
-        # "Pad" the testing power spectrum so we can take the dot product
-#        natmax = len(pstrain0[0])
-#        pstest  = np.zeros((1,natmax,2*lam+1,len(PS[0,0,0])),dtype=complex)
-#        pstest0 = np.zeros((1,natmax,len(PS0[0,0])),dtype=complex)
-#        pstest[:,:nat2,:]  = PS
-#        pstest0[:,:nat2,:] = PS0
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
             pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
             kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[0]))
             kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[0].T)))
-#            print "KERLOC0",kerloc0[0,0]
             kernel = np.zeros((2*lam+1,2*lam+1),complex)
             for iat in xrange(nat1[i]):
                 for jat in xrange(nat2):
                     kernel += kerloc[iat,jat]*kerloc0[iat,jat]
             kernel /= float(nat1[i]*nat2)
             kreal[i,0] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
-
-#    print kreal[0,0]
 
     return kreal
 
