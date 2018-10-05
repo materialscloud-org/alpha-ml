@@ -100,7 +100,6 @@ class ConfigurationError(Exception):
 
 
 valid_examples = {
-    "Cocaine": ("Cocaine"),
     "Caffeine": ("Caffeine"),
     "Aciclovir": ("Aciclovir"),
 }
