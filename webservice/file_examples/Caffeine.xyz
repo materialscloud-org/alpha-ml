@@ -1,5 +1,5 @@
 24
-Lattice="8.5671 0.0 0.0 0.0 9.6458 0.0 -3.06940504643 0.0 9.8510915081" Properties=species:S:1:pos:R:3:Z:I:1 spacegroup="P 21" unit_cell=conventional pbc="F F F"
+Lattice="25.000 0.0 0.0 0.0 25.000 0.0 0.0 0.0 25.000" Properties=species:S:1:pos:R:3:Z:I:1 unit_cell=conventional pbc="T T T"
 O       0.42470696       2.57132566      -0.00098567	8
 O      -3.06657223      -0.46226405       0.00032452	8
 N      -0.93684335      -1.33268687      -0.00012428	7

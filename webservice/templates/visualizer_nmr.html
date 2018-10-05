@@ -3,7 +3,7 @@
 <head>
 		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>ShiftML</title>
+		<title>ALPHA-ML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
 
 		<link rel="stylesheet" type="text/css" href="../static/css/visualizer.min.css"/>
@@ -114,7 +114,7 @@
 
 			<div id="maintitle">
 	{% block seekpathtitle %}
-	<h1 style="text-align: center;"><span style="font-weight: bold;">ShiftML</span>: Chemical Shifts in Molecular Solids by Machine Learning</h1>
+	<h1 style="text-align: center;"><span style="font-weight: bold;">ALPHA-ML</span>: Machine Learning of Molecular Polarizabilities</h1>
 
 		{% endblock seekpathtitle %}
 			</div>
@@ -258,7 +258,7 @@
 				var structure = '{{ jsmol_pos | safe }}';
 				var prefix = 'set forceAutoBond ON;load data "model current_model"'
 				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
-        var cell = 'set axes UNITCELL;set axes ON;set unitcell ON; set axesUnitcell ON;set displayCellParameters TRUE;';
+        var cell = 'set axes UNITCELL;set axes OFF;set unitcell OFF; set axesUnitcell OFF;set displayCellParameters TRUE;';
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
 				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
@@ -266,21 +266,21 @@
 				// TODO when selecting all shifts we get all atoms labels
 				// TODO if we select only certain atoms and we change cell we lose the selection
 				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
-				Jmol.script(JmolApplet0, 'show menu')
-				Jmol.jmolMenu(JmolApplet0,[
-						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
-						["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
-						["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
-						["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
-						["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
-						["select all; label HIDE; select OFF;","no shifts"]
-				],1,"shifts_menu","display chemical shifts");
-
-				Jmol.jmolMenu(JmolApplet0, [
-						["load '' {1 1 1} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; " +cell +" ;"+style +" ;", "{1 1 1}"],
-						["load '' {2 2 2} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{2 2 2}"],
-						["load '' {3 3 3} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{3 3 3}"]
-				],1,"periodic_menu", "display multiple unit cells");
+//				Jmol.script(JmolApplet0, 'show menu')
+//				Jmol.jmolMenu(JmolApplet0,[
+//						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
+//						["select all; label HIDE; select ON hydrogen and property_shifts!=0; label DISPLAY;","hydrogen shifts"],
+//						["select all; label HIDE; select ON carbon and property_shifts!=0; label DISPLAY;","carbon shifts"],
+//						["select all; label HIDE; select ON oxygen and property_shifts!=0; label DISPLAY;","oxygen shifts"],
+//						["select all; label HIDE; select ON nitrogen and property_shifts!=0; label DISPLAY;","nitrogen shifts"],
+//						["select all; label HIDE; select OFF;","no shifts"]
+//				],1,"shifts_menu","display chemical shifts");
+//
+//				Jmol.jmolMenu(JmolApplet0, [
+//						["load '' {1 1 1} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; " +cell +" ;"+style +" ;", "{1 1 1}"],
+//						["load '' {2 2 2} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{2 2 2}"],
+//						["load '' {3 3 3} spacegroup 'ignoreOperators' unitcell ''; "+ shifts_ms + " ; "+cell +" ;"+style +" ;", "{3 3 3}"]
+//				],1,"periodic_menu", "display multiple unit cells");
 
 			</script>
             <a href="javascript:Jmol.script(JmolApplet0,'console')">console</a>
@@ -439,7 +439,7 @@
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-						<a href="https://arxiv.org/abs/1805.11541" target="_blank"> Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning </a> (submitted).
+						<a href="https://arxiv.org/abs/1809.05337" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio Jr. and Michele Ceriotti. Accurate molecular polarizabilities by coupled-cluster theory and machine learning </a> (submitted).
             <!--<a href="" target="_blank">
                 Federico M. Paruzzo, Albert Hofstetter, Félix Musil, De Sandip, Michele Ceriotti, and Lyndon Emsley. Chemical Shifts in Molecular Solids by Machine Learning (submitted).
             </a>-->
