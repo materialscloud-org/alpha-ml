@@ -102,6 +102,8 @@ class ConfigurationError(Exception):
 valid_examples = {
     "Caffeine": ("Caffeine"),
     "Aciclovir": ("Aciclovir"),
+    "Cytosine": ("Cytosine"),
+    "Methionine": ("Methionine"),
 }
 
 if __name__ == "__main__":
