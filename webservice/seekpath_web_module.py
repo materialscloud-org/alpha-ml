@@ -233,7 +233,7 @@ def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_dat
             "".format(MAX_NUMBER_OF_ATOMS, frame.get_number_of_atoms()))
 
     for sp in np.unique(frame.get_atomic_numbers()) :
-        if sp not in [1, 6, 7, 8]:
+        if sp not in [1, 6, 7, 8, 16, 17]:
             ## Structure has wrong species
             logme(
                 filecontent,
@@ -246,8 +246,8 @@ def test_frame(frame,filecontent, fileformat,call_source,request_info, extra_dat
                     'form_data': form_data,
                 })
             raise FlaskRedirectException(
-                "Sorry, ShiftML is limited to the predictions of "
-                "isotropic chemical shift of 1H, 13C, 15N and 17O."
+                "Sorry, ALPHA-ML is limited to the predictions of "
+                " polarizabilities of molecules containing H, C, N, O, S, Cl."
                 "The atomic species you provided are {}"
                 "".format(np.unique( [ str(z2symb[sp]) for sp in np.unique(frame.get_atomic_numbers().tolist())])))
 

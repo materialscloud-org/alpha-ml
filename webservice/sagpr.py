@@ -347,6 +347,8 @@ def get_kernel(lam,PS,frame,PS0):
             kernel /= float(nat1[i]*nat2)
             kreal[i,0] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
 
+#    print kreal[0,0]
+
     return kreal
 
 #############################################################################################
@@ -356,8 +358,76 @@ def get_pol(kernels):
     # Get polarizability
 
     # First read in weights
-    print "YES"
+    weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
+    weights2 = np.load('/home/app/data/weights_lm2.npy')
 
     # Multiply weights vector by kernels to give predictions
+    output0 = np.dot(weights0[0].T,kernels[0]) + weights0[1]
+    output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1][0])*len(kernels[1][0,0,0])))
 
     # Transform to Cartesian tensors and return
+    outvec = [output0,output2]
+#    print len(output0),len(output2),len(output0[0]),len(output2[0])
+    predcart = spherical_to_cartesian(outvec)
+
+    return predcart
+
+#############################################################################################
+
+def spherical_to_cartesian(vector):
+
+    # Convert spherical tensors to Cartesian
+
+    mask1 = [1.0,2.0**0.5,2.0**0.5,1.0,2.0**0.5,1.0]
+    mask2 = [[0],[1,3],[2,6],[4],[5,7],[8]]
+
+    sizes = [1,5]
+    ns = 1
+    rank = 2
+    CS = get_CS_matrix(rank,mask1,mask2)
+    CR = [complex_to_real_transformation(sz) for sz in [0,2]]
+
+    outvecs = []
+    outsphr = []
+    sphe = np.zeros((ns,sum(sizes)),dtype=complex)
+    cart = np.zeros((ns,sum(sizes)),dtype=float)
+    for j in xrange(len(sizes)):
+        outvecs.append(vector[j].reshape((ns,sizes[j])))
+        outsphr.append(np.zeros((ns,sizes[j]),dtype=complex))
+    for i in xrange(ns):
+        for j in xrange(len(sizes)):
+            outsphr[j][i] = np.dot(np.conj(CR[j]).T,outvecs[j][i])
+        sphe[i] = np.concatenate([outsphr[j][i] for j in xrange(len(sizes))])
+        cart[i] = np.real(np.dot(sphe[i],np.conj(CS).T))
+
+        predcart = []
+        for i in xrange(ns):
+            crt = np.zeros(len(np.concatenate(mask2)),dtype=float)
+            for j in xrange(len(mask2)):
+                for k in xrange(len(mask2[j])):
+                    crt[mask2[j][k]] = cart[i][j] / mask1[j]
+            predcart.append(crt)
+        predcart = np.concatenate(predcart)
+
+    return predcart
+
+#############################################################################################
+
+def get_CS_matrix(rank,mask1,mask2):
+    # Get Cartesian to spherical tensor transformation matrix
+    if (rank==0):
+        CS = np.array([1.0],dtype=complex)
+    elif (rank==1):
+        CS = np.array([[1.0,0.0,-1.0],[-1.0j,0.0,-1.0j],[0.0,np.sqrt(2.0),0.0]],dtype = complex) / np.sqrt(2.0)
+    elif (rank==2):
+        CS = np.array([[-1.0/np.sqrt(3.0),0.5,0.0,-1.0/np.sqrt(6.0),0.0,0.5],[0.0,-0.5j,0.0,0.0,0.0,0.5j],[0.0,0.0,0.5,0.0,-0.5,0.0],[-1.0/np.sqrt(3.0),-0.5,0.0,-1.0/np.sqrt(6.0),0.0,-0.5],[0.0,0.0,-0.5j,0.0,-0.5j,0.0],[-1.0/np.sqrt(3.0),0.0,0.0,2.0/np.sqrt(6.0),0.0,0.0]],dtype = complex)
+    elif (rank==3):
+        CS = np.array([[-3.0/np.sqrt(30.0),0.0,3.0/np.sqrt(30.0),1.0/np.sqrt(8.0),0.0,-3.0/np.sqrt(120.0),0.0,3.0/np.sqrt(120.0),0.0,-1.0/np.sqrt(8.0)],[1.0j/np.sqrt(30.0),0.0,1.0j/np.sqrt(30.0),-1.0j/np.sqrt(8.0),0.0,1.0j/np.sqrt(120.0),0.0,1.0j/np.sqrt(120.0),0.0,-1.0j/np.sqrt(8.0)],[0.0,-1.0/np.sqrt(15.0),0.0,0.0,1.0/np.sqrt(12.0),0.0,-1.0/np.sqrt(10.0),0.0,1.0/np.sqrt(12.0),0.0],[-1.0/np.sqrt(30.0),0.0,1.0/np.sqrt(30.0),-1.0/np.sqrt(8.0),0.0,-1.0/np.sqrt(120.0),0.0,1.0/np.sqrt(120.0),0.0,1.0/np.sqrt(8.0)],[0.0,0.0,0.0,0.0,-1.0j/np.sqrt(12.0),0.0,0.0,0.0,1.0j/np.sqrt(12.0),0.0],[-1.0/np.sqrt(30.0),0.0,1.0/np.sqrt(30.0),0.0,0.0,4.0/np.sqrt(120.0),0.0,-4.0/np.sqrt(120.0),0.0,0.0],[3.0j/np.sqrt(30.0),0.0,3.0j/np.sqrt(30.0),1.0j/np.sqrt(8.0),0.0,3.0j/np.sqrt(120.0),0.0,3.0j/np.sqrt(120.0),0.0,1.0j/np.sqrt(8.0)],[0.0,-1.0/np.sqrt(15.0),0.0,0.0,-1.0/np.sqrt(12.0),0.0,-1.0/np.sqrt(10.0),0.0,-1.0/np.sqrt(12.0),0.0],[1.0j/np.sqrt(30.0),0.0,1.0j/np.sqrt(30.0),0.0,0.0,-4.0j/np.sqrt(120),0.0,-4.0j/np.sqrt(120),0.0,0.0],[0.0,-3.0/np.sqrt(15.0),0.0,0.0,0.0,0.0,2.0/np.sqrt(10.0),0.0,0.0,0.0]],dtype=complex)
+    else:
+        print "This L value is not yet covered by get_CS_matrix!"
+        sys.exit(0)
+    for i in xrange(len(mask1)):
+        CS[i] = CS[i] * mask1[i]
+
+    return CS
+

@@ -12,7 +12,7 @@
 # https://github.com/phusion/passenger-docker#using
 FROM phusion/passenger-customizable:0.9.35
 
-MAINTAINER Felix Musil <felix.musil@epfl.ch>
+MAINTAINER David Wilkins <david.wilkins@epfl.ch>
 
 
 USER root

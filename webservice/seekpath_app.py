@@ -471,8 +471,11 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
     all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
     # Apply weights to predict polarizability
-    polarizability = get_pol(all_ker)
-#    print polarizability
+    polarizability = np.array(get_pol(all_ker))
+    # Multiply by number of atoms
+    polarizability *= len(frame.get_chemical_symbols())
+    print polarizability
+
 
     # For visualization purposes, translate the molecule so that it is in the unit cell.
     #TODO: Presumably this is unnecessary and we could do this with Jmol.

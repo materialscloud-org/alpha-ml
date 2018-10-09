@@ -109,19 +109,16 @@
   </div>
 
 <div id="accordion" style="text-align:justify">
-<h2>What ALPHA-ML does</h2> <!--TODO: DMW CHANGE THIS PART-->
+<h2>What ALPHA-ML does</h2>
 <div>
-<p>ALPHA-ML takes as an <strong>input a crystal structure</strong> (in a number of different formats), and
+<p>ALPHA-ML takes as an input the <strong>atomic coordinates of a molecule</strong>, and
 <ul>
-<li><strong>predicts</strong> the isotropic NMR chemical shieldings/shifts of <sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O;</li>
-<!--li>provides <strong>interactive visualization</strong> of the structure with the corresponding chemical shifts;</li-->
-    <li>provides a <strong>JSmol interactive output</strong>, and <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color:DodgerBlue;">extended xyz</a> format, in the <a href="https://www.ccpnc.ac.uk/output/magres" target="_blank" style="color:DodgerBlue;">magres</a> format (the calculated shieldings/shifts are given as a tensor with the isotropic shielding/shift as all three diagonal elements) and in JSON.</li>
-</ul>
+<li><strong>predicts</strong> the dipole polarizability of this molecule, as well as a decomposition of this polarizability into atom-centred environments.</li>
+<li>provides a <strong>JSmol interactive output</strong> and <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color:DodgerBlue;">extended xyz</a> format.</li>
 <p>
-<p>ShiftML has so far been tested for <strong>DFT-optimized</strong> crystal structures of molecular solids containing <strong><sup>1</sup>H, <sup>13</sup>C, <sup>15</sup>N and <sup>17</sup>O</strong> atoms.
-	<a href="https://arxiv.org/abs/1805.11541" target="_blank" style="color:DodgerBlue;"> Paruzzo, et al.</a> (submitted).
+<p>ALPHA-ML has so far been tested for <strong>DFT-optimized</strong> molecular configurations of molecules containing <strong>H, C, N, O, S and Cl</strong> atoms. See
+	<a href="https://arxiv.org/abs/1809.05337" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a> (submitted).
 </p>
-<p><strong>Version 1.02 Beta </strong>implements a sparsified multi-scale-kernel version, which reduces the calculation time and memory requirement while maintining similar accuracy. <br></p>
 </div>
 
 <h2>Version history</h2>
@@ -148,7 +145,7 @@
 
 {% endblock %}
 
-<h2><a name="tool"></a>Upload your structure</h2>
+<h2><a name="tool"></a>Upload your molecule</h2>
 <div class='alert alert-danger'>
 		<div style="text-align:center"><label>Version 1.0 Beta of ALPHA-ML predicts polarizabilities of structures containing only H,C,N,O,S,Cl.</label></div>
 	</div>
@@ -158,7 +155,7 @@
     <div class='alert alert-info'>
       <div class='row'>
 	<div class='col-xs-12 col-sm-6'>
-	  <label for="file">Upload a crystal structure:</label>
+	  <label for="file">Upload a molecule:</label>
 	</div>
 	<div class="col-xs-12 col-sm-6">
 	  <input type="file" name="structurefile" size="100">
@@ -188,10 +185,6 @@
 			<div class='col-sm-6'>
 				<form>
 							<input type="radio" name="outputformat" value="shieldings" checked="checked" onclick="showText(this)">&nbsp Chemical shieldings</br>
-							<!--<input type="radio" name="outputformat" value="shifts_intref" onclick="showText(this)" >&nbsp Chemical shifts (internal reference) <strong style="font-size:16px;color:blue" class="fa" title=" &#185;H: Slope=1, Intercept=30.8
-&#185;&#179;C: Slope=1, Intercept=169.5
-&#185;&#x2075;N: Slope=1, Intercept=185
-&#185;&#x2077;O: Slope=1, Intercept=248"><sup>&#9432;</sup></strong></br>-->
 							<input type="radio" name="outputformat" value="shifts_extref" id="insertrefs" onclick="showText(this)">&nbsp Chemical shifts</br>
 					</form>
 				</div>
@@ -256,13 +249,13 @@
   </form>
 </div>
 
-<h2>Otherwise, pick an example</h2> <!--TODO: DMW SORT OUT EXAMPLES-->
+<h2>Otherwise, pick an example</h2>
 <form id="process_example_structure" >
   <div style="margin-left: 20px; margin-right: 20px;">
     <div class='alert alert-info'>
       <div class="row">
 	<div class="col-xs-12 col-sm-6">
-	  <label for="examplestructure">Select an example structure:</label>
+	  <label for="examplestructure">Select an example molecule:</label>
 	</div>
 	<div class="col-xs-12 col-sm-6">
 	  <select name="examplestructure">
