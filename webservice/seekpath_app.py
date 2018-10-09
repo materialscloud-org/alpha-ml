@@ -484,16 +484,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
     frame.set_positions(pos_tr)
 
-    # rm_spectra()
-    ##############################################################################
-#    if is_fast_dev is False and is_msk is False:
-#        shielding = get_shielding_single_kernel(self, frame, slopes, intercepts)
-#    elif is_fast_dev is False and is_msk is True:
-#        shielding = get_shielding_multi_kernel(self, frame, slopes, intercepts)
-#    else:
     shielding = get_dummy_work(self, frame)
-    ##############################################################################
-
     #TODO: FOR NOW, I KEEP THE SHIELDING VALUES IN, BUT THESE WILL NOT NEED TO BE COMPUTED ANY MORE.
 
     compute_time = time.time() - start_time
@@ -512,9 +503,9 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
 
-    magres_code = str(jinja2.escape(get_magres(frame,shielding, slopes, intercepts))).replace(
-        '\n', '<br>').replace(' ', '&nbsp;')
-    magres_print = str(get_magres(frame,shielding, slopes, intercepts))
+#    magres_code = str(jinja2.escape(get_magres(frame,shielding, slopes, intercepts))).replace(
+#        '\n', '<br>').replace(' ', '&nbsp;')
+#    magres_print = str(get_magres(frame,shielding, slopes, intercepts))
 
     xyz = str(jinja2.escape(get_xyz(frame, shielding, slopes, intercepts,polarizability))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
@@ -538,8 +529,8 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
         raw_print=raw_print,
-        magres_code=magres_code,
-        magres_print=magres_print,
+#        magres_code=magres_code,
+#        magres_print=magres_print,
         shielding=shielding.tolist(),
         polarizability=polarizability.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
@@ -578,52 +569,6 @@ def load_model_data(sp):
         model = pck.load(f)
     return model
 
-def get_shielding_single_kernel(celery_self,frame, slopes, intercepts):
-    import json
-    shielding = np.zeros((len(frame),))
-    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-
-    celery_self.update_state(state='PROGRESS',
-                             meta={'current': 0, 'total': len(sps),
-                                   'status': ''})
-    numbers = frame.get_atomic_numbers()
-
-    if slopes!=None:
-        slopes=json.loads(slopes)
-        intercepts=json.loads(intercepts)
-
-    for ii,sp in enumerate(sps):
-
-        atoms = ase2qp(frame)
-        model = load_model_data(sp)
-        ll = list(sps)
-        ll.remove(sp)
-        soap_params = dict(
-            centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
-            nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
-        )
-        soap_params.update(model['soap_params'])
-
-        descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-
-        kernel_test = np.dot(model['soap_ref'], descriptor.T)
-
-        y_pred = predict(kernel_test, model['model'].alpha, model['model'].csi)
-        if slopes!=None:
-            slope=slopes[str(sp)]
-            intercept=intercepts[str(sp)]
-            y_pred=shielding2shifts(y_pred,slope,intercept)
-
-        shielding[frame.get_atomic_numbers() == sp] = y_pred
-        #create_spectrum(sp, y_pred, is_debug)
-
-        celery_self.update_state(state='PROGRESS',
-                                 meta={'current': ii, 'total': len(sps),
-                                       'status': str(sp)})
-
-    np.round(shielding, decimals=4, out=shielding)
-    return shielding
-
 def load_model_params(sp,cutoff):
     '''
     Load the model data at the start of the app
@@ -639,72 +584,6 @@ def load_model_ref(sp,cutoff):
     from seekpath_app import dataPath
     fn = dataPath+ 'model_sp_{}_c_{}-soap_ref.npy'.format(z2symb[sp],cutoff)
     return np.load(fn,mmap_mode='r')
-
-def get_shielding_multi_kernel(celery_self,frame, slopes, intercepts):
-    import json
-
-    shielding = np.zeros((len(frame),))
-    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-    train_sizes = {1:30000,6:19532,7:12760,8:14770}
-    celery_self.update_state(state='PROGRESS',
-                             meta={'current': 0, 'total': len(sps),
-                                   'status': ''})
-    numbers = frame.get_atomic_numbers()
-
-    if slopes!=None:
-        slopes=json.loads(slopes)
-        intercepts=json.loads(intercepts)
-
-    for ii,sp in enumerate(sps):
-        kernel_test = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        kk = np.zeros((train_sizes[sp],len(numbers[numbers==sp])))
-        model_msk = load_model_params(sp, 'msk')
-        msk_coefs = model_msk['kernel_params']['msk_params']
-        fac = 0
-        for cutoff in [2,3,4,5,6,7]:
-            atoms = ase2qp(frame)
-            soap_ref = load_model_ref(sp,cutoff)
-            step = 5000
-            refs = list(range(0,soap_ref.shape[0]-1, step)) + [soap_ref.shape[0]]
-            chunks = zip(refs[:-1], refs[1:])
-
-            model_params = load_model_params(sp, cutoff)
-            ll = list(sps)
-            ll.remove(sp)
-            soap_params = dict(
-                centerweight=1., cutoff_transition_width=0.5, spkitMax=spkitMax,
-                nocenters=ll, is_fast_average=False, chem_channels=False, dispbar=True
-            )
-            soap_params.update(model_params['soap_params'])
-
-            descriptor = get_fingerprints([atoms], soap_params, nprocess=1, sp=sp)
-            for start, end in chunks:
-                kk[start:end] = np.dot(soap_ref[start:end,:], descriptor.T)
-            #np.dot(model['soap_ref'], descriptor.T,out=kk)
-            np.add(np.multiply(msk_coefs[str(cutoff)],kk,out=kk),kernel_test,out=kernel_test)
-            fac += msk_coefs[str(cutoff)]
-
-            # reload to remove memory, mmap so very fast
-            del soap_ref, descriptor
-            soap_ref = load_model_ref(sp,cutoff) 
-    
-        np.divide(kernel_test,fac,out=kernel_test)
-        y_pred = predict(kernel_test, model_msk['alpha'], model_msk['kernel_params']['zeta'])
-        if slopes!=None:
-            slope=slopes[str(sp)]
-            intercept=intercepts[str(sp)]
-            y_pred=shielding2shifts(y_pred,slope,intercept)
-
-        shielding[numbers == sp] = y_pred
-        #create_spectrum(sp,y_pred,is_debug)
-
-        celery_self.update_state(state='PROGRESS',
-                                 meta={'current': ii, 'total': len(sps),
-                                       'status': str(sp)})
-
-    np.round(shielding, decimals=4, out=shielding)
-    del kk,kernel_test
-    return shielding
 
 def get_json_for_visualizer(frame):
     # TODO get a working jmol
@@ -770,26 +649,6 @@ def get_cif(frame):
     write_cif(my_cif,frame)
     return my_cif.read()
 
-def get_magres(frame,shielding, slopes, intercepts):
-    # TODO change import to ase version when ase==3.16.0
-    from structure_importers.magres_io import write_magres
-    numbers = frame.get_atomic_numbers()
-    positions = frame.get_positions()
-    cell = frame.get_cell()
-    pbc = frame.get_pbc()
-    shielding_tensor =np.array([np.eye(3)*ss for ss in shielding])
-    new_frame = Atoms(numbers=numbers, positions=positions, cell=cell, pbc=pbc)
-    new_frame.set_array('ms'.encode('ascii', 'ignore'), shielding_tensor)
-    new_frame.info = {'magres_units': {'ms': 'ppm'},
-                      'magresblock_calculation': {'calc_code': [['ML_NMR']],
-                                                  'calc_code_version': [['svnunknown']],
-                                                  'calc_name': [['gpr']]}
-                      }
-
-    f_obj = DummyFileObject()
-
-    write_magres(f_obj, new_frame, ALPHA_ML_version, slopes,intercepts)
-    return f_obj.read()
 
 def get_json(frame):
     # {"mol":{"a":[{"l":H,"x":0,"y":0.5,"z":0},{"l":C,"x":1,"y":0.5,"z":0}],"b":[]}}
