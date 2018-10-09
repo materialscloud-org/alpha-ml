@@ -300,6 +300,21 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
 
     return [nat,omega,harmonic,orthoradint]
 
+##################################################################################################################
+
+def split_power_spectra(PS,frame):
+
+    natom = len(frame.get_chemical_symbols())
+    ps0_new = np.zeros((natom,1,len(PS[0][0,0])),dtype=complex)
+    ps2_new = np.zeros((natom,1,5,len(PS[1][0,0,0])),dtype=complex)
+    k = 0
+    for i in xrange(natom):
+        ps0_new[k,0,:] = PS[0][0,k,:]
+        ps2_new[k,0,:,:] = PS[1][0,k,:,:]
+        k += 1
+
+    return [ps0_new,ps2_new]
+
 #############################################################################################
 
 def get_kernel(lam,PS,frame,PS0):
@@ -316,12 +331,12 @@ def get_kernel(lam,PS,frame,PS0):
         # Firstly, read in training power spectrum
         pstrain = np.load('/home/app/data/PStrain_lam0.npy')
         ntrain = len(pstrain)
-        kreal = np.zeros((ntrain,1),dtype=float)
+        kreal = np.zeros((ntrain,nat2),dtype=float)
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
             for iat in xrange(nat1[i]):
                 for jat in xrange(nat2):
-                    kreal[i,0] += np.real(np.dot(pstrain[i,iat],np.conj(PS[0,jat])))**2
+                    kreal[i,jat] += np.real(np.dot(pstrain[i,iat],np.conj(PS[jat,0])))**2
             kreal[i,0] /= (nat1[i]*nat2)
 
     else:
@@ -330,24 +345,23 @@ def get_kernel(lam,PS,frame,PS0):
 #        pstrain  = np.load('/home/app/data/PStrain_lam2.npy')
         pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
         ntrain = len(pstrain0)
-        kreal = np.zeros((ntrain,1,2*lam+1,2*lam+1),dtype=float)
+        kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
         CR = complex_to_real_transformation(lam)
         CC = np.conj(CR)
         CT = np.transpose(CR)
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
-            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-            kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[0]))
-            kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[0].T)))
-            kernel = np.zeros((2*lam+1,2*lam+1),complex)
-            for iat in xrange(nat1[i]):
-                for jat in xrange(nat2):
-                    kernel += kerloc[iat,jat]*kerloc0[iat,jat]
-            kernel /= float(nat1[i]*nat2)
-            kreal[i,0] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
-
-#    print kreal[0,0]
+            for j in xrange(nat2):
+                pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
+                kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[j]))
+                kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[j].T)))
+                kernel = np.zeros((2*lam+1,2*lam+1),complex)
+                for iat in xrange(nat1[i]):
+#                    for jat in xrange(nat2):
+                    kernel += kerloc[iat,0]*kerloc0[iat,0]
+                kernel /= float(nat1[i]*nat2)
+                kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
 
     return kreal
 
@@ -361,13 +375,15 @@ def get_pol(kernels):
     weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
     weights2 = np.load('/home/app/data/weights_lm2.npy')
 
+    print "GOT TO HERE AT LEAST!"
+
     # Multiply weights vector by kernels to give predictions
     output0 = np.dot(weights0[0].T,kernels[0]) + weights0[1]
+    print output0,sum(output0)
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1][0])*len(kernels[1][0,0,0])))
 
     # Transform to Cartesian tensors and return
     outvec = [output0,output2]
-#    print len(output0),len(output2),len(output0[0]),len(output2[0])
     predcart = spherical_to_cartesian(outvec)
 
     return predcart
