@@ -251,7 +251,7 @@
 -->
 		<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
 
-			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Isotropic Chemical Shifts (Shieldings) with the atomic structure</h2>
+			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Polarizabilities with the atomic structure</h2>
 			<script type="text/javascript">
 
 				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
@@ -303,12 +303,12 @@
 
 		</div>
 			<div id='rawcode'>
-		<h2><a name="downloadablecoords"></a>Isotropic Chemical Shifts (Shieldings) Results</h2>
-			<p>Clic on the header to open a section</p>
+		<h2><a name="downloadablecoords"></a>Polarizability Results</h2>
+			<p>Click on the header to open a section</p>
 
 			<div id="accordion">
 
-			<h3>Raw data (JSON)</h3>
+				<h3>Raw data (JSON)</h3> <!--TODO: DMW: this part needs editing -->
 			<div>
 				<p>
 					<button class="clipboardbtn" data-clipboard-target="#rawcodedata">
@@ -345,46 +345,6 @@
 				</p>
 
 				<p><code id="rawcodedata">{{ raw_code|safe }}</code></p>
-			</div>
-
-			<h3>Magres File</h3>
-			<div>
-				<p>
-						The calculated shieldings/shifts are given as a tensor with the isotropic shielding/shift as all three diagonal elements.
-				</p>
-				<p>
-					<button class="clipboardbtn" data-clipboard-target="#magresdata">
-						<img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
-
-						<button class="clipboardbtn" type="button" id="save_magres" title="Download file">
-							<img src="../static/img/clippy.svg" width="12" alt="Download"/>&nbsp;Download</button>
-							<script type="text/template" id="magres_var" >
-								{{ magres_print|safe }}
-							</script>
-					    <script type="text/javascript">
-
-					        // when document is ready
-					        document.getElementById("save_magres").onclick = function() {
-
-											var str = encodeURIComponent(document.getElementById('magres_var').innerHTML.trim());
-											var uri = 'data:text/txt;charset=utf-8,' + str;
-
-												var downloadLink = document.createElement("a");
-												downloadLink.href = uri;
-												downloadLink.download = "ShiftML.magres";
-
-												document.body.appendChild(downloadLink);
-												downloadLink.click();
-												document.body.removeChild(downloadLink);
-					            	// other possibility?
-					            	//var content = document.getElementById('xyz_var').innerHTML.trim();
-					            	// a [save as] dialog will be shown
-					            	//window.open("data:application/txt," + encodeURIComponent(content),"_self");
-					        }
-					    </script>
-
-				</p>
-				<p><code id="magresdata">{{ magres_code|safe }}</code></p>
 			</div>
 
 			<h3>Extended XYZ</h3>
@@ -457,7 +417,7 @@
 
 
 	<div id='finalinfo'>
-			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. ShiftML version: {{ Shift_ML_version }}.
+			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. ShiftML version: {{ ALPHA_ML_version }}.
 	</div>
 
 </div>
