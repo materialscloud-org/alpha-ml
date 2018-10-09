@@ -334,10 +334,11 @@ def get_kernel(lam,PS,frame,PS0):
         kreal = np.zeros((ntrain,nat2),dtype=float)
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
-            for iat in xrange(nat1[i]):
-                for jat in xrange(nat2):
-                    kreal[i,jat] += np.real(np.dot(pstrain[i,iat],np.conj(PS[jat,0])))**2
-            kreal[i,0] /= (nat1[i]*nat2)
+            for j in xrange(nat2):
+                for iat in xrange(nat1[i]):
+#                for jat in xrange(nat2):
+                    kreal[i,j] += np.real(np.dot(pstrain[i,iat],np.conj(PS[j,0])))**2
+                kreal[i,j] /= (nat1[i]*1)
 
     else:
         # Compute nonlinear L=2 kernel of order 2
@@ -360,7 +361,7 @@ def get_kernel(lam,PS,frame,PS0):
                 for iat in xrange(nat1[i]):
 #                    for jat in xrange(nat2):
                     kernel += kerloc[iat,0]*kerloc0[iat,0]
-                kernel /= float(nat1[i]*nat2)
+                kernel /= float(nat1[i]*1)
                 kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
 
     return kreal
@@ -375,12 +376,14 @@ def get_pol(kernels):
     weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
     weights2 = np.load('/home/app/data/weights_lm2.npy')
 
-    print "GOT TO HERE AT LEAST!"
-
     # Multiply weights vector by kernels to give predictions
     output0 = np.dot(weights0[0].T,kernels[0]) + weights0[1]
-    print output0,sum(output0)
+    print len(kernels[1]),len(kernels[1][0]),len(kernels[1][0,0]),len(kernels[1][0,0,0])
+    k1 = kernels[1].transpose(0,2,1,3)
+    print len(k1),len(k1[0]),len(k1[0,0]),len(k1[0,0,0])
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1][0])*len(kernels[1][0,0,0])))
+
+    print "NOW HERE!"
 
     # Transform to Cartesian tensors and return
     outvec = [output0,output2]
