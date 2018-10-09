@@ -353,16 +353,30 @@ def get_kernel(lam,PS,frame,PS0):
         CT = np.transpose(CR)
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
+            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
             for j in xrange(nat2):
-                pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
                 kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[j]))
                 kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[j].T)))
+#                print "HERE",len(kerloc),len(kerloc[0]),len(kerloc[0,0]) # N 1 5
                 kernel = np.zeros((2*lam+1,2*lam+1),complex)
                 for iat in xrange(nat1[i]):
 #                    for jat in xrange(nat2):
                     kernel += kerloc[iat,0]*kerloc0[iat,0]
                 kernel /= float(nat1[i]*1)
                 kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
+
+
+#            kreal = np.zeros((npoints1,npoints2,2*lam+1,2*lam+1),dtype=float)
+#            for i in xrange(npoints1):
+#                for j in xrange(npoints2):
+#                    kerloc = np.einsum('amk,bnk->abmn',ps1[i],np.conj(ps2[j]))
+#                    kerloc0 = np.real(np.dot(ps01[i],np.conj(ps02[j].T)))**(int(zeta)-1)
+#                    kernel = np.zeros((2*lam+1,2*lam+1),complex)
+#                    for iat in xrange(nat1[i]):
+#                        for jat in xrange(nat2[j]):
+#                            kernel += kerloc[iat,jat]*kerloc0[iat,jat]
+#                    kernel /= float(nat1[i]*nat2[j])
+#                    kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
 
     return kreal
 
@@ -377,17 +391,27 @@ def get_pol(kernels):
     weights2 = np.load('/home/app/data/weights_lm2.npy')
 
     # Multiply weights vector by kernels to give predictions
-    output0 = np.dot(weights0[0].T,kernels[0]) + weights0[1]
-    print len(kernels[1]),len(kernels[1][0]),len(kernels[1][0,0]),len(kernels[1][0,0,0])
-    k1 = kernels[1].transpose(0,2,1,3)
-    print len(k1),len(k1[0]),len(k1[0,0]),len(k1[0,0,0])
-    output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1][0])*len(kernels[1][0,0,0])))
+#    print len(kernels[0]),len(kernels[0][0])
+#    print len(weights0[0].T),len(weights0[0].T[0])
+#    print len(np.dot(weights0[0].T,kernels[0])),len(np.dot(weights0[0].T,kernels[0])[0])
+#    print len((np.dot(weights0[0].T,kernels[0]) + weights0[1])),len((np.dot(weights0[0].T,kernels[0]) + weights0[1])[0])
+    output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
+    output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1])*len(kernels[1][0,0,0])).T)
 
-    print "NOW HERE!"
+#    print "NOW HERE!"
+#    print len(output0),len(output2)
 
     # Transform to Cartesian tensors and return
-    outvec = [output0,output2]
-    predcart = spherical_to_cartesian(outvec)
+    outvec = [[np.array(output0[i]),output2[i*5:(i+1)*5]] for i in xrange(len(kernels[1][0]))]
+
+    print outvec
+
+    print sum(output0)
+
+#    print outvec
+    predcart = [spherical_to_cartesian(outvec[i]) for i in xrange(len(kernels[1][0]))]
+
+    print predcart
 
     return predcart
 

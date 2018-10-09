@@ -474,9 +474,11 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     # Combine with training set spectra
     all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
     # Apply weights to predict polarizability
-    polarizability = np.array(get_pol(all_ker))
+    pols = np.array(get_pol(all_ker))
+    polarizability = sum(pols)
+    print polarizability
     # Multiply by number of atoms
-    polarizability *= len(frame.get_chemical_symbols())
+#    polarizability *= len(frame.get_chemical_symbols())
 
 
     # For visualization purposes, translate the molecule so that it is in the unit cell.
