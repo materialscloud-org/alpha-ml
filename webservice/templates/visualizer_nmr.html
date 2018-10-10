@@ -251,7 +251,7 @@
 -->
 		<div id="jmolapp" style="margin-left: auto; margin-right: auto; position: relative;top: 0;left: 0;height: 0%;width: 70%;border: 0;">
 
-			<h2><a name="vizualizer"></a>JSmol Vizualization of the Predicted Polarizabilities with the atomic structure</h2>
+			<h2><a name="vizualizer"></a>JSmol Visualization of the Predicted Polarizabilities with the atomic structure</h2>
 			<script type="text/javascript">
 
 				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
@@ -262,7 +262,8 @@
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
 				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
-				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
+//				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
+                                var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0;";
 				// TODO when selecting all shifts we get all atoms labels
 				// TODO if we select only certain atoms and we change cell we lose the selection
 				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
