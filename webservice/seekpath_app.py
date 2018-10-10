@@ -476,7 +476,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     # Apply weights to predict polarizability
     pols = np.array(get_pol(all_ker))
     polarizability = sum(pols)
-    print polarizability
+#    print polarizability
     # Multiply by number of atoms
 #    polarizability *= len(frame.get_chemical_symbols())
 

@@ -391,33 +391,13 @@ def get_pol(kernels):
     weights2 = np.load('/home/app/data/weights_lm2.npy')
 
     # Multiply weights vector by kernels to give predictions
-#    print len(kernels[0]),len(kernels[0][0])
-#    print len(weights0[0].T),len(weights0[0].T[0])
-#    print len(np.dot(weights0[0].T,kernels[0])),len(np.dot(weights0[0].T,kernels[0])[0])
-#    print len((np.dot(weights0[0].T,kernels[0]) + weights0[1])),len((np.dot(weights0[0].T,kernels[0]) + weights0[1])[0])
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(len(kernels[1])*len(kernels[1][0,0,0]),len(kernels[1][0])*len(kernels[1][0,0])))
-
-#    print len(weights2.T),len(weights0[0].T)
-#    print len(kernels[1])
-#    print len(kernels[1][0]),len(kernels[1][0,0]),len(kernels[1][0,0,0])
-
-#    output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(-1,len(kernels[1][0])*len(kernels[1][0,0,0]))) # This is what it was before.
-
-#    print "NOW HERE!"
-#    print len(output0),len(output2)
 
     # Transform to Cartesian tensors and return
     outvec = [[np.array(output0[i]),output2[i*5:(i+1)*5]] for i in xrange(len(kernels[1][0]))]
 
-#    print outvec
-
-#    print sum(output0)
-
-#    print outvec
     predcart = [spherical_to_cartesian(outvec[i]) for i in xrange(len(kernels[1][0]))]
-
-#    print predcart
 
     return predcart
 
