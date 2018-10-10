@@ -365,19 +365,6 @@ def get_kernel(lam,PS,frame,PS0):
                 kernel /= float(nat1[i]*1)
                 kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
 
-
-#            kreal = np.zeros((npoints1,npoints2,2*lam+1,2*lam+1),dtype=float)
-#            for i in xrange(npoints1):
-#                for j in xrange(npoints2):
-#                    kerloc = np.einsum('amk,bnk->abmn',ps1[i],np.conj(ps2[j]))
-#                    kerloc0 = np.real(np.dot(ps01[i],np.conj(ps02[j].T)))**(int(zeta)-1)
-#                    kernel = np.zeros((2*lam+1,2*lam+1),complex)
-#                    for iat in xrange(nat1[i]):
-#                        for jat in xrange(nat2[j]):
-#                            kernel += kerloc[iat,jat]*kerloc0[iat,jat]
-#                    kernel /= float(nat1[i]*nat2[j])
-#                    kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
-
     return kreal
 
 #############################################################################################
@@ -460,3 +447,39 @@ def get_CS_matrix(rank,mask1,mask2):
 
     return CS
 
+#############################################################################################
+
+def reorder_polarizabilities(pols,frame):
+
+    atom_valence = {"H": 1,"He": 2,"Li": 3,"Be": 4,"B": 5,"C": 6,"N": 7,"O": 8,"F": 9,"Ne": 10,"Na": 11,"Mg": 12,"Al": 13,"Si": 14,"P": 15,"S": 16,"Cl": 17,"Ar": 18,"K": 19,"Ca": 20,"Sc": 21,"Ti": 22,"V": 23,"Cr": 24,"Mn": 25,"Fe": 26,"Co": 27,"Ni": 28,"Cu": 29,"Zn": 30}
+    atom_symbols = {1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne', 11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar', 19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn'}
+    nsmax = 26
+
+    cen = [atom_symbols[num] for num in list(set([atom_valence[centre] for centre in ["C","Cl","H","N","O","S"]]))]
+    all_names = frame.get_chemical_symbols()
+    unique_names = list(set([name for name in cen]))
+    all_species = []
+    for k in unique_names:
+        all_species.append(atom_valence[k])
+
+    atom_indexes = [[] for j in xrange(nsmax)]
+    natmax = len(all_names)
+    for ii in xrange(natmax):
+        for j in all_species:
+            if all_names[ii] == atom_symbols[j]:
+                atom_indexes[j].append(ii)
+
+#    print atom_indexes
+#    print len(atom_indexes)
+
+#    reorder_data = []
+#    for i in xrange(len(atom_indexes)):
+#        if (len(atom_indexes[i]) > 0):
+#            reorder_data.append(np.concatenate(atom_indexes[i]).astype(int))
+
+    reorder_data = np.concatenate(atom_indexes).astype(int)
+    pols2 = [None for i in xrange(len(pols))]
+    for i in xrange(len(pols)):
+        pols2[reorder_data[i]] = pols[i]
+
+    return pols2
