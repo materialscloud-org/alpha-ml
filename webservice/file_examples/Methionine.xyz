@@ -1,5 +1,5 @@
 20
-Lattice="30.0 0.0 0.0 0.0 30.0 0.0 0.0 0.0 30.0" Properties=species:S:1:pos:R:3:Z:I:1 unit_cell=conventional pbc="T T T"
+Lattice="25.0 0.0 0.0 0.0 25.0 0.0 0.0 0.0 25.0" Properties=species:S:1:pos:R:3:Z:I:1 unit_cell=conventional pbc="T T T"
 S	 2.2200744478	 0.5971397083	 0.5971962670	16
 O	-1.8095088322	 1.5944358783	-0.5504762330	8
 O	-3.2977664322	 0.0952663683	 0.2444943370	8
