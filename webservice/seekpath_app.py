@@ -476,9 +476,8 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     # Apply weights to predict polarizability
     pols = np.array(get_pol(all_ker))
     polarizability = sum(pols)
-#    print polarizability
-    # Multiply by number of atoms
-#    polarizability *= len(frame.get_chemical_symbols())
+
+    #TODO: This should be done for different models (CCSD, B3LYP, DELTA)
 
     # Currently the atom-centred polarizabilities have to be reordered; do this here
     pols = reorder_polarizabilities(pols,frame)
@@ -518,15 +517,13 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
         '\n', '<br>').replace(' ', '&nbsp;')
     xyz_print = str(get_xyz(frame, shielding, slopes, intercepts,polarizability,pols))
 
-####TODO: SOME OF THIS IS BOLD AND SHOULDN'T BE IN THE FINAL PRINTED VERSION.
-
-    tmp=xyz.split('<br>')
-    for it in range(2,len(tmp)):
-        tmp[it]=rreplace(tmp[it],'&nbsp;','&nbsp;<b>',10)
-        tmp[it]=rreplace(tmp[it],'&nbsp;<b>','</b>&nbsp;',9)
-        tmp[it]=rreplace(tmp[it],'</b>&nbsp;','&nbsp;',8)
-        tmp[it]=rreplace(tmp[it],'0000','',1)
-    xyz='<br>'.join([str(x) for x in tmp])
+#    tmp=xyz.split('<br>')
+#    for it in range(2,len(tmp)):
+#        tmp[it]=rreplace(tmp[it],'&nbsp;','&nbsp;<b>',10)
+#        tmp[it]=rreplace(tmp[it],'&nbsp;<b>','</b>&nbsp;',9)
+#        tmp[it]=rreplace(tmp[it],'</b>&nbsp;','&nbsp;',8)
+#        tmp[it]=rreplace(tmp[it],'0000','',1)
+#    xyz='<br>'.join([str(x) for x in tmp])
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
