@@ -345,7 +345,7 @@ def process_structure():
             # return flask.redirect(flask.url_for('input_structure'))
             return jsonify(message=e.message),500
 
-        task = predict_chemical_shifts.apply_async(
+        task = predict_polarizabilities.apply_async(
                 kwargs=dict(filecontent=filecontent, fileformat=fileformat,
                 		     slopes=slopes, intercepts=intercepts,
                 			call_source=call_source, request_info=request_info))
@@ -363,14 +363,14 @@ def process_structure():
 @app.route('/Chemical_Shielding_Predictions/<task_id>')
 def longtask_completed(task_id):
     from flask import render_template
-    task = predict_chemical_shifts.AsyncResult(task_id)
+    task = predict_polarizabilities.AsyncResult(task_id)
     #print task.info['data']
     return render_template('visualizer.html', **task.info['data'])
 
 
 @app.route('/status/<task_id>')
 def taskstatus(task_id):
-    task = predict_chemical_shifts.AsyncResult(task_id)
+    task = predict_polarizabilities.AsyncResult(task_id)
     if task.state == 'PENDING':
         response = {
             'state': task.state,
@@ -420,7 +420,7 @@ def utility_processor():
 # THE MAIN FUNCTIONALITY
 
 @celery.task(bind=True)
-def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, call_source="", request_info=None):
+def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, call_source="", request_info=None):
 
     # from structure_importers import get_structure
     import io,time,copy, json, jinja2
@@ -491,7 +491,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
     frame.set_positions(pos_tr)
 
-    shielding = get_dummy_work(self, frame)
+#    shielding = get_dummy_work(self, frame)
     #TODO: FOR NOW, I KEEP THE SHIELDING VALUES IN, BUT THESE WILL NOT NEED TO BE COMPUTED ANY MORE.
 
     compute_time = time.time() - start_time
@@ -538,7 +538,7 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
         raw_print=raw_print,
 #        magres_code=magres_code,
 #        magres_print=magres_print,
-        shielding=shielding.tolist(),
+#        shielding=shielding.tolist(),
 #        polarizability=polarizability.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
@@ -595,19 +595,9 @@ def load_model_ref(sp,cutoff):
 def get_json_for_visualizer(frame,pols):
     # TODO get a working jmol
     response = {}
-#    response['numbers'] = frame.get_atomic_numbers().tolist()
     response['positions'] = frame.get_positions().tolist()
-#    response['cell'] = frame.get_cell().tolist()
-#    response['pbc'] = frame.get_pbc().tolist()
     # Put in polarizabilities
-#    print frame.get_positions().tolist()
-#    print pols
-#    print [pols[i].tolist() for i in xrange(len(pols))]
     response['polarizabilities'] = [pols[i].tolist() for i in xrange(len(pols))]
-
-
-
-#            xyz_file += symbols[i] + ('{:>17.8f}'*3).format(positions[i][0],positions[i][1],positions[i][2]) + '    ' + ('{:>11.6f}'*6).format(pols[i][0],pols[i][4],pols[i][8],pols[i][1],pols[i][2],pols[i][7]) + '\n'
 
     return response
 
@@ -654,10 +644,6 @@ def get_xyz(frame,shielding, slopes, intercepts,polarizability,pols):
     xyz_file += 'Lattice="' + str(frame.get_cell()[0][0]) + ' 0.0 0.0 0.0 ' + str(frame.get_cell()[1][1]) + ' 0.0 0.0 0.0 ' + str(frame.get_cell()[2][2]) + '" Properties=species:S:1:pos:R:3:axx:R:1:ayy:R:1:azz:R:1:axy:R:1:axz:R:1:ayz:R:1 ' + disclaimer_str + '\n'
     for i in xrange(len(positions)):
         xyz_file += symbols[i] + ('{:>17.8f}'*3).format(positions[i][0],positions[i][1],positions[i][2]) + '    ' + ('{:>11.6f}'*6).format(pols[i][0],pols[i][4],pols[i][8],pols[i][1],pols[i][2],pols[i][7]) + '\n'
-
-#    xyz_idx = xyz_file.find('\n')
-#    xyz_idx += xyz_file[xyz_idx+1:-1].find('\n')
-#    xyz_file = xyz_file[0:xyz_idx+1]+disclaimer_str+xyz_file[xyz_idx+1:-1]
 
     return xyz_file
 
