@@ -486,7 +486,8 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
     #TODO: Presumably this is unnecessary and we could do this with Jmol.
     pos = frame.get_positions()
     box = frame.get_cell()
-    half_cell = [box[0,0]*0.5,box[1,1]*0.5,box[2,2]*0.5]
+#    half_cell = [box[0,0]*0.5,box[1,1]*0.5,box[2,2]*0.5]
+    half_cell = [12.5,12.5,12.5]
     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
     frame.set_positions(pos_tr)
 
@@ -495,11 +496,11 @@ def predict_chemical_shifts(self, filecontent, fileformat, slopes, intercepts, c
 
     compute_time = time.time() - start_time
 
-    out_json_data = get_json_for_visualizer(frame)
+    out_json_data = get_json_for_visualizer(frame,pols)
 
     raw_code_dict = copy.copy(out_json_data)
 
-    raw_code_dict.update({'IsotropicChemicalShielding': shielding.tolist()})
+#    raw_code_dict.update({'IsotropicChemicalShielding': shielding.tolist()})
 
     raw_code = json.dumps(raw_code_dict, indent=2)
     ## I manually escape it to then add <br> and pass it to a filter with
@@ -591,13 +592,22 @@ def load_model_ref(sp,cutoff):
     fn = dataPath+ 'model_sp_{}_c_{}-soap_ref.npy'.format(z2symb[sp],cutoff)
     return np.load(fn,mmap_mode='r')
 
-def get_json_for_visualizer(frame):
+def get_json_for_visualizer(frame,pols):
     # TODO get a working jmol
     response = {}
-    response['numbers'] = frame.get_atomic_numbers().tolist()
+#    response['numbers'] = frame.get_atomic_numbers().tolist()
     response['positions'] = frame.get_positions().tolist()
-    response['cell'] = frame.get_cell().tolist()
-    response['pbc'] = frame.get_pbc().tolist()
+#    response['cell'] = frame.get_cell().tolist()
+#    response['pbc'] = frame.get_pbc().tolist()
+    # Put in polarizabilities
+#    print frame.get_positions().tolist()
+#    print pols
+#    print [pols[i].tolist() for i in xrange(len(pols))]
+    response['polarizabilities'] = [pols[i].tolist() for i in xrange(len(pols))]
+
+
+
+#            xyz_file += symbols[i] + ('{:>17.8f}'*3).format(positions[i][0],positions[i][1],positions[i][2]) + '    ' + ('{:>11.6f}'*6).format(pols[i][0],pols[i][4],pols[i][8],pols[i][1],pols[i][2],pols[i][7]) + '\n'
 
     return response
 
