@@ -258,7 +258,8 @@
 				var structure = '{{ jsmol_pos | safe }}';
 				var prefix = 'set forceAutoBond ON;load data "model current_model"'
 				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
-        var cell = 'set axes UNITCELL;set axes OFF;set unitcell OFF; set axesUnitcell OFF;set displayCellParameters TRUE;';
+				var suffix = 'end "model current_model" spacegroup "ignoreOperators";';
+       			 	var cell = 'set axes UNITCELL;set axes OFF;set unitcell OFF; set axesUnitcell OFF;set displayCellParameters TRUE;';
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 
 //				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'

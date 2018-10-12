@@ -470,13 +470,13 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Currently the atom-centred polarizabilities have to be reordered; do this here
     pols = reorder_polarizabilities(pols,frame)
 
-    # For visualization purposes, translate the molecule so that it is in the unit cell.
-    #TODO: Presumably this is unnecessary and we could do this with Jmol.
-    pos = frame.get_positions()
-#    box = frame.get_cell()
-    half_cell = [12.5,12.5,12.5]                             ###TODO: ONCE THE UNIT-CELL DEPENDENCE IS REMOVED WE SHOULD BE ABLE TO GET RID OF THIS AS WELL.
-    pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
-    frame.set_positions(pos_tr)
+#####     # For visualization purposes, translate the molecule so that it is in the unit cell.
+#####     #TODO: Presumably this is unnecessary and we could do this with Jmol.
+#####     pos = frame.get_positions()
+##### #    box = frame.get_cell()
+#####     half_cell = [12.5,12.5,12.5]                             ###TODO: ONCE THE UNIT-CELL DEPENDENCE IS REMOVED WE SHOULD BE ABLE TO GET RID OF THIS AS WELL.
+#####     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
+#####     frame.set_positions(pos_tr)
 
     compute_time = time.time() - start_time
 
@@ -502,7 +502,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
         xyz=xyz,
         xyz_print=xyz_print,
         jsmol_pos=jsmol_pos,
-        jsmol_cell=jsmol_cell,
+#        jsmol_cell=jsmol_cell,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
         raw_print=raw_print,
@@ -584,7 +584,6 @@ def get_xyz(frame,polarizability,pols):
     disclaimer_str += ' They are subject to the terms of use (https://alphaml.epfl.ch).'
     disclaimer_str += ' Please read and cite the following:'
     disclaimer_str += ' David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning (submitted)."'
-#    xyz_file = f_obj.read()
 
     # Insert the atom-centred polarizabilities
     xyz_file = str(len(frame.get_chemical_symbols())) + '\n'
@@ -612,7 +611,9 @@ def get_json(frame):
     cell = frame.get_cell().flatten()
     cell_string = ''
     for ss in cell:
-        cell_string += ' {:.4f} '.format(ss)
+#        cell_string += ' {:.4f} '.format(ss)
+        cell_string += ' {:.4f} '.format(0.0)
+
     return pos_string, cell_string
 
 spkitMax = {8: 88, 1: 132, 6: 148, 7: 112}
