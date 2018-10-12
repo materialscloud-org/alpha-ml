@@ -22,14 +22,14 @@ import jinja2
 #import spglib  # Mainly to get its version
 
 import sys
-sys.path.insert(0,'/local/git/glosim2/')
-sys.path.insert(0,'/home/app/git/glosim2/')
-sys.path.insert(0,'/Users/iMac/git/glosim2/')
-sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
+#sys.path.insert(0,'/local/git/glosim2/')
+#sys.path.insert(0,'/home/app/git/glosim2/')
+#sys.path.insert(0,'/Users/iMac/git/glosim2/')
+#sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
 
 
 
-from libmatch.soap import get_Soaps
+#from libmatch.soap import get_Soaps
 import cPickle as pck
 from scipy.spatial.distance import pdist
 
