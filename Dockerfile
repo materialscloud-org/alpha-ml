@@ -93,8 +93,8 @@ RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython
 RUN pip2 install matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6
 
 
-RUN cd $HOME/git/  \
-    && git clone https://github.com/cosmo-epfl/glosim2.git
+### RUN cd $HOME/git/  \
+###     && git clone https://github.com/cosmo-epfl/glosim2.git
 
 
 USER root
