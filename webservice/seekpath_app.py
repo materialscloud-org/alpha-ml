@@ -29,15 +29,6 @@ from ase.io import write
 import datetime
 from sagpr import *
 
-
-#sys.path.insert(0,'/local/git/glosim2/')
-#sys.path.insert(0,'/home/app/git/glosim2/')
-#sys.path.insert(0,'/Users/iMac/git/glosim2/')
-#sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
-#sys.path.insert(0,'/Users/albert/Git/glosim2/')
-
-#from libmatch.soap import get_Soaps
-
 logger = logging.getLogger("seekpath_server")
 logHandler = logging.handlers.TimedRotatingFileHandler(
     os.path.join(
@@ -624,13 +615,13 @@ def get_json(frame):
         cell_string += ' {:.4f} '.format(ss)
     return pos_string, cell_string
 
-def ase2qp(aseatoms):
-    from quippy import Atoms as qpAtoms
-    positions = aseatoms.get_positions()
-    cell = aseatoms.get_cell()
-    numbers = aseatoms.get_atomic_numbers()
-    pbc = aseatoms.get_pbc()
-    return qpAtoms(numbers=numbers,cell=cell,positions=positions,pbc=pbc)
+###def ase2qp(aseatoms):
+###    from quippy import Atoms as qpAtoms
+###    positions = aseatoms.get_positions()
+###    cell = aseatoms.get_cell()
+###    numbers = aseatoms.get_atomic_numbers()
+###    pbc = aseatoms.get_pbc()
+###    return qpAtoms(numbers=numbers,cell=cell,positions=positions,pbc=pbc)
 
 spkitMax = {8: 88, 1: 132, 6: 148, 7: 112}
 

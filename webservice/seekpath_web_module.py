@@ -39,7 +39,7 @@ import celery
 
 from seekpath_app import PROGRESS_BAR_TIMEOUT,is_fast_dev,is_debug,dataPath,MAX_NUMBER_OF_ATOMS
 
-
+###TODO: HERE CHANGE ALL SHIFTML TO ALPHAML
 
 ############################
 

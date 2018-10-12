@@ -77,14 +77,14 @@ COPY GAP $HOME/git/QUIP/src/GAP
 COPY Makefile.inc $HOME/git/QUIP/build/linux_x86_64_gfortran/
 
 # Install QUIP and quippy for the user
-RUN cd $HOME/git/QUIP/ \
-    && export QUIP_ARCH=linux_x86_64_gfortran \
-    && make
+### RUN cd $HOME/git/QUIP/ \
+###     && export QUIP_ARCH=linux_x86_64_gfortran \
+###     && make
 
-RUN cd $HOME/git/QUIP/ \
-    && export QUIP_ARCH=linux_x86_64_gfortran \
-    && make quippy \
-    && make QUIPPY_INSTALL_OPTS=--user install-quippy
+### RUN cd $HOME/git/QUIP/ \
+###     && export QUIP_ARCH=linux_x86_64_gfortran \
+###     && make quippy \
+###     && make QUIPPY_INSTALL_OPTS=--user install-quippy
 
 RUN mkdir $HOME/code
 
