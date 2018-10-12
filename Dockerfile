@@ -59,43 +59,15 @@ RUN apt-get update \
 # set $HOME
 ENV HOME /home/app
 
-
 USER app
-### INSTALL QUIP
+
 RUN pip2 install --upgrade --user ase==3.15.0 matplotlib==2.2.3
-
-# fetch QUIP, GAP and shortcut files to install linux_x86_64_gfortran architecture
-RUN mkdir $HOME/git \
-    && cd $HOME/git/ \
-    && git clone --recursive https://github.com/libAtoms/QUIP.git \
-    && cd $HOME/git/QUIP \
-    && git checkout 95da7aad1f48a6f78e5effce8de82f114e37606f \
-    && mkdir $HOME/git/QUIP/build/ \
-    && mkdir $HOME/git/QUIP/build/linux_x86_64_gfortran/
-
-COPY GAP $HOME/git/QUIP/src/GAP
-COPY Makefile.inc $HOME/git/QUIP/build/linux_x86_64_gfortran/
-
-# Install QUIP and quippy for the user
-### RUN cd $HOME/git/QUIP/ \
-###     && export QUIP_ARCH=linux_x86_64_gfortran \
-###     && make
-
-### RUN cd $HOME/git/QUIP/ \
-###     && export QUIP_ARCH=linux_x86_64_gfortran \
-###     && make quippy \
-###     && make QUIPPY_INSTALL_OPTS=--user install-quippy
 
 RUN mkdir $HOME/code
 
 RUN pip2 install numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython==5.4 scikit-learn==0.19.1 
 
 RUN pip2 install matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6
-
-
-### RUN cd $HOME/git/  \
-###     && git clone https://github.com/cosmo-epfl/glosim2.git
-
 
 USER root
 

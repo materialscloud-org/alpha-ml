@@ -615,14 +615,6 @@ def get_json(frame):
         cell_string += ' {:.4f} '.format(ss)
     return pos_string, cell_string
 
-###def ase2qp(aseatoms):
-###    from quippy import Atoms as qpAtoms
-###    positions = aseatoms.get_positions()
-###    cell = aseatoms.get_cell()
-###    numbers = aseatoms.get_atomic_numbers()
-###    pbc = aseatoms.get_pbc()
-###    return qpAtoms(numbers=numbers,cell=cell,positions=positions,pbc=pbc)
-
 spkitMax = {8: 88, 1: 132, 6: 148, 7: 112}
 
 z2symb = {

@@ -22,14 +22,7 @@ import jinja2
 #import spglib  # Mainly to get its version
 
 import sys
-#sys.path.insert(0,'/local/git/glosim2/')
-#sys.path.insert(0,'/home/app/git/glosim2/')
-#sys.path.insert(0,'/Users/iMac/git/glosim2/')
-#sys.path.insert(0,'/Users/fedeparuzzo/git/glosim2/')
 
-
-
-#from libmatch.soap import get_Soaps
 import cPickle as pck
 from scipy.spatial.distance import pdist
 
@@ -164,7 +157,7 @@ def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=
             extra={
                 'form_data': form_data,
             })
-        raise FlaskRedirectException("Problem with the parsing of the atoms")
+        raise FlaskRedirectException("Problem with atom parsing")
 
     except WrongCellFormat:
         logme(
@@ -176,7 +169,7 @@ def read_test_frame(filecontent,fileformat,call_source,request_info, extra_data=
             extra={
                 'form_data': form_data,
             })
-        raise FlaskRedirectException("Problem with the parsing of the cell")
+        raise FlaskRedirectException("Problem with cell parsing")
 
     except WrongDensity:
         logme(
