@@ -290,7 +290,7 @@ def process_structure():
             if outputformat=='shifts_intref':
                  slopes=json.dumps({1:1,6:1,7:1,8:1})
                  intercepts=json.dumps({1:30.8,6:169.5,7:185,8:248})
-            elif outputformat=='shifts_extref':
+            elif outputformat=='shifts_extref':                                     ###TODO: THIS SHOULD BE TIDIED UP.
                  Hs=flask.request.form.get('Hs','unknown')
                  Hi=flask.request.form.get('Hi','unknown')
                  Cs=flask.request.form.get('Cs','unknown')
@@ -304,9 +304,6 @@ def process_structure():
                  slopes=json.dumps(slopes)
                  intercepts=json.dumps(intercepts)
 
-#            print outputformat
-#            print slopes
-#            print intercepts
             filecontent = structurefile.read()
             call_source = "process_structure"
 
@@ -359,7 +356,7 @@ def process_structure():
         return flask.redirect(flask.url_for('input_structure'))
 
 
-@app.route('/Chemical_Shielding_Predictions/')
+@app.route('/Chemical_Shielding_Predictions/')                                       ###TODO: REFERENCES TO CHEMICAL SHIELDING SHOULD BE REMOVED
 @app.route('/Chemical_Shielding_Predictions/<task_id>')
 def longtask_completed(task_id):
     from flask import render_template
@@ -490,16 +487,11 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
     frame.set_positions(pos_tr)
 
-#    shielding = get_dummy_work(self, frame)
-    #TODO: FOR NOW, I KEEP THE SHIELDING VALUES IN, BUT THESE WILL NOT NEED TO BE COMPUTED ANY MORE.
-
     compute_time = time.time() - start_time
 
     out_json_data = get_json_for_visualizer(frame,pols)
 
     raw_code_dict = copy.copy(out_json_data)
-
-#    raw_code_dict.update({'IsotropicChemicalShielding': shielding.tolist()})
 
     raw_code = json.dumps(raw_code_dict, indent=2)
     ## I manually escape it to then add <br> and pass it to a filter with
@@ -509,21 +501,9 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
 
-#    magres_code = str(jinja2.escape(get_magres(frame,shielding, slopes, intercepts))).replace(
-#        '\n', '<br>').replace(' ', '&nbsp;')
-#    magres_print = str(get_magres(frame,shielding, slopes, intercepts))
-
     xyz = str(jinja2.escape(get_xyz(frame,polarizability,pols))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
     xyz_print = str(get_xyz(frame,polarizability,pols))
-
-#    tmp=xyz.split('<br>')
-#    for it in range(2,len(tmp)):
-#        tmp[it]=rreplace(tmp[it],'&nbsp;','&nbsp;<b>',10)
-#        tmp[it]=rreplace(tmp[it],'&nbsp;<b>','</b>&nbsp;',9)
-#        tmp[it]=rreplace(tmp[it],'</b>&nbsp;','&nbsp;',8)
-#        tmp[it]=rreplace(tmp[it],'0000','',1)
-#    xyz='<br>'.join([str(x) for x in tmp])
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
@@ -535,10 +515,6 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
         raw_print=raw_print,
-#        magres_code=magres_code,
-#        magres_print=magres_print,
-#        shielding=shielding.tolist(),
-#        polarizability=polarizability.tolist(),
         inputstructure_cell_vectors=inputstructure_cell_vectors,
         inputstructure_atoms_scaled=inputstructure_atoms_scaled,
         inputstructure_atoms_cartesian=inputstructure_atoms_cartesian,
@@ -606,11 +582,6 @@ def get_xyz(frame,polarizability,pols):
     cell = frame.get_cell()
     pbc = frame.get_pbc()
     new_frame = Atoms(numbers=numbers, positions=positions, cell=cell, pbc=pbc)
-#    new_frame.set_array('ChemicalShielding'.encode('ascii', 'ignore'), shielding)
-    # prop_ref = frame[0].get_array('CS')[np.where(numbers == 1)[0]]
-
-    # print new_frame.get_array('ChemicalShielding')
-    # write(fn,new_frame,format='extxyz')
     f_obj = DummyFileObject()
 
     write_xyz(f_obj, new_frame)
@@ -698,65 +669,65 @@ def rreplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
     return new.join(li)
 
-def rm_spectra():
-    import subprocess
-    simbols={1:'H',6:'C',7:'N',8:'O'}
-    if is_debug:
-        fig_name='static/jsmol/data/uploaded/*SPECTRUM*'
-        fig_name =os.path.abspath(fig_name)
-    else:
-        fig_name ='/home/app/code/webservice/static/jsmol/data/*SPECTRUM*'
-
-    command='rm {}'.format(fig_name)
-    subprocess.call(command, shell=True)
-
-def create_spectrum(sp, shielding, is_debug):
-    import matplotlib.pyplot as plt
-    colors={1:'#1d4484',6:'#E42828',7:'#A3CB58',8:'#F47531'}
-    increment={1:2,6:5,7:10,8:10}
-    simbols={1:'H',6:'C',7:'N',8:'O'}
-    labels={1:'$^1$H',6:'$^{13}$C',7:'$^{15}$N',8:'$^{17}$O'}
-
-
-    #llim={1:-2,6:-5,7:-10,8:-50}
-    #rlim={1:12,6:200,7:400,8:400}
-    #if llim[sp]>min(shielding[numbers == sp]):
-    #    llim[sp]=min(shielding[numbers == sp])-increment[sp]
-    #if rlim[sp]<max(shielding[numbers == sp]):
-    #    rlim[sp]=max(shielding[numbers == sp])+increment[sp]
-    #t = np.arange(llim[sp], rlim[sp], 0.01)
-
-    f = np.arange((min(shielding)-increment[sp]), (max(shielding)+increment[sp]), 0.01)
-    i = np.zeros(len(f))
-    idx=[np.isclose(f, it) for it in shielding]
-    i[np.where(sum(idx)<>0)]=1
-
-    plt.figure(figsize=(12,5),frameon=False)
-    plt.tick_params(axis='y',which='both',left='off', labelleft='off')
-    plt.plot(f,i,color=colors[sp])
-    ax = plt.gca()
-    ax.tick_params(direction='in', length=3, width=2, labelsize=16, pad=10)
-    ax.yaxis.set_ticks_position('none')
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.set_xlim(min(f), max(f));
-    ax.set_xlabel("{} Chemical Shifts / ppm".format(labels[sp]),fontsize=22)
-
-    if is_debug:
-        fig_name = 'static/jsmol/data/uploaded/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
-        fig_name = os.path.abspath(fig_name)
-    else:
-        fig_name = '/home/app/code/webservice/static/jsmol/data/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
-
-    plt.savefig(fig_name, bbox_inches='tight')
-    return 1
-
-
-if __name__ == "__main__":
-    # Don't use x-sendfile when testing it, because this is only good
-    # if deployed with Apache
-    # Use the local version of seekpath, not the installed one
-
-    app.use_x_sendfile = False
-    app.run(debug=True)
+### def rm_spectra():
+###     import subprocess
+###     simbols={1:'H',6:'C',7:'N',8:'O'}
+###     if is_debug:
+###         fig_name='static/jsmol/data/uploaded/*SPECTRUM*'
+###         fig_name =os.path.abspath(fig_name)
+###     else:
+###         fig_name ='/home/app/code/webservice/static/jsmol/data/*SPECTRUM*'
+### 
+###     command='rm {}'.format(fig_name)
+###     subprocess.call(command, shell=True)
+### 
+### def create_spectrum(sp, shielding, is_debug):
+###     import matplotlib.pyplot as plt
+###     colors={1:'#1d4484',6:'#E42828',7:'#A3CB58',8:'#F47531'}
+###     increment={1:2,6:5,7:10,8:10}
+###     simbols={1:'H',6:'C',7:'N',8:'O'}
+###     labels={1:'$^1$H',6:'$^{13}$C',7:'$^{15}$N',8:'$^{17}$O'}
+### 
+### 
+###     #llim={1:-2,6:-5,7:-10,8:-50}
+###     #rlim={1:12,6:200,7:400,8:400}
+###     #if llim[sp]>min(shielding[numbers == sp]):
+###     #    llim[sp]=min(shielding[numbers == sp])-increment[sp]
+###     #if rlim[sp]<max(shielding[numbers == sp]):
+###     #    rlim[sp]=max(shielding[numbers == sp])+increment[sp]
+###     #t = np.arange(llim[sp], rlim[sp], 0.01)
+### 
+###     f = np.arange((min(shielding)-increment[sp]), (max(shielding)+increment[sp]), 0.01)
+###     i = np.zeros(len(f))
+###     idx=[np.isclose(f, it) for it in shielding]
+###     i[np.where(sum(idx)<>0)]=1
+### 
+###     plt.figure(figsize=(12,5),frameon=False)
+###     plt.tick_params(axis='y',which='both',left='off', labelleft='off')
+###     plt.plot(f,i,color=colors[sp])
+###     ax = plt.gca()
+###     ax.tick_params(direction='in', length=3, width=2, labelsize=16, pad=10)
+###     ax.yaxis.set_ticks_position('none')
+###     ax.spines['left'].set_visible(False)
+###     ax.spines['right'].set_visible(False)
+###     ax.spines['top'].set_visible(False)
+###     ax.set_xlim(min(f), max(f));
+###     ax.set_xlabel("{} Chemical Shifts / ppm".format(labels[sp]),fontsize=22)
+### 
+###     if is_debug:
+###         fig_name = 'static/jsmol/data/uploaded/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
+###         fig_name = os.path.abspath(fig_name)
+###     else:
+###         fig_name = '/home/app/code/webservice/static/jsmol/data/{}SPECTRUM_UPLOADED.png'.format(simbols[sp])
+### 
+###     plt.savefig(fig_name, bbox_inches='tight')
+###     return 1
+### 
+### 
+### if __name__ == "__main__":
+###     # Don't use x-sendfile when testing it, because this is only good
+###     # if deployed with Apache
+###     # Use the local version of seekpath, not the installed one
+### 
+###     app.use_x_sendfile = False
+###     app.run(debug=True)
