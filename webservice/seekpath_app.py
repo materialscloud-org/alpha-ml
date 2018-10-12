@@ -485,8 +485,8 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # For visualization purposes, translate the molecule so that it is in the unit cell.
     #TODO: Presumably this is unnecessary and we could do this with Jmol.
     pos = frame.get_positions()
-    box = frame.get_cell()
-    half_cell = [12.5,12.5,12.5]
+#    box = frame.get_cell()
+    half_cell = [12.5,12.5,12.5]                             ###TODO: ONCE THE UNIT-CELL DEPENDENCE IS REMOVED WE SHOULD BE ABLE TO GET RID OF THIS AS WELL.
     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
     frame.set_positions(pos_tr)
 
@@ -549,20 +549,6 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     return {'current': 100, 'total': 100, 'status': 'Task completed!',
             'result': 42, 'data': data }
-
-#def get_dummy_work(celery_self,frame):
-#    from time import sleep
-#    shielding = np.ones((len(frame),))
-#    sps = list(set(frame.get_atomic_numbers()).intersection([1, 6, 7, 8]))
-#    train_sizes = {1: 30000, 6: 19532, 7: 12760, 8: 14770}
-
- #   numbers = frame.get_atomic_numbers()
- #   for ii,sp in enumerate(sps):
- #       celery_self.update_state(state='PROGRESS',
- #                                meta={'current': ii, 'total': len(sps),
- #                                      'status': str(sp)})
- #       sleep(1)
- #   return shielding
 
 def load_model_data(sp):
     '''
@@ -705,49 +691,8 @@ def get_Nsoap(spkitMax, nmax, lmax):
                 Nsoap += nmax ** 2 * (lmax + 1)
     return Nsoap + 1
 
-#def get_fingerprints(frames, soap_params, nprocess, sp=None):
-#    fings = get_Soaps(frames, nprocess=nprocess, **soap_params)
-#    if sp is not None:
-#        N = 0
-#        for cc in frames:
-#            numbers = cc.get_atomic_numbers()
-#            N += len(numbers[numbers == sp])
-#    else:
-#        N = 0
-#        for cc in frames:
-#            numbers = cc.get_atomic_numbers()
-#            N += len(numbers)
-#
-#    Nsoap = get_Nsoap(spkitMax, soap_params['nmax'], soap_params['lmax'])
-#    soaps = np.zeros((N, Nsoap))
-#    if sp is not None:
-#        ii = 0
-#        for iframe, fing in enumerate(fings):
-#            numbers = fing.get_atomic_numbers()
-#            n = len(numbers[numbers == sp])
-#            centers = [fing[z2symb[sp] + str(it)] for it in range(n)]
-#            for icenter, center in enumerate(centers):
-#                soaps[ii] = center
-#                ii += 1
-#    else:
-#        ii = 0
-#        for iframe, fing in enumerate(fings):
-#            numbers = fing.get_atomic_numbers()
-#            n = len(numbers[numbers == sp])
-#            centers = fing.values()
-#            for icenter, center in enumerate(centers):
-#                soaps[ii] = center
-#                ii += 1
-#    return soaps
-
 def predict(kernel, alpha, csi):
     return np.dot(alpha, np.power(kernel, csi, out=kernel)).reshape((-1))
-
-
-
-#def shielding2shifts(shielding,slope,intercept):
-#    shifts=float(intercept)-float(slope)*shielding
-#    return shifts
 
 def rreplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
