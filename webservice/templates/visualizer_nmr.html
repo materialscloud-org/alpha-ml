@@ -257,8 +257,8 @@
 				JmolApplet0=Jmol.getApplet("JmolApplet0", Info);
 				var structure = '{{ jsmol_pos | safe }}';
 				var prefix = 'set forceAutoBond ON;load data "model current_model"'
-				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
-				var suffix = 'end "model current_model" spacegroup "ignoreOperators";';
+//				var suffix = 'end "model current_model" spacegroup "ignoreOperators" unitcell "[{{ jsmol_cell | safe }}]";';
+				var suffix = 'end "model current_model" spacegroup "ignoreOperators";spacefill OFF;';
        			 	var cell = 'set axes UNITCELL;set axes OFF;set unitcell OFF; set axesUnitcell OFF;set displayCellParameters TRUE;';
 				//; display none or cell=555;center displayed; zoom {displayed} 0;';
 

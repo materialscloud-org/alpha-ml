@@ -492,15 +492,14 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     # Get ellipsoids
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
-#    jsmol_ellipsoid = 'ellipsoid ID 1 AXES {1 0 0} {0 1 0} {0 0 2} CENTER {0.42470696       2.57132566      -0.00098567} OPTIONS \"ball\"'
     jsmol_ellipsoid = ''
     for i in xrange(len(frame)):
         [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
+        eigenvecs = eigenvecs.T
         axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in xrange(3)]
         axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
-#        jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES {1 0 0} {0 1 0} {0 0 2} CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
-    scalefac = 0.2
+    scalefac = 0.25
     for i in xrange(len(frame)):
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' SCALE ' + str(scalefac) + ';'
 
