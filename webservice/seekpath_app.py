@@ -347,8 +347,8 @@ def process_structure():
         return flask.redirect(flask.url_for('input_structure'))
 
 
-@app.route('/Chemical_Shielding_Predictions/')                                       ###TODO: REFERENCES TO CHEMICAL SHIELDING SHOULD BE REMOVED
-@app.route('/Chemical_Shielding_Predictions/<task_id>')
+@app.route('/Polarizability_Predictions/')
+@app.route('/Polarizability_Predictions/<task_id>')
 def longtask_completed(task_id):
     from flask import render_template
     task = predict_polarizabilities.AsyncResult(task_id)
@@ -470,14 +470,6 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Currently the atom-centred polarizabilities have to be reordered; do this here
     pols = reorder_polarizabilities(pols,frame)
 
-#####     # For visualization purposes, translate the molecule so that it is in the unit cell.
-#####     #TODO: Presumably this is unnecessary and we could do this with Jmol.
-#####     pos = frame.get_positions()
-##### #    box = frame.get_cell()
-#####     half_cell = [12.5,12.5,12.5]                             ###TODO: ONCE THE UNIT-CELL DEPENDENCE IS REMOVED WE SHOULD BE ABLE TO GET RID OF THIS AS WELL.
-#####     pos_tr = [[(pos[i][j] + half_cell[j]) for j in xrange(3)] for i in xrange(len(pos))]
-#####     frame.set_positions(pos_tr)
-
     compute_time = time.time() - start_time
 
     out_json_data = get_json_for_visualizer(frame,pols)
@@ -498,11 +490,18 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
+    # Get ellipsoids
+    jsmol_ellipsoid = 'ellipsoid ID 1 AXES {1 0 0} {0 1 0} {0 0 2} CENTER {0.42470696       2.57132566      -0.00098567} OPTIONS \"ball\"'
+
+    print jsmol_pos
+    print jsmol_cell
+    print jsmol_ellipsoid
+
     data = dict(
         xyz=xyz,
         xyz_print=xyz_print,
         jsmol_pos=jsmol_pos,
-#        jsmol_cell=jsmol_cell,
+        jsmol_ellipsoid=jsmol_ellipsoid,
         jsondata=json.dumps(out_json_data),
         raw_code=raw_code,
         raw_print=raw_print,

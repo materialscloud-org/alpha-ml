@@ -264,11 +264,15 @@
 
 //				var shifts_ms = 'data "property_shifts"|end "property_shifts"; {all}.property_shifts =  " {{ format_shifts(shielding) }} ;";'
 //				var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select property_shifts!=0; label %[property_shifts];font label 15 monospaced italic;";
-                                var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\";";// select property_shifts!=0;";
+                                var style = "set labelOffset 10 10 all; select carbon; color label \"#505050\"; select oxygen; color label \"#CC0000\"; select nitrogen; color label \"#0000CC\"; select sulfur; color label \"#FFC832\";select chlorine; color label \"#00CC00\";";// select property_shifts!=0;";
+//                                var ellipsoid = "ellipsoid ID 1 AXES {1 0 0} {0 1 0} {0 0 2}; ellipsoid ID 1 CENTER {0.42470696       2.57132566      -0.00098567};ellipsoid ID 1 OPTIONS \"ball\"";
+//                                var ellipsoid = "ellipsoid ID 1 AXES {1 0 0} {0 1 0} {0 0 2} CENTER {0.42470696       2.57132566      -0.00098567} OPTIONS \"ball\"";
+                                var ellipsoid = '{{jsmol_ellipsoid | safe}}';
+//                                var ellipsoid = jsmol_ellipsoid;
 				// TODO when selecting all shifts we get all atoms labels
 				// TODO if we select only certain atoms and we change cell we lose the selection
 //				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+shifts_ms+style);
-				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+style);
+				Jmol.script(JmolApplet0, prefix+structure+suffix+cell+style+ellipsoid);
 //				Jmol.script(JmolApplet0, 'show menu')
 //				Jmol.jmolMenu(JmolApplet0,[
 //						["select all; cell=111; label HIDE; label DISPLAY; select OFF all","all shifts"],
