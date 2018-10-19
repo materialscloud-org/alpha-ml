@@ -178,6 +178,23 @@
 			</div>
 		</div>
 
+      <div class='row'>
+        <div class='col-sm-6'>
+          <label for="fileformat">Select the ALPHA-ML model:</label>
+        </div>
+        <div class='col-sm-6'>
+          <select name="modeltype" id="modeltypeselect", style="max-width: 100%">
+          <option value="ccsd">CCSD</option>
+          <option value="b3lyp">B3LYP</option>
+	  <!--          <option value="cif-pymatgen">CIF File (.cif) [parser: pymatgen]</option> -->
+<!--          <option value="vasp-ase">VASP POSCAR [parser: ase]</option> -->
+<!--          <option value="castep-ase">CASTEP (.cell) [parser: ase]</option> -->
+<!--                                        <option value="castepout-ase">CASTEP Output (.castep) [parser: ase]</option> -->
+<!--                      <option value="qe-ase">Quantum Espresso Output (scf/relax) [parser: ase]</option> -->
+        </select>
+                        </div>
+                </div>
+
 
         <div class='row' style="text-align:center">
         <p class='small'>By continuing, you agree with the <a href="../termsofuse/" target="_blank">terms of use</a> of this service.</p>
@@ -205,6 +222,24 @@
 	  </select>
 	</div>
       </div>
+
+      <div class='row'>
+        <div class='col-sm-6'>
+          <label for="fileformat">Select the ALPHA-ML model:</label>
+        </div>
+        <div class='col-sm-6'>
+          <select name="modeltype" id="modeltypeselect", style="max-width: 100%">
+          <option value="ccsd">CCSD</option>
+          <option value="b3lyp">B3LYP</option>
+          <!--          <option value="cif-pymatgen">CIF File (.cif) [parser: pymatgen]</option> -->
+<!--          <option value="vasp-ase">VASP POSCAR [parser: ase]</option> -->
+<!--          <option value="castep-ase">CASTEP (.cell) [parser: ase]</option> -->
+<!--                                        <option value="castepout-ase">CASTEP Output (.castep) [parser: ase]</option> -->
+<!--                      <option value="qe-ase">Quantum Espresso Output (scf/relax) [parser: ase]</option> -->
+        </select>
+                        </div>
+                </div>
+
         <div class='row' style="text-align: center">
             <p class='small'> </p>
 	    <input type="submit" value="Calculate Polarizability" class="btn btn-default">

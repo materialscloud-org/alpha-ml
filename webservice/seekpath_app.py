@@ -469,26 +469,19 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     for typ in types_list:
         pols = np.array(get_pol(all_ker,typ))
         # Reorder the atom-centred polarizabilities
-#        print "pols",pols
         pols = np.array(reorder_polarizabilities(pols,frame))
-#        print "pols",pols
         pol2 = (pols * 1e3).astype(int)
         polarizability = sum(pols)
         all_pols[typ] = pols
         all_pol2[typ] = pol2
         all_polarizability[typ] = polarizability
 
-    #TODO: This should be done for different models (CCSD, B3LYP, DELTA)
-    select_type = 'ccsd'
+    # For the atom-centred polarizabilities, we use the user-chosen model
+    select_type = form_data['modeltype'][0]
+    print 'select type=',select_type
     pols = all_pols[select_type]
     pol2 = all_pol2[select_type]
     polarizability = all_polarizability[select_type]
-
-    print "pols",pols[0]
-    print "pol2",pol2[0]
-
-#    # Currently the atom-centred polarizabilities have to be reordered; do this here
-#    pols = reorder_polarizabilities(pols,frame)
 
     compute_time = time.time() - start_time
 
