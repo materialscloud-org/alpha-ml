@@ -462,7 +462,8 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Combine with training set spectra
     all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
     # Apply weights to predict polarizability
-    pols = np.array(get_pol(all_ker))
+    pols = np.array(get_pol(all_ker,'ccsd'))
+    pol2 = (pols * 1e4).astype(int)
     polarizability = sum(pols)
 
     #TODO: This should be done for different models (CCSD, B3LYP, DELTA)
@@ -494,18 +495,10 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
     jsmol_ellipsoid = ''
     for i in xrange(len(frame)):
-#    for i in xrange(2):
         [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
-#        eigenvals = np.array([1,1,1])
         eigenvecs = eigenvecs.T
         axes = [eigenvecs[j] * np.sqrt(np.abs(max(0.25,eigenvals[j]))) for j in xrange(3)]
-#        eigenvals = [max(eigenvals[i],0.1) for i in xrange(3)]
-#        print [eigenvecs[j] for j in xrange(3)]
-#        print [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in xrange(3)]
-#        print axes
-#        print i,eigenvals
         axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
-#        print i,axis_str
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
     scalefac = 0.25
     for i in xrange(len(frame)):
@@ -513,14 +506,15 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     # Get PDB file with ANISOU records
     pdb_print = 'MODEL     1	 1\n'
-#    for i in xrange(len(frame)):
-#        pdb_print += 'ATOM  ' + '{:5i}'.format(i) + '{:5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1    ' + ('{:8.3f}'*3).format(*(frame.get_positions()[i])) + '  1.00  0.00   ' + '{:9s}'.format(frame.get_chemical_symbols()[i])
-
-    print pdb_print
+    for i in xrange(len(frame)):
+        pdb_print += 'ATOM  ' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1    ' + ('{:8.3f}'*3).format(*(frame.get_positions()[i])) + '  1.00  0.00' + '{:>12s}'.format(frame.get_chemical_symbols()[i]) + '\n'
+        pdb_print += 'ANISOU' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1  ' + ('{:>6d}'*6).format(pol2[i][0],pol2[i][4],pol2[i][8],pol2[i][1],pol2[i][2],pol2[i][7]) + '{:>9s}'.format(frame.get_chemical_symbols()[i]) + '\n'
+    pdb_print += 'ENDMDL'
 
     data = dict(
         xyz=xyz,
         xyz_print=xyz_print,
+        pdb_print=pdb_print,
         jsmol_pos=jsmol_pos,
         jsmol_ellipsoid=jsmol_ellipsoid,
         jsondata=json.dumps(out_json_data),

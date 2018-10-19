@@ -354,6 +354,39 @@
 				<p><code id="rawcodedata">{{ raw_code|safe }}</code></p>
 			</div>
 
+                        <h3>PDB</h3>
+                        <div>
+                                <p>
+                                                <button class="clipboardbtn" data-clipboard-target="#pdbdata">
+                                                <img src="../static/img/clippy.svg" width="12" alt="Copy to clipboard"/>&nbsp;Copy to clipboard</button>
+
+                                                <button class="clipboardbtn" type="button" id="save_pdb" title="Download file">
+                                                        <img src="../static/img/clippy.svg" width="12" alt="Download"/>&nbsp;Download</button>
+                                                        <script type="text/template" id="pdb_var" >
+                                                                {{ pdb_print|safe }}
+                                                        </script>
+                                            <script type="text/javascript">
+
+                                                // when document is ready
+                                                document.getElementById("save_pdb").onclick = function() {
+
+                                                                                        var str = encodeURIComponent(document.getElementById('pdb_var').innerHTML.trim());
+                                                                                        var uri = 'data:text/txt;charset=utf-8,' + str;
+
+                                                                                                var downloadLink = document.createElement("a");
+                                                                                                downloadLink.href = uri;
+                                                                                                downloadLink.download = "ALPHA-ML.pdb";
+
+                                                                                                document.body.appendChild(downloadLink);
+                                                                                                downloadLink.click();
+                                                                                                document.body.removeChild(downloadLink);
+                                                }
+                                            </script>
+
+                                </p>
+                                <p><code id="pdbdata">{{ pdb_print|safe }}</code></p>
+                        </div>
+
 			<h3>Extended XYZ</h3>
 			<div>
 				<p>

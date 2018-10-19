@@ -369,13 +369,18 @@ def get_kernel(lam,PS,frame,PS0):
 
 #############################################################################################
 
-def get_pol(kernels):
+def get_pol(kernels,type_str):
 
     # Get polarizability
 
+    folder = '/home/app/data/' + type_str + '-weights/'
+#    folder = '/home/app/data/'
+
     # First read in weights
-    weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
-    weights2 = np.load('/home/app/data/weights_lm2.npy')
+#    weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
+#    weights2 = np.load('/home/app/data/weights_lm2.npy')
+    weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
+    weights2 = np.load(folder + 'weights_lm2.npy')
 
     # Multiply weights vector by kernels to give predictions
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
