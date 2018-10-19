@@ -494,14 +494,29 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
     jsmol_ellipsoid = ''
     for i in xrange(len(frame)):
+#    for i in xrange(2):
         [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
+#        eigenvals = np.array([1,1,1])
         eigenvecs = eigenvecs.T
-        axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in xrange(3)]
+        axes = [eigenvecs[j] * np.sqrt(np.abs(max(0.25,eigenvals[j]))) for j in xrange(3)]
+#        eigenvals = [max(eigenvals[i],0.1) for i in xrange(3)]
+#        print [eigenvecs[j] for j in xrange(3)]
+#        print [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in xrange(3)]
+#        print axes
+#        print i,eigenvals
         axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
+#        print i,axis_str
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
     scalefac = 0.25
     for i in xrange(len(frame)):
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' SCALE ' + str(scalefac) + ';'
+
+    # Get PDB file with ANISOU records
+    pdb_print = 'MODEL     1	 1\n'
+#    for i in xrange(len(frame)):
+#        pdb_print += 'ATOM  ' + '{:5i}'.format(i) + '{:5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1    ' + ('{:8.3f}'*3).format(*(frame.get_positions()[i])) + '  1.00  0.00   ' + '{:9s}'.format(frame.get_chemical_symbols()[i])
+
+    print pdb_print
 
     data = dict(
         xyz=xyz,
