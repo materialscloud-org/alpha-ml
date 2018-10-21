@@ -456,7 +456,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Now calculate the polarizability for this molecule
     # Compute power spectra for this frame
     lm = [0,2]
-    types_list = ['b3lyp','ccsd']#,'delta-b3lyp-ccsd']
+    types_list = ['b3lyp','ccsd','delta-b3lyp-ccsd']
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
@@ -478,7 +478,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     # For the atom-centred polarizabilities, we use the user-chosen model
     select_type = form_data['modeltype'][0]
-    print 'select type=',select_type
+    #print 'select type=',select_type
     pols = all_pols[select_type]
     pol2 = all_pol2[select_type]
     polarizability = all_polarizability[select_type]
