@@ -504,20 +504,9 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     jsmol_pos,jsmol_cell = get_json(frame)
 
     # Get scale factor for ellipsoids
-#    eigmax = 0.0
-#    for i in xrange(len(frame)):
-#        [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
-#        eigmax = max(eigmax,max(eigenvals))
-#    scalefac = 4.7 / np.sqrt(eigmax)
     scalefac = 0.25
-    eig_threshold = 0.45
     if 'delta' in select_type:
         scalefac = 0.6
-#        eig_threshold = 0.1
-#        eig_threshold = 0.25
-##        eig_threshold = 0.15
-#        eig_threshold = (0.25 / scalefac) * 0.45
-#    print eig_threshold
 
     # Get ellipsoids
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
@@ -525,17 +514,9 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     for i in xrange(len(frame)):
         [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
         eigenvecs = eigenvecs.T
-#        if i == 2:
-#            print eigenvals
-#        axes = [eigenvecs[j] * np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
         axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in  xrange(3)]
         axis_str =  ' '.join(str(e) for e in ['{' + ('{:16.12f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
-#        if i == 2:
-#            print [np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
-#            print axis_str
-#            print '[[' + ', '.join(str(e) for e in eigenvecs[0]) + '], [' + ', '.join(str(e) for e in eigenvecs[1]) + '], [' + ', '.join(str(e) for e in eigenvecs[2]) + ']]'
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
-#    scalefac = 0.25
     for i in xrange(len(frame)):
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' SCALE ' + str(scalefac) + ';'
 
@@ -546,26 +527,8 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
             eigmin = min(eigmin,min(eigenvals))
         print "MINIMUM EIGENVAL",eigmin
 
-#    if 'delta' in select_type:
-#        eig_threshold = 0.15
-#        jsmol_ellipsoid = ''
-##        for i in xrange(len(frame)):
-#        for i in xrange(2):
-#            [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
-#            eigenvecs = eigenvecs.T
-#            axes = [eigenvecs[j] * np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
-#            axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
-#            print axis_str
-#            jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
-
-#    # What is the largest eigenvector?
-#    eigmax = 0.0
-#    for i in xrange(len(frame)):
-#        [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
-#        eigmax = max(eigmax,max(eigenvals))
-#    print "EIGMAX",0.25 * eigmax
-
-    # Get principal axes for ellipsoids, along with the sign of the eigenvalue
+    # Get coloured axes for visualization
+    #TODO: Get these
 
     # Get PDB file with ANISOU records
     pdb_print = 'MODEL     1	 1\n'
