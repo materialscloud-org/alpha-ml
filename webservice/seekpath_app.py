@@ -456,7 +456,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Now calculate the polarizability for this molecule
     # Compute power spectra for this frame
     lm = [0,2]
-    types_list = ['b3lyp','ccsd','delta-b3lyp-ccsd']
+    types_list = ['b3lyp','ccsd','scan0','delta-b3lyp-ccsd']
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
@@ -497,9 +497,9 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     raw_code = str(jinja2.escape(raw_code)).replace('\n', '<br>').replace(
         ' ', '&nbsp;')
 
-    xyz = str(jinja2.escape(get_xyz(frame,polarizability,pols,all_polarizability,types_list))).replace(
+    xyz = str(jinja2.escape(get_xyz(frame,polarizability,pols,all_polarizability,types_list,select_type))).replace(
         '\n', '<br>').replace(' ', '&nbsp;')
-    xyz_print = str(get_xyz(frame,polarizability,pols,all_polarizability,types_list))
+    xyz_print = str(get_xyz(frame,polarizability,pols,all_polarizability,types_list,select_type))
 
     jsmol_pos,jsmol_cell = get_json(frame)
 
@@ -510,8 +510,16 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 #        eigmax = max(eigmax,max(eigenvals))
 #    scalefac = 4.7 / np.sqrt(eigmax)
     scalefac = 0.25
+    eig_threshold = 0.45
+    eig_threshold = -1
     if 'delta' in select_type:
-        scalefac = 1.5
+        scalefac = 0.6
+#        eig_threshold = 0.1
+        eig_threshold = -1
+#        eig_threshold = 0.25
+##        eig_threshold = 0.15
+#        eig_threshold = (0.25 / scalefac) * 0.45
+#    print eig_threshold
 
     # Get ellipsoids
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
@@ -519,12 +527,38 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     for i in xrange(len(frame)):
         [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
         eigenvecs = eigenvecs.T
-        axes = [eigenvecs[j] * np.sqrt(np.abs(max(0.25,eigenvals[j]))) for j in xrange(3)]
-        axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
+#        if i == 2:
+#            print eigenvals
+#        axes = [eigenvecs[j] * np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
+        axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in  xrange(3)]
+        axis_str =  ' '.join(str(e) for e in ['{' + ('{:16.12f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
+#        if i == 2:
+#            print [np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
+#            print axis_str
+#            print '[[' + ', '.join(str(e) for e in eigenvecs[0]) + '], [' + ', '.join(str(e) for e in eigenvecs[1]) + '], [' + ', '.join(str(e) for e in eigenvecs[2]) + ']]'
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
 #    scalefac = 0.25
     for i in xrange(len(frame)):
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' SCALE ' + str(scalefac) + ';'
+
+    if 'delta' in select_type:
+        eigmin = 1.e10
+        for i in xrange(len(frame)):
+            [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
+            eigmin = min(eigmin,min(eigenvals))
+        print "MINIMUM EIGENVAL",eigmin
+
+#    if 'delta' in select_type:
+#        eig_threshold = 0.15
+#        jsmol_ellipsoid = ''
+##        for i in xrange(len(frame)):
+#        for i in xrange(2):
+#            [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
+#            eigenvecs = eigenvecs.T
+#            axes = [eigenvecs[j] * np.sqrt(np.abs(max(eig_threshold,eigenvals[j]))) for j in xrange(3)]
+#            axis_str =  ' '.join(str(e) for e in ['{' + ('{:8.4f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
+#            print axis_str
+#            jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' AXES ' + axis_str +' CENTER {' + ' '.join(str(e) for e in frame.get_positions()[i]) + '} OPTIONS \"ball\" COLOR [' + colour_dict[frame.get_chemical_symbols()[i]] + '];'
 
 #    # What is the largest eigenvector?
 #    eigmax = 0.0
@@ -539,6 +573,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     pdb_print = 'MODEL     1	 1\n'
     for typ in types_list:
         pdb_print += 'REMARK ' + typ + '_polarizability="' + (' {:f}'*9).format(*all_polarizability[typ]) + '"\n'
+    pdb_print += 'REMARK ' + select_type + ' polarizability given per-atom'
     for i in xrange(len(frame)):
         pdb_print += 'ATOM  ' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1    ' + ('{:8.3f}'*3).format(*(frame.get_positions()[i])) + '  1.00  0.00' + '{:>12s}'.format(frame.get_chemical_symbols()[i]) + '\n'
         pdb_print += 'ANISOU' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1  ' + ('{:>6d}'*6).format(pol2[i][0],pol2[i][4],pol2[i][8],pol2[i][1],pol2[i][2],pol2[i][7]) + '{:>14s}'.format(frame.get_chemical_symbols()[i]) + '\n'
@@ -615,7 +650,7 @@ def write_email(email):
     with open("static/request_log.txt", "a") as myfile:
         myfile.write(email + '\t' + str(datetime.datetime.now()) + '\n')
 '''
-def get_xyz(frame,polarizability,pols,all_polarizability,type_list):
+def get_xyz(frame,polarizability,pols,all_polarizability,type_list,select_type):
     from ase.io.extxyz import write_xyz
     numbers = frame.get_atomic_numbers()
     positions = frame.get_positions()
@@ -635,7 +670,8 @@ def get_xyz(frame,polarizability,pols,all_polarizability,type_list):
     disclaimer_str += ' Comments="The polarizabilities were generated by ALPHA-ML v' + ALPHA_ML_version + ' (https://alphaml.epfl.ch).'
     disclaimer_str += ' They are subject to the terms of use (https://alphaml.epfl.ch).'
     disclaimer_str += ' Please read and cite the following:'
-    disclaimer_str += ' David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning (submitted)."'
+    disclaimer_str += ' David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning (submitted).'
+    disclaimer_str += ' per-atom polarizability for ' + select_type + ' is given."'
 
     # Insert the atom-centred polarizabilities
     xyz_file = str(len(frame.get_chemical_symbols())) + '\n'
