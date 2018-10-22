@@ -520,14 +520,23 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     for i in xrange(len(frame)):
         jsmol_ellipsoid += 'ellipsoid ID ' + str(i) + ' SCALE ' + str(scalefac) + ';'
 
+    # Get coloured axes for visualization
     if 'delta' in select_type:
-        eigmin = 1.e10
+        k = 0
         for i in xrange(len(frame)):
             [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
-            eigmin = min(eigmin,min(eigenvals))
-        print "MINIMUM EIGENVAL",eigmin
+            eigenvecs = eigenvecs.T
+            axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) * 1.3 for j in xrange(3)]
+            pos = np.array(frame.get_positions()[i])
+            for j in xrange(3):
+                if eigenvals[j] > 0:
+                    colour = 'xCC0000'
+                else:
+                    colour = 'x000000'
+                jsmol_ellipsoid += 'draw line' + str(k) + ' {' + ' '.join(str(e) for e in (pos + 0.5 * axes[j]))  + '} {' + ' '.join(str(e) for e in (pos - 0.5 * axes[j])) + '} WIDTH 0.1 COLOR [' + colour + '];'
+                k += 1
+#        print jsmol_ellipsoid
 
-    # Get coloured axes for visualization
     #TODO: Get these
 
     # Get PDB file with ANISOU records
