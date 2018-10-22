@@ -456,7 +456,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Now calculate the polarizability for this molecule
     # Compute power spectra for this frame
     lm = [0,2]
-    types_list = ['b3lyp','ccsd','scan0','delta-b3lyp-ccsd']
+    types_list = ['ccsd','b3lyp','scan0','delta-b3lyp-ccsd','delta-scan0-ccsd']
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
@@ -511,11 +511,9 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 #    scalefac = 4.7 / np.sqrt(eigmax)
     scalefac = 0.25
     eig_threshold = 0.45
-    eig_threshold = -1
     if 'delta' in select_type:
         scalefac = 0.6
 #        eig_threshold = 0.1
-        eig_threshold = -1
 #        eig_threshold = 0.25
 ##        eig_threshold = 0.15
 #        eig_threshold = (0.25 / scalefac) * 0.45
