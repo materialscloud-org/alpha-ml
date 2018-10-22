@@ -535,9 +535,6 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
                     colour = 'x000000'
                 jsmol_ellipsoid += 'draw line' + str(k) + ' {' + ' '.join(str(e) for e in (pos + 0.5 * axes[j]))  + '} {' + ' '.join(str(e) for e in (pos - 0.5 * axes[j])) + '} WIDTH 0.1 COLOR [' + colour + '];'
                 k += 1
-#        print jsmol_ellipsoid
-
-    #TODO: Get these
 
     # Get PDB file with ANISOU records
     pdb_print = 'MODEL     1	 1\n'
