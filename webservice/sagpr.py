@@ -3,6 +3,7 @@ import numpy as np
 from scipy import special
 from sympy.physics.wigner import wigner_3j
 import test
+import time
 
 #############################################################################################
 
@@ -326,20 +327,24 @@ def get_kernel(lam,PS,frame,PS0):
     nat2 = len(all_names)
 
     # Read in the appropriate training-set power spectrum
+    strt = time.time()
 
     if (lam==0):
         # Compute nonlinear scalar kernel of order 2
         # Firstly, read in training power spectrum
         pstrain = np.load('/home/app/data/PStrain_lam0.npy')
         ntrain = len(pstrain)
-        kreal = np.zeros((ntrain,nat2),dtype=float)
-        # Now combine with testing power spectrum
-        for i in xrange(ntrain):
-            for j in xrange(nat2):
-                for iat in xrange(nat1[i]):
-#                for jat in xrange(nat2):
-                    kreal[i,j] += np.real(np.dot(pstrain[i,iat],np.conj(PS[j,0])))**2
-                kreal[i,j] /= (nat1[i]*1)
+#        kreal = np.zeros((ntrain,nat2),dtype=float)
+#        # Now combine with testing power spectrum
+#        for i in xrange(ntrain):
+#            for j in xrange(nat2):
+#                for iat in xrange(nat1[i]):
+##                for jat in xrange(nat2):
+#                    kreal[i,j] += np.real(np.dot(pstrain[i,iat],np.conj(PS[j,0])))**2
+#                kreal[i,j] /= (nat1[i]*1)
+#        print kreal[0]
+        kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
+#        print kreal[0]
 
     else:
         # Compute nonlinear L=2 kernel of order 2
@@ -355,32 +360,15 @@ def get_kernel(lam,PS,frame,PS0):
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
             pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-            kr = test.test_func(2,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain,PS,pstrain0[i],PS0)[0]
-            kr /= float(nat1[i])
-#            print "L0",len(kr),len(kr[0]),len(kr[0,0])
-#            print "CT",len(CT),len(CT[0])
-#            print "CR",len(CR),len(CC[0])
-            krl = np.zeros((nat2,2*lam+1,2*lam+1),dtype=float)
+            kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain,PS,pstrain0[i],PS0)[0] / float(nat1[i])
+#            kern /= float(nat1[i])
+#            krl = np.zeros((nat2,2*lam+1,2*lam+1),dtype=float)
             for k in xrange(nat2):
-                krl[k] = np.array(np.real(np.dot(np.dot(CC,kr[k]),CT)),float)
-#            krl = np.array(np.real(np.dot(np.dot(CC,kr),CT)),float)
-#            print "HERE 1",krl[0,0][0]
+                kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
+#                krl[k] = np.array(np.real(np.dot(np.dot(CC,kr[k]),CT)),float)
+#            kreal[i] = krl
 
-###             for j in xrange(nat2):
-###                 kerloc  = np.einsum('amk,bnk->abmn',pstrain,np.conj(PS[j]))
-###                 kerloc0 = np.real(np.dot(pstrain0[i],np.conj(PS0[j].T)))
-### #                print "HERE",len(kerloc),len(kerloc[0]),len(kerloc[0,0]) # N 1 5
-###                 kernel = np.zeros((2*lam+1,2*lam+1),complex)
-###                 for iat in xrange(nat1[i]):
-### #                    for jat in xrange(nat2):
-###                     kernel += kerloc[iat,0]*kerloc0[iat,0]
-###                 kernel /= float(nat1[i]*1)
-###                 kreal[i,j] = np.array(np.real(np.dot(np.dot(CC,kernel),CT)),float)
-### #            print "HERE 2",kreal[i,0]
-### #            print "L1",len(krl),len(krl[0]),len(krl[0,0])
-### #            print "L2",len(kreal[i]),len(kreal[i,0]),len(kreal[i,0,0])
-###             print "NORM",np.linalg.norm(krl - kreal[i])
-            kreal[i] = krl
+    print "TIMED",time.time() - strt
 
     return kreal
 

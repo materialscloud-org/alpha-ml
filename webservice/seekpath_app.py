@@ -457,11 +457,18 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Compute power spectra for this frame
     lm = [0,2]
     types_list = ['ccsd','b3lyp','scan0','delta-b3lyp-ccsd','delta-scan0-ccsd']
+    strt = time.time()
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
+    print "TIMING 1",time.time() - strt
+    strt = time.time()
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
+    print "TIMING 2",time.time() - strt
+    strt = time.time()
     # Combine with training set spectra
     all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
+    print "TIMING 3",time.time() - strt
+    strt = time.time()
     # Apply weights to predict polarizability
     all_pols = {}
     all_pol2 = {}
@@ -475,6 +482,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
         all_pols[typ] = pols
         all_pol2[typ] = pol2
         all_polarizability[typ] = polarizability
+    print "TIMING 4",time.time() - strt
 
     # For the atom-centred polarizabilities, we use the user-chosen model
     select_type = form_data['modeltype'][0]
