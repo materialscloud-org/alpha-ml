@@ -13,13 +13,16 @@ cdef extern void zero_array (double *array, double value, size_t n)
 # NumPy and Scipy Special Functions
 import sys
 import numpy as np
+cimport numpy as np
 import scipy.special as sc
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _kernel0(long npoints1,long[:] nat1,long nat2,long featsize,complex[:,:,:] ps1,complex[:,:,:] ps2,complex kcont,double[:,:] kreal):
+cdef void _kernel0(long npoints1,long[:] nat1,long nat2,long featsize,complex[:,:,:] ps1,complex[:,:,:] ps2,double[:,:] kreal):
     cdef Py_ssize_t i,j,iat,jat,k    
+    cdef complex kcont
 
+    kcont = 0.0 + 0.0j
 #    for i in prange(npoints1, nogil=True, schedule=dynamic):
     for i in xrange(npoints1):
 #        for j in xrange(npoints2):
@@ -60,5 +63,5 @@ def k2(lam,nat1,nat2,featsize,featsize0,ps1,ps2,ps01,ps02):
 def k0(npoints1,nat1,nat2,featsize,ps1,ps2):
     kreal = np.zeros((npoints1,nat2),dtype=float)
     kcont = complex(0.0,0.0)
-    _kernel0(npoints1,nat1,nat2,featsize,ps1,ps2,kcont,kreal)
+    _kernel0(npoints1,nat1,nat2,featsize,ps1,ps2,kreal)
     return kreal

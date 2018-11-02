@@ -3,7 +3,7 @@
 <head>
 		<meta charset="utf-8" lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>ALPHA-ML</title>
+		<title>AlphaML</title>
 		<link rel="stylesheet" type="text/css" href="../static/css/jquery-ui.1.12.1.min.css"/>
 
 		<link rel="stylesheet" type="text/css" href="../static/css/visualizer.min.css"/>
@@ -114,7 +114,7 @@
 
 			<div id="maintitle">
 	{% block seekpathtitle %}
-	<h1 style="text-align: center;"><span style="font-weight: bold;">ALPHA-ML</span>: Machine Learning of Molecular Polarizabilities</h1>
+	<h1 style="text-align: center;"><span style="font-weight: bold;">AlphaML</span>: Machine Learning of Molecular Polarizabilities</h1>
 
 		{% endblock seekpathtitle %}
 			</div>
@@ -337,7 +337,7 @@
 
 												var downloadLink = document.createElement("a");
 												downloadLink.href = uri;
-												downloadLink.download = "ALPHA-ML.JSON";
+												downloadLink.download = "AlphaML.JSON";
 
 												document.body.appendChild(downloadLink);
 												downloadLink.click();
@@ -375,7 +375,7 @@
 
                                                                                                 var downloadLink = document.createElement("a");
                                                                                                 downloadLink.href = uri;
-                                                                                                downloadLink.download = "ALPHA-ML.pdb";
+                                                                                                downloadLink.download = "AlphaML.pdb";
 
                                                                                                 document.body.appendChild(downloadLink);
                                                                                                 downloadLink.click();
@@ -408,7 +408,7 @@
 
 												var downloadLink = document.createElement("a");
 												downloadLink.href = uri;
-												downloadLink.download = "ALPHA-ML.xyz";
+												downloadLink.download = "AlphaML.xyz";
 
 												document.body.appendChild(downloadLink);
 												downloadLink.click();
@@ -457,7 +457,7 @@
 
 
 	<div id='finalinfo'>
-			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. ALPHA-ML version: {{ ALPHA_ML_version }}.
+			<p><span style="font-weight: bold;">Technical info</span>: Time spent to compute quantities: {{ '%.3f' % compute_time }} s. AlphaML version: {{ ALPHA_ML_version }}.
 	</div>
 
 </div>
