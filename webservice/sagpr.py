@@ -323,7 +323,7 @@ def get_kernel(lam,PS,frame,PS0):
 
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
-    nat1a= np.load('/home/app/data/natoms_old.npy')
+#    nat1a= np.load('/home/app/data/natoms_old.npy')
     all_names = frame.get_chemical_symbols()
     nat2 = len(all_names)
 
@@ -344,8 +344,8 @@ def get_kernel(lam,PS,frame,PS0):
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
-#        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
-        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
+        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
+#        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
@@ -353,9 +353,11 @@ def get_kernel(lam,PS,frame,PS0):
         CC = np.conj(CR)
         CT = np.transpose(CR)
         # Now combine with testing power spectrum
+        pstrain = np.load('/home/app/data/PStrain_lam2.npy')
         for i in xrange(ntrain):
-            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-            kern = test.k2(lam,nat1a[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain,PS,pstrain0[i],PS0)[0] / float(nat1a[i])
+#            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
+#            pstr = pstrain[i]
+            kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain[i],PS,pstrain0[i],PS0)[0] / float(nat1[i])
             for k in xrange(nat2):
                 kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
 
