@@ -323,6 +323,7 @@ def get_kernel(lam,PS,frame,PS0):
 
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
+    nat1a= np.load('/home/app/data/natoms_old.npy')
     all_names = frame.get_chemical_symbols()
     nat2 = len(all_names)
 
@@ -338,11 +339,13 @@ def get_kernel(lam,PS,frame,PS0):
         ntrain = len(pstrain)
         kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
         print "TIME FOR CALCULATING = ",time.time() - strt
+#        np.save('/home/app/data/PS_test.npy',PS)
 
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
-        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
+#        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
+        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
@@ -352,7 +355,7 @@ def get_kernel(lam,PS,frame,PS0):
         # Now combine with testing power spectrum
         for i in xrange(ntrain):
             pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-            kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain,PS,pstrain0[i],PS0)[0] / float(nat1[i])
+            kern = test.k2(lam,nat1a[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain,PS,pstrain0[i],PS0)[0] / float(nat1a[i])
             for k in xrange(nat2):
                 kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
 
@@ -375,9 +378,14 @@ def get_pol(kernels,type_str):
     weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
     weights2 = np.load(folder + 'weights_lm2.npy')
 
+#    print weights0[0]
+#    print kernels[0]
+
     # Multiply weights vector by kernels to give predictions
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(len(kernels[1])*len(kernels[1][0,0,0]),len(kernels[1][0])*len(kernels[1][0,0])))
+
+#    print output0
 
     # Transform to Cartesian tensors and return
     outvec = [[np.array(output0[i]),output2[i*5:(i+1)*5]] for i in xrange(len(kernels[1][0]))]

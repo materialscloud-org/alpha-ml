@@ -28,6 +28,7 @@ from ase import Atoms
 from ase.io import write
 import datetime
 from sagpr import *
+import scipy as sp
 
 logger = logging.getLogger("seekpath_server")
 logHandler = logging.handlers.TimedRotatingFileHandler(
@@ -520,7 +521,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     colour_dict = {'H': 'xC0C0C0', 'C': 'x505050', 'N': 'x0000CC', 'O': 'xCC0000', 'S': 'xFFC832', 'Cl': 'x00CC00'}
     jsmol_ellipsoid = ''
     for i in xrange(len(frame)):
-        [eigenvals,eigenvecs] = np.linalg.eigh(np.reshape(pols[i],(3,3)))
+        [eigenvals,eigenvecs] = sp.linalg.eigh(np.reshape(pols[i],(3,3)))
         eigenvecs = eigenvecs.T
         axes = [eigenvecs[j] * np.sqrt(np.abs(eigenvals[j])) for j in  xrange(3)]
         axis_str =  ' '.join(str(e) for e in ['{' + ('{:16.12f}'*3).format(*axes[j]) + '}' for j in xrange(3)])
