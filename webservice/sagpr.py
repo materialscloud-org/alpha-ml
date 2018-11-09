@@ -344,7 +344,7 @@ def get_kernel(lam,PS,frame,PS0):
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
-        pstrain0 = np.load('/home/app/data/PStrain_lam0.npy')
+        pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy')
 #        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
