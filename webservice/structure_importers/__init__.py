@@ -81,7 +81,7 @@ def get_structure(fileobject, fileformat, extra_data=None):
         pmgstructure = CifParser(fileobject).get_structures()[0]
         asestructure = AseAtomsAdaptor.get_atoms(pmgstructure)
 
-    is_proper_crystal(asestructure)
+#    is_proper_crystal(asestructure)
 
     return asestructure
 
@@ -95,31 +95,31 @@ class WrongAtomFormat(ValueError):
 class WrongDensity(ValueError):
     pass
 
-def is_proper_crystal(frame):
-
-
-    try:
-
-        sps = frame.get_atomic_numbers()
-        Natoms = frame.get_number_of_atoms()
-        if Natoms == 0 or len(sps) == 0:
-            raise WrongAtomFormat
-    except:
-
-        raise WrongAtomFormat
-
-    try:
-
-        cell = frame.get_cell()
-        if np.allclose(cell, np.zeros((3, 3))) is True:
-            raise WrongCellFormat
-    except:
-
-        raise WrongCellFormat
-
-    try:
-        vol = frame.get_volume()
-        if float(Natoms) / vol > 0.234 or vol / float(Natoms) < 0.01:
-            raise WrongDensity
-    except:
-        raise WrongDensity
+#### def is_proper_crystal(frame):
+#### 
+#### 
+####     try:
+#### 
+####         sps = frame.get_atomic_numbers()
+####         Natoms = frame.get_number_of_atoms()
+####         if Natoms == 0 or len(sps) == 0:
+####             raise WrongAtomFormat
+####     except:
+#### 
+####         raise WrongAtomFormat
+#### 
+####     try:
+#### 
+####         cell = frame.get_cell()
+#### #        if np.allclose(cell, np.zeros((3, 3))) is True:
+#### #            raise WrongCellFormat
+####     except:
+#### 
+####         raise WrongCellFormat
+#### 
+####     try:
+####         vol = frame.get_volume()
+#### #        if float(Natoms) / vol > 0.234 or vol / float(Natoms) < 0.01:
+#### #            raise WrongDensity
+####     except:
+####         raise WrongDensity
