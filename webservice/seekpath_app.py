@@ -460,16 +460,10 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     types_list = ['ccsd','b3lyp','scan0','delta-b3lyp-ccsd','delta-scan0-ccsd']
     strt = time.time()
     all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
-    print "TIMING 1",time.time() - strt
-    strt = time.time()
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
-    print "TIMING 2",time.time() - strt
-    strt = time.time()
     # Combine with training set spectra
     all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
-    print "TIMING 3",time.time() - strt
-    strt = time.time()
     # Apply weights to predict polarizability
     all_pols = {}
     all_pol2 = {}
@@ -483,7 +477,6 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
         all_pols[typ] = pols
         all_pol2[typ] = pol2
         all_polarizability[typ] = polarizability
-    print "TIMING 4",time.time() - strt
 
     # For the atom-centred polarizabilities, we use the user-chosen model
     select_type = form_data['modeltype'][0]
@@ -549,7 +542,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     pdb_print = 'MODEL     1	 1\n'
     for typ in types_list:
         pdb_print += 'REMARK ' + typ + '_polarizability="' + (' {:f}'*9).format(*all_polarizability[typ]) + '"\n'
-    pdb_print += 'REMARK ' + select_type + ' polarizability given per-atom'
+    pdb_print += 'REMARK ' + select_type + ' polarizability given per-atom\n'
     for i in xrange(len(frame)):
         pdb_print += 'ATOM  ' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1    ' + ('{:8.3f}'*3).format(*(frame.get_positions()[i])) + '  1.00  0.00' + '{:>12s}'.format(frame.get_chemical_symbols()[i]) + '\n'
         pdb_print += 'ANISOU' + '{:>5d}'.format(i) + '{:>5s}'.format(frame.get_chemical_symbols()[i]) + ' MOL     1  ' + ('{:>6d}'*6).format(pol2[i][0],pol2[i][4],pol2[i][8],pol2[i][1],pol2[i][2],pol2[i][7]) + '{:>14s}'.format(frame.get_chemical_symbols()[i]) + '\n'

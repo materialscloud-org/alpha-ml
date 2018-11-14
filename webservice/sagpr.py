@@ -334,11 +334,9 @@ def get_kernel(lam,PS,frame,PS0):
         # Compute nonlinear scalar kernel of order 2
         # Firstly, read in training power spectrum
         pstrain = np.load('/home/app/data/PStrain_lam0.npy')
-        print "TIME FOR LOADING = ",time.time() - strt
         strt = time.time()
         ntrain = len(pstrain)
         kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
-        print "TIME FOR CALCULATING = ",time.time() - strt
 #        np.save('/home/app/data/PS_test.npy',PS)
 
     else:
@@ -360,8 +358,6 @@ def get_kernel(lam,PS,frame,PS0):
             kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain[i],PS,pstrain0[i],PS0)[0] / float(nat1[i])
             for k in xrange(nat2):
                 kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
-
-    print "TIMED",time.time() - strt
 
     return kreal
 
