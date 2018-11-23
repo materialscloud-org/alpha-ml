@@ -96,6 +96,7 @@ valid_examples = {
     "Cytosine": ("Cytosine"),
     "Methionine": ("Methionine"),
     "Fullerene": ("Fullerene"),
+    "Pentacene": ("Pentacene"),
 }
 
 if __name__ == "__main__":
