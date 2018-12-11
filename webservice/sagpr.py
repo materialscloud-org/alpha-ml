@@ -50,6 +50,17 @@ def complex_to_real_transformation(lval):
 
 #############################################################################################
 
+def radialscaling(r,c,r0,m):
+
+    if (m == 0):
+        return 1.0
+    if (c == 0.0):
+        return 1.0 / (r/r0)**m
+    else:
+        return c / (c + (r/r0)**m)
+
+#############################################################################################
+
 def setup_orthomatrix(nmax,rc,rk):
 
     sigma = np.zeros(nmax,float)
@@ -109,15 +120,16 @@ def get_power_spectrum(lam,frame):
     sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
 #    sparse_options = ['','']
 
-    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35 )
+    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35, rad_scal={0: [1.0,0,0], 2: [1.0,0,0]} )
 
-    lmax = params['lmax']
-    nmax = params['nmax']
-    sg = params['sg']
-    cw = params['cw']
-    rk = params['rk']
-    rc = params['rc']
-    nnmax = params['nnmax']
+    lmax     = params['lmax']
+    nmax     = params['nmax']
+    sg       = params['sg']
+    cw       = params['cw']
+    rk       = params['rk']
+    rc       = params['rc']
+    nnmax    = params['nnmax']
+    rad_scal = params['rad_scal']
 
     llmax = 0
     lvalues = {}
@@ -136,7 +148,7 @@ def get_power_spectrum(lam,frame):
         do_list = np.array(sparse_options[1],dtype=int)
         PS = np.zeros((1,natmax,len(do_list)),dtype=complex)
 
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal[lam]) 
     
         # PRECOMPUTE OMEGA CONJUGATE
         omegatrue = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
@@ -171,7 +183,7 @@ def get_power_spectrum(lam,frame):
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
         # reduce l dimensionality keeping the nonzero elements
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal[lam]) 
         power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
         p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
         omegaconj = np.zeros((nat,nspecies,2*lam+1,nmax,lmax+1,lmax+1,2*lmax+1),complex)
@@ -211,7 +223,7 @@ def get_power_spectrum(lam,frame):
 
 ##################################################################################################################
 
-def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix):
+def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal):
 
     alpha = 1.0/(2*sg**2)
     sg2 = sg**2
@@ -266,7 +278,7 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
                             length[iat,ispe,n]  = np.linalg.norm(rr)
                             theta   = np.arccos(rr[2]/length[iat,ispe,n])
                             phi     = np.arctan2(rr[1],rr[0])
-                            efact[iat,ispe,n]   = np.exp(-alpha*length[iat,ispe,n]**2)
+                            efact[iat,ispe,n]   = np.exp(-alpha*length[iat,ispe,n]**2) * radialscaling(length[iat,ispe,n],rad_scal[0],rad_scal[1],rad_scal[2])
                             efact[iat,ispe,n]  *= switch(length[iat,ispe,n])
                             for lval in xrange(lmax+1): 
                                 mxrange = np.arange(-lval,lval+1)
@@ -323,7 +335,6 @@ def get_kernel(lam,PS,frame,PS0):
 
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
-#    nat1a= np.load('/home/app/data/natoms_old.npy')
     all_names = frame.get_chemical_symbols()
     nat2 = len(all_names)
 
@@ -337,13 +348,11 @@ def get_kernel(lam,PS,frame,PS0):
         strt = time.time()
         ntrain = len(pstrain)
         kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
-#        np.save('/home/app/data/PS_test.npy',PS)
 
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
         pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy')
-#        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
@@ -353,8 +362,6 @@ def get_kernel(lam,PS,frame,PS0):
         # Now combine with testing power spectrum
         pstrain = np.load('/home/app/data/PStrain_lam2.npy')
         for i in xrange(ntrain):
-#            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-#            pstr = pstrain[i]
             kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain[i],PS,pstrain0[i],PS0)[0] / float(nat1[i])
             for k in xrange(nat2):
                 kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
