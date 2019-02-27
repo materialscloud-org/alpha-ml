@@ -100,12 +100,12 @@
 	<h2>About AlphaML</h2> <!--TODO: DMW EDIT THIS AND ADD CITATION -->
         <p style="test-align:justify">AlphaML was developed by the <a href="https://cosmo.epfl.ch" target="_blank">Ceriotti</a> group at EPFL and the <a href="http://distasio.chem.cornell.edu/" target="_blank">DiStasio</a> group at Cornell. AlphaML uses a machine-learning framework based on comparisons of local atomic environments to predict the polarizabilities of molecules. This model was trained on the 7211 compounds in the <a href="http://iopscience.iop.org/article/10.1088/1367-2630/15/9/095003" target="_blank">QM7b</a> dataset, containing up to 7 heavy atoms (C,N,O,S,Cl) as well as hydrogen. For these molecules, the polarizability was calculated using B3LYP-DFT, SCAN0-DFT and CCSD. A model trained on the 5400 most diverse members of the QM7b set predicts the CCSD polarizability of the remaining molecules with an error of 0.04 a.u., an improvement of an order of magnitude over the prediction of DFT, and the polarizability of a showcase set of more complex molecules with an error of 0.24 a.u., comparable in accuracy to the DFT prediction. </p>
 	<p style="test-align:justify"> <strong>Disclaimer</strong>: The model used in this web-app has been optimized for execution speed rather than accuracy, and so have been found to deviate by about 0.02 a.u. from those of the published manuscript. </p>
-        <p style="test-align:justify"> <strong>Please read and cite the following</strong>: <a href="https://arxiv.org/abs/1809.05337" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio Jr. and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning</a> (submitted). </p>
+	<p style="test-align:justify"> <strong>Please read and cite the following</strong>: <a href="https://doi.org/10.1073/pnas.1816132116" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao, Robert A. DiStasio Jr. and Michele Ceriotti. Accurate molecular polarizabilities by coupled-cluster theory and machine learning </a>, Proc. Natl. Acad. Sci. 116, 3401 (2019). </p>
 </div>
 
 <div>
-  <h3><strong>Version 1.0 Beta; 13.08.2018</strong></h3>
-                <p style="test-align:justify">This is the first release of AlphaML, with basic functionality. The polarizabilities of molecules containing H,C,N,O,S,Cl can be predicted. It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT.
+  <h3><strong>Version 1.1 Beta; 02.03.2019</strong></h3>
+  <p style="test-align:justify">This is the first release of AlphaML, with basic functionality. The polarizabilities of molecules containing H,C,N,O,S,Cl can be predicted. It has only been tested for input structures in which all atomic coordinates are fully relaxed with DFT. <strong>Version 1.1 Beta</strong> introduces radial scaling to improve the accuracy of predictions.
     </p>
   </div>
 
@@ -118,15 +118,20 @@
 <li>provides a <strong>JSmol interactive output</strong> and <strong>copy-paste content</strong> in the <a href="http://libatoms.github.io/QUIP/io.html#extendedxyz" target="_blank" style="color:DodgerBlue;">extended xyz</a> format.</li>
 <p>
 <p>AlphaML has so far been tested for <strong>DFT-optimized</strong> molecular configurations of molecules containing <strong>H, C, N, O, S and Cl</strong> atoms. See
-	<a href="https://arxiv.org/abs/1809.05337" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a> (submitted).
+	<a href="https://doi.org/10.1073/pnas.1816132116" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a>.
+
 </p>
 </div>
 
 <h2>Version history</h2>
 <div>
+<p><strong>02.03.2019: Version 1.1 Beta </strong>
+<ul>
+	<li>Inclusion of radial scaling to improve the accuracy of predictions.</li>
+</ul>
 <p><strong>13.08.2018: Version 1.0 Beta </strong>
 <ul>
-  <li>Implementation of AlphaML framework as described in <a href="https://arxiv.org/abs/1809.05337" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a> (submitted). </li>
+  <li>Implementation of AlphaML framework as described in <a href="https://doi.org/10.1073/pnas.1816132116" target="_blank" style="color:DodgerBlue;"> Wilkins et al.</a>. </li>
 </ul>
 </p>
 </div>
@@ -148,7 +153,7 @@
 
 <h2><a name="tool"></a>Upload your molecule</h2>
 <div class='alert alert-danger'>
-		<div style="text-align:center"><label>Version 1.0 Beta of AlphaML predicts polarizabilities of structures containing only H,C,N,O,S,Cl.</label></div>
+		<div style="text-align:center"><label>Version 1.1 Beta of AlphaML predicts polarizabilities of structures containing only H,C,N,O,S,Cl.</label></div>
 	</div>
 
 <div style="margin-left: 20px; margin-right: 20px">
@@ -451,13 +456,17 @@ function update_progress(status_url,redirect_url) {
         <p>If you use this tool, please cite the following work:
         <ul>
         <li>
-                <a href="https://arxiv.org/abs/1809.05337" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao,Robert A. DiStasio Jr. and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning  </a> (submitted).
+                <a href="https://doi.org/10.1073/pnas.1816132116" target="_blank"> David M. Wilkins, Andrea Grisafi, Yang Yang, Ka Un Lao,Robert A. DiStasio Jr. and Michele Ceriotti: Accurate molecular polarizabilities by coupled-cluster theory and machine learning  </a> Proc. Natl. Acad. Sci. 116, 3401 (2019).
+
         </li>
         <li>
       	  The input parsers use a number of libraries (see name in the dropdown list) from
       	     <a href="https://wiki.fysik.dtu.dk/ase/" target="_blank">ASE</a>,
              <a href="http://pymatgen.org" target="_blank">pymatgen</a>.
       	</li>
+	<li>
+	  The web interface used in this tool is based on that of <a href="http://shiftml.org">ShiftML</a>.
+	</li>
         </ul>
         </p>
 
@@ -474,17 +483,14 @@ function update_progress(status_url,redirect_url) {
             <img src="../static/img/EC-H2020.png" alt="EC-H2020 logo" height="42" vspace="10" hspace="10">
           </a>
         </li>
+	<li>
+         Partial support from Cornell University through startup funding
+	</li>
         <li>
-          <a href="https://www.epfl.ch" target="_blank">
+	  Computational resources of the Argonne Leadership Computing Facility at Argonne National Laboratory, which is supported by Office of Science of the US Department of Energy Contract DE-AC02-06CH11357. Additional computing time was provided by the Scientific IT and Application Support Center of <a href="https://www.epfl.ch" target="_blank">
             EPFL
           </a>
-          for the use of the facilities of its Scientific IT and Application Support Center
-          <!--
-          The EPFL through the use of the facilities of its Scientific IT and Application Support Center
-          <a href="https://www.epfl.ch" target="_blank">
-            <img src="../static/img/EPFL-Logo-CMJN.svg" alt="EPFL logo" height="42" vspace="10" hspace="10">
-          </a>
-        -->
+	  and by the <a href="http://www.cscs.ch" target="_blank">Swiss National Supercomputing Centre (CSCS)</a> under project ID s843.
         </li>
         </ul>
         </p>
