@@ -457,14 +457,15 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
 
     # Now calculate the polarizability for this molecule
     # Compute power spectra for this frame
-    lm = [0,2]
+    lm = [0,0,2]
+    rad_scal = [[1.0,0.0,0],[1.0,0.0,0],[1.0,0.0,0]]
     types_list = ['ccsd','b3lyp','scan0','delta-b3lyp-ccsd','delta-scan0-ccsd']
     strt = time.time()
-    all_PS  = [np.array(get_power_spectrum(lam,frame)[0]) for lam in lm]
+    all_PS = [np.array(get_power_spectrum(lm[i],frame,rad_scal[i])[0]) for i in xrange(len(lm))]
     # Split power spectrum into atomic spectra
     all_PS = split_power_spectra(all_PS,frame)
     # Combine with training set spectra
-    all_ker = [get_kernel(lm[i],all_PS[i],frame,all_PS[0]) for i in xrange(len(lm))]
+    all_ker = [get_kernel(lm[0],all_PS[0],frame,all_PS[0]),get_kernel(lm[2],all_PS[2],frame,all_PS[1])]
     # Apply weights to predict polarizability
     all_pols = {}
     all_pol2 = {}

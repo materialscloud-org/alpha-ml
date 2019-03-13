@@ -87,7 +87,7 @@ def setup_orthomatrix(nmax,rc,rk):
 
 ##################################################################################################################
 
-def get_power_spectrum(lam,frame):
+def get_power_spectrum(lam,frame,rad_scal):
 
 
     ### THIS PART CAN BE CLEANED UP SIGNIFICANTLY!
@@ -120,7 +120,7 @@ def get_power_spectrum(lam,frame):
     sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
 #    sparse_options = ['','']
 
-    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35, rad_scal={0: [1.0,0,0], 2: [1.0,0,0]} )
+    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35)
 
     lmax     = params['lmax']
     nmax     = params['nmax']
@@ -129,7 +129,6 @@ def get_power_spectrum(lam,frame):
     rk       = params['rk']
     rc       = params['rc']
     nnmax    = params['nnmax']
-    rad_scal = params['rad_scal']
 
     llmax = 0
     lvalues = {}
@@ -148,7 +147,7 @@ def get_power_spectrum(lam,frame):
         do_list = np.array(sparse_options[1],dtype=int)
         PS = np.zeros((1,natmax,len(do_list)),dtype=complex)
 
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal[lam]) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal) 
     
         # PRECOMPUTE OMEGA CONJUGATE
         omegatrue = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
@@ -183,7 +182,7 @@ def get_power_spectrum(lam,frame):
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
         # reduce l dimensionality keeping the nonzero elements
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal[lam]) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal) 
         power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
         p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
         omegaconj = np.zeros((nat,nspecies,2*lam+1,nmax,lmax+1,lmax+1,2*lmax+1),complex)
@@ -319,15 +318,17 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
 def split_power_spectra(PS,frame):
 
     natom = len(frame.get_chemical_symbols())
-    ps0_new = np.zeros((natom,1,len(PS[0][0,0])),dtype=complex)
-    ps2_new = np.zeros((natom,1,5,len(PS[1][0,0,0])),dtype=complex)
+    ps0_new  = np.zeros((natom,1,len(PS[0][0,0])),dtype=complex)
+    ps02_new = np.zeros((natom,1,len(PS[1][0,0])),dtype=complex)
+    ps2_new  = np.zeros((natom,1,5,len(PS[2][0,0,0])),dtype=complex)
     k = 0
     for i in xrange(natom):
         ps0_new[k,0,:] = PS[0][0,k,:]
-        ps2_new[k,0,:,:] = PS[1][0,k,:,:]
+        ps02_new[k,0,:] = PS[1][0,k,:]
+        ps2_new[k,0,:,:] = PS[2][0,k,:,:]
         k += 1
 
-    return [ps0_new,ps2_new]
+    return [ps0_new,ps02_new,ps2_new]
 
 #############################################################################################
 
