@@ -87,7 +87,7 @@ def setup_orthomatrix(nmax,rc,rk):
 
 ##################################################################################################################
 
-def get_power_spectrum(lam,frame,rad_scal):
+def get_power_spectrum(lam,frame,rad_scal,use_radial_scaling):
 
 
     ### THIS PART CAN BE CLEANED UP SIGNIFICANTLY!
@@ -117,8 +117,10 @@ def get_power_spectrum(lam,frame,rad_scal):
     ###
 
     # Read in sparsification options from external files
-    sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
-#    sparse_options = ['','']
+    if (not use_radial_scaling):
+        sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
+    else:
+        sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '_RS.npy') for typestr in ['Amat','fps']]
 
     params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35)
 
@@ -332,7 +334,7 @@ def split_power_spectra(PS,frame):
 
 #############################################################################################
 
-def get_kernel(lam,PS,frame,PS0):
+def get_kernel(lam,PS,frame,PS0,use_radial_scaling):
 
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
@@ -345,7 +347,10 @@ def get_kernel(lam,PS,frame,PS0):
     if (lam==0):
         # Compute nonlinear scalar kernel of order 2
         # Firstly, read in training power spectrum
-        pstrain = np.load('/home/app/data/PStrain_lam0.npy')
+        if (not use_radial_scaling):
+            pstrain = np.load('/home/app/data/PStrain_lam0.npy').astype(complex)
+        else:
+            pstrain = np.load('/home/app/data/PStrain_lam0_RS.npy').astype(complex)
         strt = time.time()
         ntrain = len(pstrain)
         kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
@@ -353,7 +358,10 @@ def get_kernel(lam,PS,frame,PS0):
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
-        pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy')
+        if (not use_radial_scaling):
+            pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy').astype(complex)
+        else:
+            pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2_RS.npy').astype(complex)
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
@@ -361,7 +369,10 @@ def get_kernel(lam,PS,frame,PS0):
         CC = np.conj(CR)
         CT = np.transpose(CR)
         # Now combine with testing power spectrum
-        pstrain = np.load('/home/app/data/PStrain_lam2.npy')
+        if (not use_radial_scaling):
+            pstrain = np.load('/home/app/data/PStrain_lam2.npy').astype(complex)
+        else:
+            pstrain = np.load('/home/app/data/PStrain_lam2_RS.npy').astype(complex)
         for i in xrange(ntrain):
             kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain[i],PS,pstrain0[i],PS0)[0] / float(nat1[i])
             for k in xrange(nat2):
@@ -371,27 +382,23 @@ def get_kernel(lam,PS,frame,PS0):
 
 #############################################################################################
 
-def get_pol(kernels,type_str):
+def get_pol(kernels,type_str,use_radial_scaling):
 
     # Get polarizability
 
     folder = '/home/app/data/' + type_str + '-weights/'
-#    folder = '/home/app/data/'
 
     # First read in weights
-#    weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
-#    weights2 = np.load('/home/app/data/weights_lm2.npy')
-    weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
-    weights2 = np.load(folder + 'weights_lm2.npy')
-
-#    print weights0[0]
-#    print kernels[0]
+    if (not use_radial_scaling):
+        weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
+        weights2 = np.load(folder + 'weights_lm2.npy')
+    else:
+        weights0 = [np.load(folder + 'weights_lm0_RS.npy'),np.load(folder + 'weights_lm0_mean_RS.npy')]
+        weights2 = np.load(folder + 'weights_lm2_RS.npy')
 
     # Multiply weights vector by kernels to give predictions
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(len(kernels[1])*len(kernels[1][0,0,0]),len(kernels[1][0])*len(kernels[1][0,0])))
-
-#    print output0
 
     # Transform to Cartesian tensors and return
     outvec = [[np.array(output0[i]),output2[i*5:(i+1)*5]] for i in xrange(len(kernels[1][0]))]
