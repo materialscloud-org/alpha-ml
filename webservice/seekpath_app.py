@@ -461,7 +461,8 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     rad_scal = [[1.0,0.0,0],[1.0,0.0,0],[1.0,0.0,0]]
     use_radial_scaling=False
     if form_data['modeltype'][0] == 'ccsd':
-        rad_scal = [[1.0,3.5,9],[1.0,2.5,6],[1.0,2.5,6]]
+#        rad_scal = [[1.0,3.5,8],[1.0,2.5,6],[1.0,2.5,6]]
+        rad_scal = [[1.0,3.5,8],[1.0,0.0,0],[1.0,0.0,0]]
         use_radial_scaling=True
     types_list = ['ccsd','b3lyp','scan0','delta-b3lyp-ccsd','delta-scan0-ccsd']
     strt = time.time()
