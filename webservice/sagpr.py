@@ -122,15 +122,25 @@ def get_power_spectrum(lam,frame,rad_scal,use_radial_scaling):
     else:
         sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '_RS.npy') for typestr in ['Amat','fps']]
 
-    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35)
+    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10, rc=4.0, nnmax=35)
+    params_rc = dict( lmax=6, nmax=8, sg=0.3, cw=1.0, rk=1e-10, rc=5.0, nnmax=35)
 
-    lmax     = params['lmax']
-    nmax     = params['nmax']
-    sg       = params['sg']
-    cw       = params['cw']
-    rk       = params['rk']
-    rc       = params['rc']
-    nnmax    = params['nnmax']
+    if (not use_radial_scaling):
+        lmax     = params['lmax']
+        nmax     = params['nmax']
+        sg       = params['sg']
+        cw       = params['cw']
+        rk       = params['rk']
+        rc       = params['rc']
+        nnmax    = params['nnmax']
+    else:
+        lmax     = params_rc['lmax']
+        nmax     = params_rc['nmax']
+        sg       = params_rc['sg']
+        cw       = params_rc['cw']
+        rk       = params_rc['rk']
+        rc       = params_rc['rc']
+        nnmax    = params_rc['nnmax']
 
     llmax = 0
     lvalues = {}
@@ -389,12 +399,22 @@ def get_pol(kernels,type_str,use_radial_scaling):
     folder = '/home/app/data/' + type_str + '-weights/'
 
     # First read in weights
-    if (not use_radial_scaling):
+    if (not use_radial_scaling[0]):
         weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
-        weights2 = np.load(folder + 'weights_lm2.npy')
     else:
         weights0 = [np.load(folder + 'weights_lm0_RS.npy'),np.load(folder + 'weights_lm0_mean_RS.npy')]
+
+    if (not use_radial_scaling[2]):
+        weights2 = np.load(folder + 'weights_lm2.npy')
+    else:
         weights2 = np.load(folder + 'weights_lm2_RS.npy')
+
+#    if (not use_radial_scaling):
+#        weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
+#        weights2 = np.load(folder + 'weights_lm2.npy')
+#    else:
+#        weights0 = [np.load(folder + 'weights_lm0_RS.npy'),np.load(folder + 'weights_lm0_mean_RS.npy')]
+#        weights2 = np.load(folder + 'weights_lm2_RS.npy')
 
     # Multiply weights vector by kernels to give predictions
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
