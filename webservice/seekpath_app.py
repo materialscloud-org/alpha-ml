@@ -459,7 +459,7 @@ def predict_polarizabilities(self, filecontent, fileformat, slopes, intercepts, 
     # Compute power spectra for this frame
     lm = [0,0,2]
     rad_scal = [[1.0,0.0,0],[1.0,0.0,0],[1.0,0.0,0]]
-    use_radial_scaling=False
+    use_radial_scaling=[False,False,False]
     if form_data['modeltype'][0] == 'ccsd':
 #        rad_scal = [[1.0,3.5,8],[1.0,2.5,6],[1.0,2.5,6]]
         rad_scal = [[1.0,3.5,8],[1.0,0.0,0],[1.0,0.0,0]]
