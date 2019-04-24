@@ -50,6 +50,17 @@ def complex_to_real_transformation(lval):
 
 #############################################################################################
 
+def radialscaling(r,c,r0,m):
+
+    if (m == 0):
+        return 1.0
+    if (c == 0.0):
+        return 1.0 / (r/r0)**m
+    else:
+        return c / (c + (r/r0)**m)
+
+#############################################################################################
+
 def setup_orthomatrix(nmax,rc,rk):
 
     sigma = np.zeros(nmax,float)
@@ -76,7 +87,7 @@ def setup_orthomatrix(nmax,rc,rk):
 
 ##################################################################################################################
 
-def get_power_spectrum(lam,frame):
+def get_power_spectrum(lam,frame,rad_scal,use_radial_scaling):
 
 
     ### THIS PART CAN BE CLEANED UP SIGNIFICANTLY!
@@ -106,18 +117,30 @@ def get_power_spectrum(lam,frame):
     ###
 
     # Read in sparsification options from external files
-    sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
-#    sparse_options = ['','']
+    if (not use_radial_scaling):
+        sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '.npy') for typestr in ['Amat','fps']]
+    else:
+        sparse_options=[np.load('/home/app/data/SPARSE_' + typestr + str(lam) + '_RS.npy') for typestr in ['Amat','fps']]
 
-    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10,rc=4.0, nnmax=35 )
+    params = dict( lmax=6, nmax=8, sg=0.3, cw=1.0,rk=1e-10, rc=4.0, nnmax=35)
+    params_rc = dict( lmax=6, nmax=8, sg=0.3, cw=1.0, rk=1e-10, rc=5.0, nnmax=35)
 
-    lmax = params['lmax']
-    nmax = params['nmax']
-    sg = params['sg']
-    cw = params['cw']
-    rk = params['rk']
-    rc = params['rc']
-    nnmax = params['nnmax']
+    if (not use_radial_scaling):
+        lmax     = params['lmax']
+        nmax     = params['nmax']
+        sg       = params['sg']
+        cw       = params['cw']
+        rk       = params['rk']
+        rc       = params['rc']
+        nnmax    = params['nnmax']
+    else:
+        lmax     = params_rc['lmax']
+        nmax     = params_rc['nmax']
+        sg       = params_rc['sg']
+        cw       = params_rc['cw']
+        rk       = params_rc['rk']
+        rc       = params_rc['rc']
+        nnmax    = params_rc['nnmax']
 
     llmax = 0
     lvalues = {}
@@ -136,7 +159,7 @@ def get_power_spectrum(lam,frame):
         do_list = np.array(sparse_options[1],dtype=int)
         PS = np.zeros((1,natmax,len(do_list)),dtype=complex)
 
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal) 
     
         # PRECOMPUTE OMEGA CONJUGATE
         omegatrue = np.zeros((nat,nspecies,nmax,lmax+1,2*lmax+1),complex)
@@ -171,7 +194,7 @@ def get_power_spectrum(lam,frame):
 
         # COMPUTE HARMONIC CONJUGATE, omega conjugate and tensorial power spectrum
         # reduce l dimensionality keeping the nonzero elements
-        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix) 
+        [nat,omega,harmonic,orthoradint] = fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal) 
         power = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,lmax+1,lmax+1),complex)
         p2 = np.zeros((nat,2*lam+1,nspecies,nspecies,nmax,nmax,llmax),complex)
         omegaconj = np.zeros((nat,nspecies,2*lam+1,nmax,lmax+1,lmax+1,2*lmax+1),complex)
@@ -211,7 +234,7 @@ def get_power_spectrum(lam,frame):
 
 ##################################################################################################################
 
-def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix):
+def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords,rc,rk,cw,sigma,sg,orthomatrix,rad_scal):
 
     alpha = 1.0/(2*sg**2)
     sg2 = sg**2
@@ -266,7 +289,7 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
                             length[iat,ispe,n]  = np.linalg.norm(rr)
                             theta   = np.arccos(rr[2]/length[iat,ispe,n])
                             phi     = np.arctan2(rr[1],rr[0])
-                            efact[iat,ispe,n]   = np.exp(-alpha*length[iat,ispe,n]**2)
+                            efact[iat,ispe,n]   = np.exp(-alpha*length[iat,ispe,n]**2) * radialscaling(length[iat,ispe,n],rad_scal[0],rad_scal[1],rad_scal[2])
                             efact[iat,ispe,n]  *= switch(length[iat,ispe,n])
                             for lval in xrange(lmax+1): 
                                 mxrange = np.arange(-lval,lval+1)
@@ -307,23 +330,24 @@ def fill_arrays(nspecies,nnmax,lmax,nmax,centers,atom_indexes,all_species,coords
 def split_power_spectra(PS,frame):
 
     natom = len(frame.get_chemical_symbols())
-    ps0_new = np.zeros((natom,1,len(PS[0][0,0])),dtype=complex)
-    ps2_new = np.zeros((natom,1,5,len(PS[1][0,0,0])),dtype=complex)
+    ps0_new  = np.zeros((natom,1,len(PS[0][0,0])),dtype=complex)
+    ps02_new = np.zeros((natom,1,len(PS[1][0,0])),dtype=complex)
+    ps2_new  = np.zeros((natom,1,5,len(PS[2][0,0,0])),dtype=complex)
     k = 0
     for i in xrange(natom):
         ps0_new[k,0,:] = PS[0][0,k,:]
-        ps2_new[k,0,:,:] = PS[1][0,k,:,:]
+        ps02_new[k,0,:] = PS[1][0,k,:]
+        ps2_new[k,0,:,:] = PS[2][0,k,:,:]
         k += 1
 
-    return [ps0_new,ps2_new]
+    return [ps0_new,ps02_new,ps2_new]
 
 #############################################################################################
 
-def get_kernel(lam,PS,frame,PS0):
+def get_kernel(lam,PS,frame,PS0,use_radial_scaling):
 
     # Get training and testing number of atoms
     nat1 = np.load('/home/app/data/natoms.npy')
-#    nat1a= np.load('/home/app/data/natoms_old.npy')
     all_names = frame.get_chemical_symbols()
     nat2 = len(all_names)
 
@@ -333,17 +357,21 @@ def get_kernel(lam,PS,frame,PS0):
     if (lam==0):
         # Compute nonlinear scalar kernel of order 2
         # Firstly, read in training power spectrum
-        pstrain = np.load('/home/app/data/PStrain_lam0.npy')
+        if (not use_radial_scaling):
+            pstrain = np.load('/home/app/data/PStrain_lam0.npy').astype(complex)
+        else:
+            pstrain = np.load('/home/app/data/PStrain_lam0_RS.npy').astype(complex)
         strt = time.time()
         ntrain = len(pstrain)
         kreal = test.k0(ntrain,nat1,nat2,len(PS[0,0]),pstrain,PS)
-#        np.save('/home/app/data/PS_test.npy',PS)
 
     else:
         # Compute nonlinear L=2 kernel of order 2
         # Firstly, read in training power spectra
-        pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy')
-#        pstrain0 = np.load('/home/app/data/pstrain_lam0_old.npy')
+        if (not use_radial_scaling):
+            pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2.npy').astype(complex)
+        else:
+            pstrain0 = np.load('/home/app/data/PStrain_lam0_zeta2_lam2_RS.npy').astype(complex)
         ntrain = len(pstrain0)
         kreal = np.zeros((ntrain,nat2,2*lam+1,2*lam+1),dtype=float)
         # Get transformation matrices between real and complex spherical harmonics
@@ -351,10 +379,11 @@ def get_kernel(lam,PS,frame,PS0):
         CC = np.conj(CR)
         CT = np.transpose(CR)
         # Now combine with testing power spectrum
-        pstrain = np.load('/home/app/data/PStrain_lam2.npy')
+        if (not use_radial_scaling):
+            pstrain = np.load('/home/app/data/PStrain_lam2.npy').astype(complex)
+        else:
+            pstrain = np.load('/home/app/data/PStrain_lam2_RS.npy').astype(complex)
         for i in xrange(ntrain):
-#            pstrain = np.load('/home/app/data/train_lam2/ps2_' + str(i) +'.npy')
-#            pstr = pstrain[i]
             kern = test.k2(lam,nat1[i],nat2,len(PS[0,0,0]),len(PS0[0,0]),pstrain[i],PS,pstrain0[i],PS0)[0] / float(nat1[i])
             for k in xrange(nat2):
                 kreal[i,k] = np.array(np.real(np.dot(np.dot(CC,kern[k]),CT)),float)
@@ -363,27 +392,33 @@ def get_kernel(lam,PS,frame,PS0):
 
 #############################################################################################
 
-def get_pol(kernels,type_str):
+def get_pol(kernels,type_str,use_radial_scaling):
 
     # Get polarizability
 
     folder = '/home/app/data/' + type_str + '-weights/'
-#    folder = '/home/app/data/'
 
     # First read in weights
-#    weights0 = [np.load('/home/app/data/weights_lm0.npy'),np.load('/home/app/data/weights_lm0_mean.npy')]
-#    weights2 = np.load('/home/app/data/weights_lm2.npy')
-    weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
-    weights2 = np.load(folder + 'weights_lm2.npy')
+    if (not use_radial_scaling[0]):
+        weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
+    else:
+        weights0 = [np.load(folder + 'weights_lm0_RS.npy'),np.load(folder + 'weights_lm0_mean_RS.npy')]
 
-#    print weights0[0]
-#    print kernels[0]
+    if (not use_radial_scaling[2]):
+        weights2 = np.load(folder + 'weights_lm2.npy')
+    else:
+        weights2 = np.load(folder + 'weights_lm2_RS.npy')
+
+#    if (not use_radial_scaling):
+#        weights0 = [np.load(folder + 'weights_lm0.npy'),np.load(folder + 'weights_lm0_mean.npy')]
+#        weights2 = np.load(folder + 'weights_lm2.npy')
+#    else:
+#        weights0 = [np.load(folder + 'weights_lm0_RS.npy'),np.load(folder + 'weights_lm0_mean_RS.npy')]
+#        weights2 = np.load(folder + 'weights_lm2_RS.npy')
 
     # Multiply weights vector by kernels to give predictions
     output0 = (np.dot(weights0[0].T,kernels[0]) + weights0[1])[0]
     output2 = np.dot(weights2.T,kernels[1].transpose(0,2,1,3).reshape(len(kernels[1])*len(kernels[1][0,0,0]),len(kernels[1][0])*len(kernels[1][0,0])))
-
-#    print output0
 
     # Transform to Cartesian tensors and return
     outvec = [[np.array(output0[i]),output2[i*5:(i+1)*5]] for i in xrange(len(kernels[1][0]))]
