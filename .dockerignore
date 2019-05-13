@@ -1,3 +1,6 @@
 .git
 .dockerignore
 data
+old_data
+alphaml.zip
+alphaml.tar
