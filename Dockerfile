@@ -61,6 +61,10 @@ ENV HOME /home/app
 
 USER app
 
+# Important because recent versions of pip take correctly care of
+# not installing a python2 dependency
+RUN pip2 install --upgrade --user 'pip>19'
+
 RUN pip2 install --upgrade --user ase==3.15.0 matplotlib==2.2.3
 
 RUN mkdir $HOME/code
