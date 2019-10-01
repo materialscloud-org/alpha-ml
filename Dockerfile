@@ -71,7 +71,7 @@ RUN mkdir $HOME/code
 
 RUN pip2 install --user numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython==5.4 scikit-learn==0.19.1 
 
-RUN pip2 install --user matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6 cython
+RUN pip2 install --user matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6 monty==1.0.3 cython
 
 USER root
 
