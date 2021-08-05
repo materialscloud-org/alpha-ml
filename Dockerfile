@@ -58,7 +58,7 @@ RUN apt-get update \
 
 # Important because recent versions of pip take correctly care of
 # not installing a python2 dependency; I do it for all users
-RUN pip2 install --upgrade 'pip>19'
+RUN pip2 install --upgrade 'pip==20.3.4'
 
 # set $HOME
 ENV HOME /home/app
@@ -69,9 +69,9 @@ RUN pip2 install --upgrade --user ase==3.15.0 matplotlib==2.2.3
 
 RUN mkdir $HOME/code
 
-RUN pip2 install --user numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython==5.4 scikit-learn==0.19.1 
+RUN pip2 install --user llvmlite==0.29.0 numba==0.36.1 tqdm==4.19.5 psutil==5.4.3 future==0.16.0 ipython==5.4 scikit-learn==0.19.1
 
-RUN pip2 install --user matplotlib==2.2.3 Flask==0.12.2 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6 monty==1.0.3 kombu==4.2.1 cython
+RUN pip2 install --user matplotlib==2.2.3 Flask==0.12.2 Werkzeug==0.16.0 qe_tools==1.0.0 pymatgen==2017.7.4 celery==4.2.1 redis==2.10.6 monty==1.0.3 kombu==4.2.1 mpmath==1.1.0 cython
 
 USER root
 
