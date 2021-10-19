@@ -10,7 +10,7 @@
 ##
 # Actually, I use passenger-full that already has python
 # https://github.com/phusion/passenger-docker#using
-FROM phusion/passenger-customizable:0.9.35
+FROM phusion/passenger-customizable:2.0.0
 
 MAINTAINER David Wilkins <david.wilkins@epfl.ch>
 
@@ -27,7 +27,7 @@ CMD ["/sbin/my_init"]
 # for features. Uncomment the features you want:
 #
     #   Build system and git.
-    #   Python support (2.7 and 3.x - it is 3.5.x in this ubuntu 16.04)
+    #   Python support (2.7 and 3.x)
 RUN /pd_build/utilities.sh && \
     /pd_build/python.sh
 
@@ -44,7 +44,8 @@ RUN /pd_build/utilities.sh && \
 ## However, then one has to configure the web server to use wsgi with python3
 RUN apt-get update \
     && apt-get -y install \
-    python-pip \
+    wget \
+    python-dev \
     apache2 \
     libapache2-mod-xsendfile \
     libapache2-mod-wsgi \
@@ -55,6 +56,9 @@ RUN apt-get update \
     liblapack-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean all
+
+RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py \
+    && python2 get-pip.py
 
 # Important because recent versions of pip take correctly care of
 # not installing a python2 dependency; I do it for all users
