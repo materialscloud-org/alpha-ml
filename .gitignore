@@ -1,4 +1,5 @@
 data/*
+data.tar.gz
 webservice/SECRET_KEY
 webservice/seekpath_app.wsgi
 webservice/seekpath-site.conf
