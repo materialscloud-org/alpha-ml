@@ -1,15 +1,3 @@
-# Use phusion/baseimage as base image. To make your builds
-# reproducible, make sure you lock down to a specific version, not
-# to `latest`! See
-# https://github.com/phusion/baseimage-docker/blob/master/Changelog.md
-# for a list of version numbers.
-# Note also that we use phusion because, as explained on the
-# http://phusion.github.io/baseimage-docker/ page, it automatically
-# contains and starts all needed services (like logging), it
-# takes care of sending around signals when stopped, etc.
-##
-# Actually, I use passenger-full that already has python
-# https://github.com/phusion/passenger-docker#using
 FROM phusion/passenger-customizable:2.0.0
 
 MAINTAINER David Wilkins <david.wilkins@epfl.ch>
@@ -26,8 +14,8 @@ CMD ["/sbin/my_init"]
 # If you're using the 'customizable' variant, you need to explicitly opt-in
 # for features. Uncomment the features you want:
 #
-    #   Build system and git.
-    #   Python support (2.7 and 3.x)
+#   Build system and git.
+#   Python support (2.7 and 3.x)
 RUN /pd_build/utilities.sh && \
     /pd_build/python.sh
 
@@ -54,6 +42,8 @@ RUN apt-get update \
     gfortran \
     libblas-dev \
     liblapack-dev \
+    # Ensure tar and gzip are installed for extraction of data.tar.gz
+    && apt-get -y install tar gzip \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean all
 
@@ -79,38 +69,52 @@ RUN pip2 install --user matplotlib==2.2.3 Flask==0.12.2 Werkzeug==0.16.0 qe_tool
 
 USER root
 
-# Actually, don't download, but get the code directly from this repo
-#COPY predictor.py $HOME/code/predictor.py
+# Copy the webservice code
 COPY webservice $HOME/code/webservice
-RUN mkdir $HOME/data
-# COPY ../data $HOME/data
-# COPY data $HOME/data
-#COPY ./README.rst README.rst
-#COPY ./MANIFEST.in MANIFEST.in
-#COPY ./LICENSE.txt LICENSE.txt
-#COPY run_tests.py $HOME/code/run_tests.py
 
-# Set proper permissions
-RUN chown -R app:app $HOME/code/webservice
+# --- Data inclusion using data.tar.gz ---
+# Copy the data archive into the container's /home/app/ directory
+COPY data.tar.gz $HOME/
+
+# Create the target directory ($HOME/data) and extract the archive contents into it.
+# Assumes data.tar.gz contains a top-level 'data/' directory that you want to strip.
+RUN mkdir -p $HOME/data && \
+    tar -xzf $HOME/data.tar.gz -C $HOME/data/ --strip-components=1 && \
+    rm $HOME/data.tar.gz # Clean up the archive after extraction
+
+# Set proper permissions for the extracted data directory and its contents
 RUN chown -R app:app $HOME/data
-#RUN chown app:app $HOME/code/predictor.py $HOME/code/run_tests.py
+# --- END Data inclusion ---
+
+
+# --- SECRET_KEY HARDCODE START ---
+# Create the SECRET_KEY file directly in the image with your chosen key
+RUN mkdir -p /home/app/code/webservice && \
+    echo "your_super_secret_key_1234567890" > /home/app/code/webservice/SECRET_KEY
+
+# Set proper permissions for the SECRET_KEY file
+RUN chown app:app /home/app/code/webservice/SECRET_KEY && \
+    chmod 600 /home/app/code/webservice/SECRET_KEY
+# --- SECRET_KEY HARDCODE END ---
+
+# --- CRITICAL FIX: Ensure 'app' user owns webservice *before* switching to it ---
+# This ensures the 'app' user can write the .wsgi file and access the webservice code
+RUN chown -R app:app $HOME/code/webservice
+# --- END CRITICAL FIX ---
+
 
 USER app
 
-# Create a proper wsgi file
-#
+# Create a proper wsgi file (now writable by 'app' user)
 ENV SP_WSGI_FILE=$HOME/code/webservice/seekpath_app.wsgi
 RUN echo "import sys" > $SP_WSGI_FILE && \
     echo "sys.path.insert(0, '/home/app/code/webservice')" >> $SP_WSGI_FILE && \
     echo "from seekpath_app import app as application" >> $SP_WSGI_FILE
 
 # Go back to root.
-# Also, it should remain as user root for startup
 USER root
 
 # Setup apache
-# Disable default apache site, enable seekpath site; also
-# enable needed modules
 ADD ./.docker_files/seekpath-apache.conf /etc/apache2/sites-available/seekpath.conf
 RUN a2enmod wsgi && a2enmod xsendfile && \
     a2dissite 000-default && a2ensite seekpath
@@ -119,14 +123,15 @@ RUN a2enmod wsgi && a2enmod xsendfile && \
 RUN mkdir /etc/service/apache
 ADD ./.docker_files/apache_run.sh /etc/service/apache/run
 
-# Set startup script to create the secret key
-RUN mkdir -p /etc/my_init.d
-ADD ./.docker_files/create_secret_key.sh /etc/my_init.d/create_secret_key.sh
+# Removed: Reference to create_secret_key.sh as it's now hardcoded in Dockerfile
+# # Set startup script to create the secret key
+# RUN mkdir -p /etc/my_init.d
+# ADD ./.docker_files/create_secret_key.sh /etc/my_init.d/create_secret_key.sh
 
 # Web
 EXPOSE 80
 
-run cd $HOME/code/webservice && python setup_cython.py build_ext --inplace && cd -
+RUN cd $HOME/code/webservice && python setup_cython.py build_ext --inplace && cd -
 
 # Final cleanup, in case it's needed
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

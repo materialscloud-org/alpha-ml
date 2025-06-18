@@ -1,77 +1,22 @@
-# Shift-ML app
+# Alpha-ML
 
-To build the docker image:
+AlphaML was developed by the Ceriotti group at EPFL and the DiStasio group at Cornell. AlphaML uses a machine-learning framework based on comparisons of local atomic environments to predict the polarizabilities of molecules. This model was trained on the 7211 compounds in the QM7b dataset, containing up to 7 heavy atoms (C,N,O,S,Cl) as well as hydrogen. For these molecules, the polarizability was calculated using B3LYP-DFT, SCAN0-DFT and CCSD.
 
-sudo docker build -t nmr_app .
+The compute module is handled via celery and redis. While the frontend website is built using the shiftml-pip2 branch of the [tools-barebones](https://github.com/materialscloud-org/tools-barebone) framework.
 
-To access the image's CL with the test data:
+## Usage
 
-sudo docker run -p 5050:80 --rm -v /Users/albert/PycharmProjects/data:/home/app/data  nmr_app 
- 
+This is a fully dockerised solution for use in deployment on materialscloud.org and requires the data.tar.gz file (which is availible on the MC S3 server).
 
- The data model_sp_*.pck needs to be in mounted local directory so it can be loaded by the app from /home/app/data
- 
-# Docker compose`
- 
- To build and run the docker images
- ``` 
- docker-compose -f docker-compose_albert.yml up --build
- docker-compose -f docker-compose_felix.yml up --build
-  ```
- OR (without stdout redirection)
- ```
- docker-compose -f docker-compose_felix.yml build
- docker-compose -f docker-compose_felix.yml start
- docker-compose -f docker-compose_felix.yml stop
- ```
- and to clean up the images
- ```
- docker-compose rm -f
- ```
- # To run the app locally
- In a terminal in websevice run:
- ``` 
- launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist  OR 
- celery worker -l info -A seekpath_app.celery
- ```
- And in another in webservice:
- ``` 
- python seekpath_app.py
- ```
- 
- # Additional packages
- 
+With the zipped data file on the same level as docker-compose.yml:
+
 ```
-pip install celery
+docker compose build #Usually takes 5+ mins
+docker compose up
 ```
- 
-# To use redis
 
-redis is a framework to simplify the use of database/broker in the flask app.
+where the landing page should be rendered on:
 
-* Install
 ```
- brew install redis
- pip install redis
- ```
- Or
- ```
- sudo apt-get install redis-server
- pip install redis
- ```
- 
- * Run in background
- ```
- launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist
- ```
- Linux should already be running is in the background.
-
-# To run locally
-* Install redis and celery 
-* launch redis in the background
-launchctl load /usr/local/opt/redis/homebrew.mxcl.redis.plist # Mac
-/usr/bin/redis-server --daemonize yes # ubuntu (to turn it off pkill redis-server)
-* launch celery
-celery worker -l info -A seekpath_app.celery #in terminal 1 in /webservice
-* launch the app in a different terminal
-python seekpath_app.py #in terminal 2 in /websercive
+localhost:5050
+```
