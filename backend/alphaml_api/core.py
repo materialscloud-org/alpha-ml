@@ -7,7 +7,6 @@ and model choices are kept unchanged.
 
 from __future__ import annotations
 
-import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from math import factorial, sqrt
@@ -16,19 +15,12 @@ from pathlib import Path
 import numpy as np
 from scipy import special
 
+from . import config
+
 MODELS = ("ccsd", "b3lyp", "scan0", "delta-b3lyp-ccsd", "delta-scan0-ccsd")
 
 # The format of the tensors folder (scripts/build_tensors.py): older ones are refused
 TENSORS_FORMAT = 2
-
-# Molecules of more atoms are predicted in chunks of atoms on several threads
-# (each atom's prediction depends on its own neighbours only)
-PARALLEL_ATOMS = 256
-# Working memory: atoms per chunk, pairs per sum, array elements per step
-ATOM_CHUNK = 128
-PAIR_CHUNK = 20000
-ELEMENT_CHUNK = 4_000_000
-THREADS = int(os.environ.get("ALPHAML_THREADS", min(4, os.cpu_count() or 1)))
 
 ATOM_VALENCE = {
     "H": 1,
@@ -333,7 +325,7 @@ def fill_arrays(
     # omega: the sum over each group's pairs, in chunks of centres (memory)
     omega = np.zeros((nat * nspecies, nmax, lmax + 1, 2 * lmax + 1), dtype=complex)
     bounds = np.append(starts, len(r))
-    chunk = max(1, PAIR_CHUNK // max(1, int(counts.mean())))
+    chunk = max(1, config.PAIR_CHUNK // max(1, int(counts.mean())))
     for g0 in range(0, len(groups), chunk):
         g1 = min(g0 + chunk, len(groups))
         pairs = slice(bounds[g0], bounds[g1])
@@ -450,7 +442,7 @@ def get_power_spectrum(
         f_coef = w[fp[f], v, x]
 
         # Atoms in chunks (memory)
-        chunk = max(1, ELEMENT_CHUNK // max(len(d_coef), len(f_coef)))
+        chunk = max(1, config.ELEMENT_CHUNK // max(len(d_coef), len(f_coef)))
         flat_om = om.reshape(nat, -1)
         flat_D = D.reshape(nat, -1)
         for a0 in range(0, nat, chunk):
@@ -547,11 +539,12 @@ class ModelData:
         coords = np.asarray(positions, dtype=float)
         _, atom_indexes, centers = _species_layout(symbols)
         order = np.array([c for k in centers for c in atom_indexes[k]], dtype=int)
-        chunks = np.array_split(order, -(-len(order) // ATOM_CHUNK))
-        if THREADS == 1 or len(order) <= PARALLEL_ATOMS:
+        # In chunks of atoms (memory; see config), on threads for large molecules
+        chunks = np.array_split(order, -(-len(order) // config.ATOM_CHUNK))
+        if config.THREADS == 1 or len(order) <= config.PARALLEL_ATOMS:
             pols = np.concatenate([self._predict(symbols, coords, model_name, atoms) for atoms in chunks])
         else:
-            with ThreadPoolExecutor(THREADS) as pool:
+            with ThreadPoolExecutor(config.THREADS) as pool:
                 parts = pool.map(lambda atoms: self._predict(symbols, coords, model_name, atoms), chunks)
                 pols = np.concatenate(list(parts))
         result = np.empty_like(pols)

@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from alphaml_api import core
+from alphaml_api import config, core
 from .conftest import GOLDEN
 
 
@@ -23,7 +23,8 @@ def test_threads_predict_the_same(model_data, monkeypatch):
     same result as in one go (here caffeine, in chunks of 4 atoms)."""
     golden = json.loads((GOLDEN / "Caffeine_ccsd.json").read_text())
     serial = model_data.predict(golden["symbols"], golden["positions"], "ccsd")
-    monkeypatch.setattr(core, "PARALLEL_ATOMS", 8)
-    monkeypatch.setattr(core, "THREADS", 3)
+    monkeypatch.setattr(config, "PARALLEL_ATOMS", 8)
+    monkeypatch.setattr(config, "ATOM_CHUNK", 4)
+    monkeypatch.setattr(config, "THREADS", 3)
     threaded = model_data.predict(golden["symbols"], golden["positions"], "ccsd")
     np.testing.assert_allclose(threaded, serial, rtol=0, atol=1e-12 * np.abs(serial).max())

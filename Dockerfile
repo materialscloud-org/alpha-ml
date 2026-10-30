@@ -33,8 +33,9 @@ FROM backend
 COPY --from=frontend /src/frontend/dist /app/frontend/dist
 COPY --from=tensors /tensors /app/tensors
 
-ENV FRONTEND_DIST=/app/frontend/dist ALPHAML_DATA_DIR=/app/tensors
+# The settings: backend/alphaml_api/config.py (ALPHAML_THREADS, the chunk
+# sizes, ...). One BLAS thread: no faster with more, for these matrix sizes.
+ENV FRONTEND_DIST=/app/frontend/dist ALPHAML_DATA_DIR=/app/tensors OMP_NUM_THREADS=1
 EXPOSE 8000
-# The tensors are memory-mapped, so several workers share them. Molecules of
-# more than 256 atoms use ALPHAML_THREADS threads (default: up to 4).
+# The tensors are memory-mapped, so several workers share them.
 CMD ["/app/backend/.venv/bin/uvicorn", "alphaml_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

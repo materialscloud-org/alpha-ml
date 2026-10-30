@@ -19,8 +19,17 @@ lifespan), built from the training data (`../data`, the unpacked data.tar.gz:
 `/api/health` reports `model_loaded: false` and `/api/predict` returns 503.
 Neither is in the repository.
 
-Molecules of more than 256 atoms are predicted in chunks of atoms on
-`ALPHAML_THREADS` threads (default: up to 4; about 2x faster with 4).
+The settings are environment variables, all in `alphaml_api/config.py`:
+
+| Variable | Default | |
+|---|---|---|
+| `ALPHAML_DATA_DIR` | unset | the tensors folder |
+| `FRONTEND_DIST` | `../frontend/dist` | the built frontend, served at `/` |
+| `ALPHAML_THREADS` | 1 | threads per prediction of more than `ALPHAML_PARALLEL_ATOMS` (256) atoms: about 2x faster with 4, but more memory |
+| `ALPHAML_ATOM_CHUNK` | 128 | atoms predicted at once: memory (about 380 MB peak at 2000 atoms; 64: 280 MB, 5% slower) |
+| `ALPHAML_PAIR_CHUNK`, `ALPHAML_ELEMENT_CHUNK` | 20000, 4000000 | the other working arrays |
+
+An idle process takes about 180 MB (the five models' tensors included).
 
 ## The model as tensors
 

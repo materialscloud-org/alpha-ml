@@ -7,3 +7,13 @@ services:
     ports:
       - "${ALPHAML_PORT:-8000}:8000"
     restart: unless-stopped
+    # The settings (backend/alphaml_api/config.py), with their defaults:
+    # environment:
+    #   ALPHAML_THREADS: 1             # threads for molecules of more than ALPHAML_PARALLEL_ATOMS atoms
+    #                                  # (4: about 2x faster, but about 690 MB peak at 2000 atoms)
+    #   ALPHAML_PARALLEL_ATOMS: 256
+    #   ALPHAML_ATOM_CHUNK: 128        # atoms at once: about 380 MB peak at 2000 atoms (64: 280 MB, 5% slower)
+    #   ALPHAML_PAIR_CHUNK: 20000
+    #   ALPHAML_ELEMENT_CHUNK: 4000000
+    # A memory limit: about 180 MB idle, plus the peak of each request running at once
+    # mem_limit: 512m

@@ -56,12 +56,13 @@ model data.
 For development, run the two separately:
 
 ```bash
-cd backend && uv sync && ALPHAML_DATA_DIR=../data uv run uvicorn alphaml_api.main:app --reload   # :8000
+cd backend && uv sync && ALPHAML_DATA_DIR=../tensors uv run uvicorn alphaml_api.main:app --reload   # :8000
 cd frontend && pnpm install && pnpm dev   # :5173, proxies /api to :8000
 ```
 
 Tests: `cd backend && uv run pytest` (API tests), and with
-`ALPHAML_DATA_DIR=../data` also the comparison with the legacy predictions.
+`ALPHAML_DATA_DIR=../tensors` also the comparison with the legacy predictions.
+Settings (threads, memory): [backend/README.md](backend/README.md).
 
 ## Input files
 

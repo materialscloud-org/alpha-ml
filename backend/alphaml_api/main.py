@@ -1,31 +1,29 @@
 """FastAPI app: POST /api/predict, and the built frontend at / when present.
 
-Run:  ALPHAML_DATA_DIR=<model data> uvicorn alphaml_api.main:app
+Run:  ALPHAML_DATA_DIR=<tensors folder> uvicorn alphaml_api.main:app
+(the settings: config.py)
 """
 
 from __future__ import annotations
 
-import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
+from . import config
 from .schemas import PredictRequest, PredictResponse
 from .service import InputError, compute
 
-FRONTEND_DIST = Path(os.environ.get("FRONTEND_DIST", Path(__file__).parents[2] / "frontend" / "dist"))
 
 
 def load_model_data():
     """Load the model arrays once, only when the data directory is configured."""
-    data_dir = os.environ.get("ALPHAML_DATA_DIR")
-    if not data_dir:
+    if not config.DATA_DIR:
         return None
     from .core import ModelData
 
-    return ModelData(data_dir)
+    return ModelData(config.DATA_DIR)
 
 
 @asynccontextmanager
@@ -57,5 +55,5 @@ def predict(request: PredictRequest) -> PredictResponse:
 
 
 # Last, so that /api routes take precedence.
-if FRONTEND_DIST.is_dir():
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
+if config.FRONTEND_DIST.is_dir():
+    app.mount("/", StaticFiles(directory=config.FRONTEND_DIST, html=True), name="frontend")
