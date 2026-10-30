@@ -1,5 +1,0 @@
-set labelOffset 10 10 all; set labelPointer ON; set fontSize 20;
-select carbon; color label '#505050'; select oxygen; color label '#CC0000'; select nitrogen; color label '#0000CC'; select all;
-select property_shifts!=0; mapProperty {selected}.property_shifts {all}.property_shifts atomName;
-select OFF property_shifts!=0; label %[property_shifts];
-font label monospaced italic;

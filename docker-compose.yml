@@ -1,37 +1,9 @@
-version: "2"
-
+# docker compose up --build   (http://localhost:8000; needs data/, see Dockerfile)
+# Another port: ALPHAML_PORT=8080 docker compose up --build
 services:
-  redis:
-    restart: always
-    image: "redis:4.0.8-alpine"
-    command: redis-server --requirepass devpassword --port 6676
-
-  website:
-    restart: always
+  alphaml:
     build: .
-    command: ["/sbin/my_init"]
-    environment:
-      DEBUG: "false"
-      FAST_DEV: "false"
-      MSK: "true"
-      NB_OF_WORKERS: "5"
-      PYTHONUNBUFFERED: "true"
-      REDIS_PORT: "6676"
+    image: alphaml
     ports:
-      - "5050:80"
-
-  celery:
-    restart: always
-    build: .
-    command: >
-      bash -c "cd /home/app/code/webservice &&
-                  /home/app/.local/bin/celery worker -l info -A seekpath_app.celery"
-    env_file:
-      - ".env"
-    environment:
-      C_FORCE_ROOT: "true"
-      DEBUG: "false"
-      FAST_DEV: "false"
-      MSK: "true"
-      NB_OF_WORKERS: "5"
-      REDIS_PORT: "6676"
+      - "${ALPHAML_PORT:-8000}:8000"
+    restart: unless-stopped

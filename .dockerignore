@@ -1,6 +1,7 @@
 .git
-.dockerignore
-data
-old_data
-alphaml.zip
-alphaml.tar
+data.tar.gz
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+frontend/dist

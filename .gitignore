@@ -1,14 +1,20 @@
-data/*
+# Model data (data.tar.gz from the Materials Cloud S3 server)
+data/
 data.tar.gz
-webservice/SECRET_KEY
-webservice/seekpath_app.wsgi
-webservice/seekpath-site.conf
-webservice/*.pyc
-webservice/structure_importers/*.pyc
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node / Vite
+node_modules/
+frontend/dist/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
 .DS_Store
-*.DS_Store
-.idea
-*.pyc
-*.ipynb_checkpoints
-*.ipynb
-.vscode

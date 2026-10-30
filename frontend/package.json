@@ -1,0 +1,27 @@
+{
+  "name": "alphaml-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "matsci-parse": "0.18.18",
+    "mc-react-header": "0.7.2",
+    "mc-react-library": "^0.7.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.16",
+    "@vitejs/plugin-react": "^5.0.0",
+    "oxlint": "^1.0.0",
+    "tailwindcss": "^4.1.16",
+    "vite": "^7.1.2"
+  }
+}
