@@ -7,10 +7,13 @@ import { MODELS } from "../utils";
 import Results from "./Results";
 import { resultFromShare } from "./share";
 
-// Rough time of a prediction on the backend: measured on the example
-// molecules (13 to 60 atoms: 1.7 to 7 s), about linear in the atoms.
-const estimatedSeconds = (natoms) => Math.max(1, Math.round(0.5 + 0.12 * natoms));
-const SLOW_ATOMS = 200; // ~25 s and more
+// Rough time of a prediction on the backend, about linear in the atoms:
+// measured from 0.2 s (13 atoms) to 2 s (240 atoms).
+const estimatedTime = (natoms) => {
+  const seconds = 0.2 + 0.01 * natoms;
+  return seconds < 1 ? "< 1 s" : `~${Math.round(seconds)} s`;
+};
+const SLOW_ATOMS = 1000; // ~10 s and more
 
 /**
  * Once a molecule is loaded: what it is, the choice of model, the Calculate
@@ -139,7 +142,7 @@ export default function AlphaML({ structure, fileName, shareId, kvUrl, onResult,
               Calculate
             </button>
             <span className="text-slate-500">
-              estimated ~{estimatedSeconds(natoms)} s
+              estimated {estimatedTime(natoms)}
               {natoms > SLOW_ATOMS && (
                 <strong className="ml-1 text-amber-700">This may take a while!</strong>
               )}

@@ -1,6 +1,8 @@
-# Model data (data.tar.gz from the Materials Cloud S3 server)
+# Model data (data.tar.gz from the Materials Cloud S3 server), and the
+# tensors built from it (python -m alphaml_api.tensors data tensors)
 data/
 data.tar.gz
+tensors/
 
 # Python
 __pycache__/

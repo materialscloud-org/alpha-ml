@@ -9,7 +9,6 @@ dependencies = [
   "uvicorn[standard]>=0.30",
   "numpy>=2.0",
   "scipy>=1.13",
-  "sympy>=1.12",
   "ase>=3.23",
 ]
 

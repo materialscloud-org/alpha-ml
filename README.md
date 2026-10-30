@@ -31,7 +31,15 @@ Materials Cloud S3 server. Unpack it in `data/` (gitignored):
 mkdir data && tar xzf data.tar.gz -C data --strip-components=1
 ```
 
-The backend reads it from the directory in `ALPHAML_DATA_DIR`.
+The backend uses the model as fixed tensors built from it once (about 90 MB,
+in `tensors/`, gitignored):
+
+```bash
+cd backend && uv run python scripts/build_tensors.py ../data ../tensors
+```
+
+See [backend/README.md](backend/README.md). The Docker image is built from
+`data/` but holds only the tensors.
 
 ## Running it
 
