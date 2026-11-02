@@ -1,14 +1,14 @@
 import "./index.css";
 import MaterialsCloudHeader from "mc-react-header";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import InfoAccordions from "./AccordionContent";
 import AlphaML from "./AlphaML";
-import { toAlphaMLShare } from "./AlphaML/share";
 import MoleculeUpload from "./FileUpload";
 import { PAPER_DOI } from "./utils";
 
-import { McAppHeader, McShareButton } from "mc-react-library";
+// Current policy is no mc-keyvalues-stores allowed in apps
+import { McAppHeader /* , McShareButton, toStructureShare */ } from "mc-react-library";
 
 // kv-store for share links. .env.development points `pnpm dev` at the dev
 // store; unset (production builds) means the Materials Cloud production store.
@@ -17,10 +17,6 @@ const KV_URL = import.meta.env.VITE_KV_URL;
 function App() {
   // { structure, fileName, format, shareId? }
   const [loaded, setLoaded] = useState(null);
-  // The result shown, { model, data, fromLink }: shared with the structure,
-  // and only once there is one (no Share button before)
-  const [result, setResult] = useState(null);
-  const shared = useMemo(() => loaded && result && { ...loaded, result }, [loaded, result]);
 
   return (
     <>
@@ -57,19 +53,16 @@ function App() {
             <AlphaML
               structure={loaded?.structure}
               fileName={loaded?.fileName}
-              shareId={loaded?.shareId}
-              kvUrl={KV_URL}
-              onResult={setResult}
             />
 
+            {/* Current policy is no mc-keyvalues-stores allowed in apps
             <McShareButton
               kvUrl={KV_URL}
-              data={shared}
-              toDocument={toAlphaMLShare}
-              // The result came with the link opened: share that link again
-              shareId={result?.fromLink ? loaded?.shareId : undefined}
+              data={loaded}
+              toDocument={toStructureShare}
+              shareId={loaded?.shareId}
               className="mx-auto max-w-6xl px-6 sm:px-10"
-            />
+            /> */}
           </div>
         </div>
       </main>

@@ -8,15 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.105.1
+        version: 5.105.1(react@18.3.1)
       matsci-parse:
-        specifier: 0.18.18
-        version: 0.18.18
+        specifier: 0.18.19
+        version: 0.18.19
       mc-react-header:
         specifier: 0.7.2
         version: 0.7.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       mc-react-library:
-        specifier: ^0.7.8
-        version: 0.7.8(matsci-parse@0.18.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.7.9
+        version: 0.7.9(matsci-parse@0.18.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -667,6 +670,18 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@tanstack/query-core@5.105.1':
+    resolution: {integrity: sha512-B/rNlZoZ54w1dlddiUt9oEe1SLM+37c00SKLJEg9YH+7as3Y54P81o9Fh+2ujZ36tXPnQJ5oVe7AcyEWkyFhPg==}
+
+  '@tanstack/react-query@5.105.1':
+    resolution: {integrity: sha512-qcu+/+PtBOjW8qU4/0l47QVmNG7hPOWsCLzP0bTRhE1X7HYa757C4732wXTUH0QhCjTV1yedX8onsCiEwlNYrA==}
+    peerDependencies:
+      '@types/react': ^18 || ^19
+      react: ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
 
@@ -855,8 +870,8 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
-  matsci-parse@0.18.18:
-    resolution: {integrity: sha512-nUaz4zIrCPadbC3KQ9hTHSqyfGpiwJ9oCASrLksgjOpgGLun7UMo4zFfyRnUhs7kH5PQkjtUL59hPMw9fMlg0w==}
+  matsci-parse@0.18.19:
+    resolution: {integrity: sha512-ofYxlfBSmj0fk6FQLpY6P/1JFZbRDw3q/KTJOyLpNcTfMfq0MghYXSd2bDeqTBmjo6Ic/CS0GzymgF7miz/4rA==}
 
   mc-react-header@0.7.2:
     resolution: {integrity: sha512-GgiGqu1g1BT/6p1+Mc4hi3ajQrIElbhPJs4xuIAeWDevtb5O8iu9elLcw333q55gbk7YOtzFmauFyJBqFepvlg==}
@@ -864,8 +879,8 @@ packages:
       react: ^18.2.0
       react-dom: ^18.2.0
 
-  mc-react-library@0.7.8:
-    resolution: {integrity: sha512-BEzPHIr1MtkasyhYVTaKYpPaYfsJV0awJYvGJI711QRektxTEDXA9mSKOvQRtKZxe0WAPrf0sfgKwmMVUvbIMg==}
+  mc-react-library@0.7.9:
+    resolution: {integrity: sha512-+QAnlGKQFIgrBcSQqW+V358FPUFo39CszKqreHdZc+cXJksxw1I13IaW5JNCte1j1gF+t8w3NW19h5iOyP282Q==}
     peerDependencies:
       matsci-parse: '>=0.18.9'
       react: ^18.2.0
@@ -1421,6 +1436,13 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 7.3.7(jiti@2.7.0)(lightningcss@1.32.0)
 
+  '@tanstack/query-core@5.105.1': {}
+
+  '@tanstack/react-query@5.105.1(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-core': 5.105.1
+      react: 18.3.1
+
   '@types/babel__core@7.20.5':
     dependencies:
       '@babel/parser': 7.29.11
@@ -1594,7 +1616,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  matsci-parse@0.18.18:
+  matsci-parse@0.18.19:
     dependencies:
       '@spglib/moyo-wasm': 0.21.0
       txml: 6.0.3
@@ -1604,9 +1626,9 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  mc-react-library@0.7.8(matsci-parse@0.18.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  mc-react-library@0.7.9(matsci-parse@0.18.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      matsci-parse: 0.18.18
+      matsci-parse: 0.18.19
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 

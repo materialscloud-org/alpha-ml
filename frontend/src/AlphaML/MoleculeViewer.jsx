@@ -2,7 +2,7 @@
 // the legacy JSmol view drew them. Only the atoms are shown: a molecule has no
 // cell (the box matsci-parse may put it in is not drawn).
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
@@ -12,6 +12,7 @@ import { createMatrix, eigh } from "matsci-parse/matrix";
 // The legacy app's colours
 const COLORS = { H: 0xc0c0c0, C: 0x505050, N: 0x0000cc, O: 0xcc0000, S: 0xffc832, Cl: 0x00cc00 };
 const BOND_FACTOR = 1.1; // bonded below 1.1 (r_i + r_j)
+const ELLIPSOID_OPACITY = 0.35;
 
 /** Semi-axes of the ellipsoid of a 3x3 tensor (row-major): the eigenvectors,
  * scaled by sqrt(|eigenvalue|) (as the legacy view), with the signs. */
@@ -88,9 +89,14 @@ function buildMolecule(structure, tensors, scale, showAxes) {
     const [a, b, c] = axes.map((axis) => axis.direction);
     // A rotation (right-handed basis)
     if (a.clone().cross(b).dot(c) < 0) c.negate();
+    // Multiplied into what is behind (a tint): the same in any order, so
+    // overlapping ellipsoids do not swap while rotating, as blended ones
+    // drawn back to front do. Over white, the colour mixed with white blends
+    // as that colour at ELLIPSOID_OPACITY would.
+    const tint = new THREE.Color(COLORS[symbols[i]] ?? 0xff1493).lerp(new THREE.Color(0xffffff), 1 - ELLIPSOID_OPACITY);
     const ellipsoid = new THREE.Mesh(
       sphere,
-      material(symbols[i], { transparent: true, opacity: 0.35, depthWrite: false }),
+      material(symbols[i], { color: tint, transparent: true, blending: THREE.MultiplyBlending, depthWrite: false }),
     );
     ellipsoid.matrixAutoUpdate = false;
     ellipsoid.matrix
@@ -132,6 +138,17 @@ export default function MoleculeViewer({
   className = "",
 }) {
   const container = useRef(null);
+  // Interaction guard: the viewer takes the mouse (and the wheel) once clicked,
+  // until the mouse leaves it (a touch: until a tap outside)
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const outside = (event) => {
+      if (!container.current?.contains(event.target)) setActive(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [active]);
   const layers = useRef(null);
   const visibility = useRef({});
   visibility.current = { showEllipsoids, showLabels };
@@ -147,8 +164,10 @@ export default function MoleculeViewer({
 
   useEffect(() => {
     const element = container.current;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
+    // Opaque: the ellipsoids multiply what is behind them
+    renderer.setClearColor(0xffffff, 1);
     element.appendChild(renderer.domElement);
     // Labels: HTML over the canvas, not catching the mouse
     const labelRenderer = new CSS2DRenderer();
@@ -212,5 +231,22 @@ export default function MoleculeViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [structure, tensors, scale, showAxes]);
 
-  return <div ref={container} className={`relative h-full w-full overflow-hidden ${className}`} />;
+  return (
+    <div
+      ref={container}
+      className={`relative h-full w-full overflow-hidden ${className}`}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setActive(false)}
+    >
+      {!active && (
+        <div
+          className="group absolute inset-0 z-[5] flex cursor-pointer items-center justify-center"
+          onClick={() => setActive(true)}
+        >
+          <span className="rounded bg-white/80 px-3 py-1 text-sm text-slate-600 opacity-0 transition-opacity group-hover:opacity-100">
+            Click to interact
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }

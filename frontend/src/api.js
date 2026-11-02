@@ -16,7 +16,7 @@
 //     compute_time: number,                  // seconds
 //   }
 //
-// Molecules: only the atoms are sent. The cell matsci-parse reads (a box
+// Molecules: only the atoms are sent (moleculeInput). The cell matsci-parse reads (a box
 // around the molecule, e.g. Lattice= of an extended XYZ file) is not used by
 // the model, which takes no periodic images.
 //
@@ -34,17 +34,20 @@ function errorMessage(detail, status) {
   return `Request failed (${status})`;
 }
 
-export async function predictPolarizabilities(structure, model, { signal } = {}) {
+/** The atoms of `structure` as the backend takes them: `{ symbols, positions }`
+ * (plain arrays, also the cache key of the prediction). */
+export const moleculeInput = (structure) => ({
+  symbols: structure.sites.map((site) => site.species.symbol),
+  positions: structure.sites.map((site) =>
+    Array.from(cartesian(structure.lattice, site)),
+  ),
+});
+
+export async function predictPolarizabilities(molecule, model, { signal } = {}) {
   const res = await fetch(`${API_BASE}/api/predict`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      symbols: structure.sites.map((site) => site.species.symbol),
-      positions: structure.sites.map((site) =>
-        Array.from(cartesian(structure.lattice, site)),
-      ),
-      model,
-    }),
+    body: JSON.stringify({ ...molecule, model }),
     signal,
   });
 

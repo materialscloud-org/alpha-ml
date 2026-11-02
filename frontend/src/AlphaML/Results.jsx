@@ -4,6 +4,7 @@ import { McCopyAccordion } from "mc-react-library";
 
 import { modelLabel } from "../utils";
 import { FORMATS } from "./downloads";
+import MoleculeBox from "./MoleculeBox";
 import MoleculeViewer from "./MoleculeViewer";
 
 const fmt = (x) => x.toFixed(4);
@@ -84,20 +85,34 @@ function Stat({ label, value, note }) {
 
 function AtomTable({ structure, atomic }) {
   return (
-    <div className="max-h-96 overflow-auto rounded border border-slate-200">
+    <div className="max-h-96 overflow-auto rounded shadow border border-slate-200">
       <table className="w-full text-sm tabular-nums">
-        <thead className="sticky top-0 bg-slate-50">
+        <thead className="sticky top-0 bg-slate-100">
           <tr>
             {[
               "#",
               "Element",
-              "αxx",
-              "αyy",
-              "αzz",
-              "αxy",
-              "αxz",
-              "αyz",
-              "α_iso",
+              <>
+                α<sub>xx</sub>
+              </>,
+              <>
+                α<sub>yy</sub>
+              </>,
+              <>
+                α<sub>zz</sub>
+              </>,
+              <>
+                α<sub>xy</sub>
+              </>,
+              <>
+                α<sub>xz</sub>
+              </>,
+              <>
+                α<sub>yz</sub>
+              </>,
+              <>
+                α<sub>iso</sub>
+              </>,
             ].map((h) => (
               <th
                 key={h}
@@ -111,7 +126,9 @@ function AtomTable({ structure, atomic }) {
         <tbody>
           {atomic.map((t, i) => (
             <tr key={i} className="odd:bg-white even:bg-slate-50">
+              {/* index is left aligned */}
               <td className="px-2 text-left">{i + 1}</td>
+              {/* rest is right aligned using numercis */}
               <td className="px-2 text-right">
                 {structure.sites[i].species.symbol}
               </td>
@@ -131,7 +148,18 @@ function AtomTable({ structure, atomic }) {
   );
 }
 
-export default function Results({ structure, result, model, fileName }) {
+/**
+ * The polarizabilities `result` of `structure` by `model`, with the choice of
+ * the next model (`selectedModel`, `onSelectModel`) over the viewer.
+ */
+export default function Results({
+  structure,
+  result,
+  model,
+  fileName,
+  selectedModel,
+  onSelectModel,
+}) {
   // All downloads closed at first; one open at a time
   const [open, setOpen] = useState(null);
   const [ellipsoids, setEllipsoids] = useState(true);
@@ -158,31 +186,17 @@ export default function Results({ structure, result, model, fileName }) {
     <div className="space-y-6 pt-4">
       <section>
         <h2 className="mb-1 text-lg font-semibold text-slate-900">Results</h2>
-        <div className="mb-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-          <label className="flex items-center gap-1 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={ellipsoids}
-              onChange={(e) => setEllipsoids(e.target.checked)}
-            />
-            Atom-centred polarizability ellipsoids
-          </label>
-          <label className="flex items-center gap-1 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={labels}
-              onChange={(e) => setLabels(e.target.checked)}
-            />
-            Atom labels
-          </label>
-          <span>
-            Semi-axes ∝ √|principal value|
-            {delta &&
-              "; axes red where the correction is positive, black where negative"}
-            . Drag to rotate, scroll to zoom.
-          </span>
-        </div>
-        <div className="h-[420px] w-full rounded border border-slate-200">
+        <div className="relative h-[420px] w-full rounded border border-slate-200">
+          <MoleculeBox
+            structure={structure}
+            fileName={fileName}
+            model={selectedModel}
+            onModelChange={onSelectModel}
+            ellipsoids={ellipsoids}
+            onEllipsoidsChange={setEllipsoids}
+            labels={labels}
+            onLabelsChange={setLabels}
+          />
           <MoleculeViewer
             structure={structure}
             tensors={result.atomic_polarizabilities}
@@ -191,6 +205,12 @@ export default function Results({ structure, result, model, fileName }) {
             showAxes={delta}
             showLabels={labels}
           />
+          <p className="pointer-events-none absolute bottom-2 left-2 z-10 mr-2 rounded bg-white/80 px-1.5 py-0.5 text-xs text-slate-500">
+            Semi-axes ∝ √|principal value|
+            {delta &&
+              "; axes red where the correction is positive, black where negative"}
+            . drag to rotate, scroll to zoom.
+          </p>
         </div>
       </section>
 
