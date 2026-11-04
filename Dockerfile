@@ -11,16 +11,21 @@ RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
 RUN pnpm build
 
+# The backend's virtualenv, with the package installed in it (not editable).
+# uv and its cache stay in this stage.
 FROM python:3.12-slim AS backend
 COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /bin/uv
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_CACHE=1
 WORKDIR /app/backend
 COPY backend/pyproject.toml backend/uv.lock backend/.python-version backend/README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/alphaml_api ./alphaml_api
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-editable
 
-FROM backend
+# Same base as the backend stage, so that the virtualenv's python links work
+FROM python:3.12-slim
+COPY --from=backend /app/backend/.venv /app/backend/.venv
+WORKDIR /app/backend
 COPY --from=frontend /src/frontend/dist /app/frontend/dist
 COPY tensors /app/tensors
 
