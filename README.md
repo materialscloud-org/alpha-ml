@@ -43,7 +43,9 @@ docker compose up --build
 TAG=$(date +%Y.%m.%d-%H%M%S)
 IMAGE=harbor.materialscloud.cscs.ch/contributed/tools-alphaml
 
-docker build -t $IMAGE:latest .
+# --pull: the latest base images, with their security fixes;
+# while this will mean the docker images are not stable it solves many security concerns and rarely changes behaviour
+docker build --pull -t $IMAGE:latest .
 docker push $IMAGE:latest
 docker tag $IMAGE:latest $IMAGE:$TAG
 docker push $IMAGE:$TAG
