@@ -1,30 +1,26 @@
 # AlphaML app
 
-The trained model (training-set power spectra, sparsification matrices and the
-weights of each model, 411 MB) is not in git: it is `data.tar.gz` on the
-Materials Cloud S3 server. Unpack it in `data/` (gitignored):
+The trained model can be found on Materials Cloud S3 s3:mc-contributed-app-data/alpha-ml/data.tar.gz it is `data.tar.gz`
+MD5
+`224f5b70e0a29b3071d3a532572ead5b`:
+
+```bash
+rclone copy s3:mc-contributed-app-data/alpha-ml/data.tar.gz .
+```
+
+The relevant Mateirals Cloud Archive entry is [rmp9p-1k216](https://archive.materialscloud.org/records/rmp9p-1k216)
+(Yang et al., 2019)
 
 ```bash
 mkdir data && tar xzf data.tar.gz -C data --strip-components=1
 ```
 
-The backend uses the model as fixed tensors built from it once (about 90 MB,
-in `tensors/`, gitignored):
+The backend uses the model as fixed tensors that have been built form the training data `tensors/`.
+
+If you need to rebuild these from the data directory:
 
 ```bash
 cd backend && uv run python scripts/build_tensors.py ../data ../tensors
-```
-
-See [backend/README.md](backend/README.md). The Docker image is built from
-`data/` but holds only the tensors.
-
-### docker
-
-After handling the models
-
-```bash
-docker compose up --build
-# goto http://localhost:8000
 ```
 
 ### development
@@ -32,6 +28,13 @@ docker compose up --build
 ```bash
 cd backend && uv sync && ALPHAML_DATA_DIR=../tensors uv run uvicorn alphaml_api.main:app --reload   # :8000
 cd frontend && pnpm install && pnpm dev   # :5173, proxies /api to :8000
+```
+
+### docker
+
+```bash
+docker compose up --build
+# goto http://localhost:8000
 ```
 
 ### Publishing to Materials Cloud harbor

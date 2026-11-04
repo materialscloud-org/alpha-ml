@@ -1,8 +1,5 @@
-# AlphaML: React frontend + FastAPI backend in one image.
-# Needs the training data unpacked in data/ (data.tar.gz, from the Materials
-# Cloud S3 server; not in git). The image holds only the model's tensors built
-# from it (backend/scripts/build_tensors.py, ~90 MB instead of 411 MB):
-#   mkdir data && tar xzf data.tar.gz -C data --strip-components=1
+# AlphaML: React frontend + FastAPI backend in one image, with the model's
+# tensors from git (tensors/, see the README):
 #   docker compose up --build        # http://localhost:8000
 # or: docker build -t alphaml . && docker run -p 8000:8000 alphaml
 
@@ -23,15 +20,9 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/alphaml_api ./alphaml_api
 RUN uv sync --frozen --no-dev
 
-# The model's tensors, from the training data (which stays in this stage)
-FROM backend AS tensors
-COPY backend/scripts ./scripts
-COPY data /data
-RUN .venv/bin/python scripts/build_tensors.py /data /tensors
-
 FROM backend
 COPY --from=frontend /src/frontend/dist /app/frontend/dist
-COPY --from=tensors /tensors /app/tensors
+COPY tensors /app/tensors
 
 # The settings: backend/alphaml_api/config.py (ALPHAML_THREADS, the chunk
 # sizes, ...). One BLAS thread: no faster with more, for these matrix sizes.
