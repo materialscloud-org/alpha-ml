@@ -10,10 +10,6 @@ import { PAPER_DOI } from "./utils";
 // Current policy is no mc-keyvalues-stores allowed in apps
 import { McAppHeader /* , McShareButton, toStructureShare */ } from "mc-react-library";
 
-// kv-store for share links. .env.development points `pnpm dev` at the dev
-// store; unset (production builds) means the Materials Cloud production store.
-const KV_URL = import.meta.env.VITE_KV_URL;
-
 function App() {
   // { structure, fileName, format, shareId? }
   const [loaded, setLoaded] = useState(null);
@@ -46,7 +42,7 @@ function App() {
             <div className="mx-auto max-w-4xl px-6 py-8 sm:px-10">
               <div className="space-y-3">
                 <InfoAccordions />
-                <MoleculeUpload kvUrl={KV_URL} onStructureParsed={setLoaded} />
+                <MoleculeUpload onStructureParsed={setLoaded} />
               </div>
             </div>
 
@@ -57,7 +53,6 @@ function App() {
 
             {/* Current policy is no mc-keyvalues-stores allowed in apps
             <McShareButton
-              kvUrl={KV_URL}
               data={loaded}
               toDocument={toStructureShare}
               shareId={loaded?.shareId}
